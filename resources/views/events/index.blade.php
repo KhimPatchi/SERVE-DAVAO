@@ -67,9 +67,10 @@
     <section class="mb-8">
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
             @php
-                // Calculate accurate statistics
+                // Calculate accurate statistics USING THE NEW AUTOMATIC STATUS
                 $totalEvents = $events->total();
-                $activeEvents = $events->where('status', 'active')->count();
+                $activeEvents = $events->where('current_status', 'active')->count();
+                $completedEvents = $events->where('current_status', 'completed')->count();
                 $totalVolunteersNeeded = 0;
                 $totalVolunteersRegistered = 0;
                 $totalCapacity = 0;
@@ -92,7 +93,7 @@
                         <h2 class="text-3xl font-bold text-gray-900 mb-2">{{ $totalEvents }}</h2>
                         <div class="flex items-center text-xs text-gray-500">
                             <i class="bi bi-database mr-1"></i>
-                            <span>{{ $activeEvents }} active • {{ $totalEvents - $activeEvents }} other</span>
+                            <span>{{ $activeEvents }} active • {{ $completedEvents }} completed • {{ $totalEvents - $activeEvents - $completedEvents }} other</span>
                         </div>
                     </div>
                     <div class="rounded-2xl bg-blue-500/10 p-3 ml-4">
@@ -262,12 +263,24 @@
                                 Your Event
                             </span>
                             @endif
-                            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium 
-                                {{ $isFull ? 'bg-red-100 text-red-800 ring-1 ring-red-200' : 
-                                   ($isUrgent ? 'bg-orange-100 text-orange-800 ring-1 ring-orange-200' : 
-                                   'bg-green-100 text-green-800 ring-1 ring-green-200') }}">
-                                <i class="bi {{ $isFull ? 'bi-x-circle' : ($isUrgent ? 'bi-exclamation-triangle' : 'bi-check-circle') }} mr-1"></i>
-                                {{ $isFull ? 'Full' : ($isUrgent ? 'Urgent' : 'Available') }}
+                            
+                            @php
+                                // USE THE FUCKING NEW AUTOMATIC STATUS
+                                $currentStatus = $event->current_status;
+                                
+                                $statusConfig = [
+                                    'active' => ['class' => 'bg-green-100 text-green-800 ring-1 ring-green-200', 'icon' => 'bi-check-circle', 'text' => 'Active'],
+                                    'completed' => ['class' => 'bg-blue-100 text-blue-800 ring-1 ring-blue-200', 'icon' => 'bi-check-circle-fill', 'text' => 'Completed'],
+                                    'pending' => ['class' => 'bg-yellow-100 text-yellow-800 ring-1 ring-yellow-200', 'icon' => 'bi-clock', 'text' => 'Pending'],
+                                    'cancelled' => ['class' => 'bg-red-100 text-red-800 ring-1 ring-red-200', 'icon' => 'bi-x-circle', 'text' => 'Cancelled'],
+                                    'rejected' => ['class' => 'bg-gray-100 text-gray-800 ring-1 ring-gray-200', 'icon' => 'bi-x-circle-fill', 'text' => 'Rejected'],
+                                ];
+                                $config = $statusConfig[$currentStatus] ?? $statusConfig['pending'];
+                            @endphp
+
+                            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {{ $config['class'] }}">
+                                <i class="bi {{ $config['icon'] }} mr-1"></i>
+                                {{ $config['text'] }}
                             </span>
                         </div>
 
@@ -343,9 +356,10 @@
                             <div class="flex items-center gap-2">
                                 <a href="{{ route('events.show', $event) }}" 
                                    class="group/btn inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:scale-105
-                                          {{ $isOrganizer ? 'bg-gradient-to-r from-purple-600 to-blue-600' : 'bg-gradient-to-r from-green-600 to-teal-600' }}">
-                                    <i class="bi {{ $isOrganizer ? 'bi-gear' : 'bi-arrow-right' }} transition-transform group-hover/btn:translate-x-0.5"></i>
-                                    {{ $isOrganizer ? 'Manage' : 'Join' }}
+                                          {{ $isOrganizer ? 'bg-gradient-to-r from-purple-600 to-blue-600' : ($event->current_status === 'active' ? 'bg-gradient-to-r from-green-600 to-teal-600' : 'bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed') }}"
+                                   {{ $event->current_status !== 'active' && !$isOrganizer ? 'onclick="return false;"' : '' }}>
+                                    <i class="bi {{ $isOrganizer ? 'bi-gear' : ($event->current_status === 'active' ? 'bi-arrow-right' : 'bi-lock') }} transition-transform group-hover/btn:translate-x-0.5"></i>
+                                    {{ $isOrganizer ? 'Manage' : ($event->current_status === 'active' ? 'Join' : 'Completed') }}
                                 </a>
                             </div>
                         </div>

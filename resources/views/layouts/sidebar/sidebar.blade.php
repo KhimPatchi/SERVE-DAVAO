@@ -430,64 +430,77 @@
       <!-- Enhanced Footer Section -->
       <div class="sidebar-footer mt-auto px-3 py-4 hidden md:block">
         <div class="space-y-3">
-          <!-- User Info (visible when expanded) -->
+          <!-- User Info (visible when expanded) - FIXED AVATAR DISPLAY -->
           <div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50 opacity-0 transition-opacity duration-300 collapsed-text">
-            <!-- Dynamic Avatar based on user registration method -->
+            <!-- FIXED AVATAR DISPLAY - Using same logic as events show page -->
             @php
-              // Determine avatar source
-              $avatarUrl = null;
-              $userInitial = strtoupper(substr(Auth::user()->name, 0, 1));
-              $avatarBackground = 'bg-gradient-to-r from-purple-500 to-indigo-600';
-              
-              // Check if user has Google avatar (assuming you have this field in your user model)
-              if (Auth::user()->google_avatar) {
-                  $avatarUrl = Auth::user()->google_avatar;
-                  $avatarBackground = ''; // No background if using image
-              }
-              // Check if user has uploaded a custom avatar
-              elseif (Auth::user()->avatar) {
-                  $avatarUrl = Auth::user()->avatar;
-                  $avatarBackground = ''; // No background if using image
-              }
-              // Check if user registered via social providers
-              elseif (Auth::user()->provider) {
-                  switch (Auth::user()->provider) {
-                      case 'google':
-                          $avatarBackground = 'bg-gradient-to-r from-red-500 to-yellow-500';
-                          break;
-                      case 'facebook':
-                          $avatarBackground = 'bg-gradient-to-r from-blue-600 to-blue-800';
-                          break;
-                      case 'github':
-                          $avatarBackground = 'bg-gradient-to-r from-gray-700 to-gray-900';
-                          break;
-                      default:
-                          $avatarBackground = 'bg-gradient-to-r from-purple-500 to-indigo-600';
-                  }
-              }
+                $user = Auth::user();
+                // COMPREHENSIVE AVATAR FIX FOR SIDEBAR
+                $avatarUrl = null;
+                if ($user && $user->avatar) {
+                    if (str_starts_with($user->avatar, 'http')) {
+                        $avatarUrl = $user->avatar;
+                    } elseif (str_starts_with($user->avatar, 'storage/')) {
+                        $avatarUrl = asset($user->avatar);
+                    } else {
+                        $avatarUrl = asset('storage/' . $user->avatar);
+                    }
+                }
+                // Also check for google_avatar
+                if (!$avatarUrl && $user && $user->google_avatar) {
+                    $avatarUrl = $user->google_avatar;
+                }
+                $hasValidAvatar = $avatarUrl && filter_var($avatarUrl, FILTER_VALIDATE_URL);
+                $userInitial = $user ? strtoupper(substr($user->name, 0, 1)) : 'U';
+                
+                // Determine avatar background based on registration method
+                $avatarBackground = 'bg-gradient-to-r from-purple-500 to-indigo-600';
+                if ($user && $user->provider) {
+                    switch ($user->provider) {
+                        case 'google':
+                            $avatarBackground = 'bg-gradient-to-r from-red-500 to-yellow-500';
+                            break;
+                        case 'facebook':
+                            $avatarBackground = 'bg-gradient-to-r from-blue-600 to-blue-800';
+                            break;
+                        case 'github':
+                            $avatarBackground = 'bg-gradient-to-r from-gray-700 to-gray-900';
+                            break;
+                        default:
+                            $avatarBackground = 'bg-gradient-to-r from-purple-500 to-indigo-600';
+                    }
+                }
             @endphp
 
-            @if($avatarUrl)
-              <!-- Show actual avatar image -->
-              <img src="{{ $avatarUrl }}" alt="{{ Auth::user()->name }}" 
-                   class="user-avatar">
+            @if($hasValidAvatar)
+                <!-- Show actual avatar image with error handling -->
+                <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" 
+                     class="w-8 h-8 rounded-full border-2 border-gray-200 object-cover"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="w-8 h-8 rounded-full {{ $avatarBackground }} flex items-center justify-center border-2 border-gray-200" style="display: none;">
+                    <span class="text-white font-bold text-xs">
+                        {{ $userInitial }}
+                    </span>
+                </div>
             @else
-              <!-- Show colored initial based on registration method -->
-              <div class="avatar-initial {{ $avatarBackground }}">
-                {{ $userInitial }}
-              </div>
+                <!-- Show colored initial based on registration method -->
+                <div class="w-8 h-8 rounded-full {{ $avatarBackground }} flex items-center justify-center border-2 border-gray-200">
+                    <span class="text-white font-bold text-xs">
+                        {{ $userInitial }}
+                    </span>
+                </div>
             @endif
 
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-900 truncate">{{ Auth::user()->name }}</p>
-              <p class="text-xs text-gray-500 truncate">{{ Auth::user()->email }}</p>
-              @if(Auth::user()->provider)
-                <p class="text-xs text-gray-400 capitalize">
-                  {{ Auth::user()->provider }} account
-                </p>
-              @else
-        
-              @endif
+                <p class="text-sm font-medium text-gray-900 truncate">{{ $user->name ?? 'User' }}</p>
+                <p class="text-xs text-gray-500 truncate">{{ $user->email ?? '' }}</p>
+                @if($user && $user->provider)
+                    <p class="text-xs text-gray-400 capitalize">
+                        {{ $user->provider }} account
+                    </p>
+                @else
+                    <!-- Regular account indicator -->
+                @endif
             </div>
           </div>
           

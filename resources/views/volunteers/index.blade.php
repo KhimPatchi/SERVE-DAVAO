@@ -63,18 +63,26 @@
                     $isFull = $volunteersNeeded === 0;
                     $isUrgent = $volunteersNeeded > 0 && $volunteersNeeded <= 3;
                     $isRegistered = auth()->check() && $event->isRegistered(auth()->id());
+                    $isOrganizer = auth()->check() && $event->isOrganizer(auth()->id());
                 @endphp
                 
                 <article class="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 transition-all duration-500 hover:shadow-xl hover:translate-y-[-2px]">
                     <!-- Status Badge -->
                     <div class="absolute top-4 right-4">
-                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium 
-                            {{ $isFull ? 'bg-red-100 text-red-800 ring-1 ring-red-200' : 
-                               ($isUrgent ? 'bg-orange-100 text-orange-800 ring-1 ring-orange-200' : 
-                               'bg-green-100 text-green-800 ring-1 ring-green-200') }}">
-                            <i class="bi {{ $isFull ? 'bi-x-circle' : ($isUrgent ? 'bi-exclamation-triangle' : 'bi-check-circle') }} mr-1"></i>
-                            {{ $isFull ? 'Full' : ($isUrgent ? 'Urgent' : 'Available') }}
-                        </span>
+                        @if($isOrganizer)
+                            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 ring-1 ring-blue-200">
+                                <i class="bi bi-person-gear mr-1"></i>
+                                Organizer
+                            </span>
+                        @else
+                            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium 
+                                {{ $isFull ? 'bg-red-100 text-red-800 ring-1 ring-red-200' : 
+                                   ($isUrgent ? 'bg-orange-100 text-orange-800 ring-1 ring-orange-200' : 
+                                   'bg-green-100 text-green-800 ring-1 ring-green-200') }}">
+                                <i class="bi {{ $isFull ? 'bi-x-circle' : ($isUrgent ? 'bi-exclamation-triangle' : 'bi-check-circle') }} mr-1"></i>
+                                {{ $isFull ? 'Full' : ($isUrgent ? 'Urgent' : 'Available') }}
+                            </span>
+                        @endif
                     </div>
 
                     <!-- Event Header -->
@@ -131,7 +139,12 @@
                     <!-- Action Panel -->
                     <div class="flex items-center justify-between border-t border-gray-100 pt-4">
                         <div class="flex items-center gap-2">
-                            @if($isRegistered)
+                            @if($isOrganizer)
+                                <span class="inline-flex items-center text-xs text-blue-600 font-medium">
+                                    <i class="bi bi-person-gear mr-1"></i>
+                                    You organized this
+                                </span>
+                            @elseif($isRegistered)
                                 <span class="inline-flex items-center text-xs text-green-600 font-medium">
                                     <i class="bi bi-check-circle mr-1"></i>
                                     Registered
@@ -150,7 +163,12 @@
                         </div>
                         
                         <div class="flex items-center gap-2">
-                            @if($isRegistered)
+                            @if($isOrganizer)
+                                <span class="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 text-sm font-medium rounded-lg">
+                                    <i class="bi bi-person-gear mr-1.5"></i>
+                                    Organizer
+                                </span>
+                            @elseif($isRegistered)
                                 <span class="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 text-sm font-medium rounded-lg">
                                     <i class="bi bi-check-lg mr-1.5"></i>
                                     Joined

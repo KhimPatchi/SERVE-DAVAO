@@ -21,15 +21,21 @@ class EventController extends Controller
         return view('events.index', compact('events'));
     }
 
-   public function show(Event $event)
-        {
-            // Load the volunteers relationship properly
-            $event->load(['organizer', 'volunteers' => function($query) {
-                $query->where('status', 'registered');
-            }]);
-            
-            return view('events.show', compact('event'));
+  public function show(Event $event)
+{
+    // Load the organizer relationship properly
+    $event->load(['organizer']);
+
+    // Fix: Convert storage path to public URL if needed
+    if ($event->organizer && $event->organizer->avatar) {
+        // If avatar path starts with 'storage/', convert to public URL
+        if (str_starts_with($event->organizer->avatar, 'storage/')) {
+            $event->organizer->avatar = asset($event->organizer->avatar);
         }
+    }
+
+    return view('events.show', compact('event'));
+}
     public function create()
     {
         // Only verified organizers and admins can create events

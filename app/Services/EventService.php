@@ -21,6 +21,9 @@ class EventService
         // Verified organizers and admins can create active events immediately
         $status = 'active';
 
+        // FIX: Get fresh user data to ensure we have the correct name
+        $freshOrganizer = User::find($organizer->id);
+
         $event = Event::create([
             'title' => $data['title'],
             'description' => $data['description'],
@@ -28,19 +31,28 @@ class EventService
             'location' => $data['location'],
             'required_volunteers' => $data['required_volunteers'],
             'skills_required' => $data['skills_required'] ?? null,
-            'organizer_id' => $organizer->id,
+            'organizer_id' => $freshOrganizer->id,
+            'organizer_name' => $freshOrganizer->name, // This will now work
             'current_volunteers' => 0,
             'status' => $status,
         ]);
 
         return $event;
     }
-
+             // ADD THIS METHOD TO FIX THE DASHBOARD ERROR
+    public function getUserVolunteerStats(User $user): array
+    {
+        // Use the User model's existing stats methods
+        if ($user->isVerifiedOrganizer() || $user->isAdmin()) {
+            return $user->getOrganizerStats();
+        } else {
+            return $user->getVolunteerStats();
+        }
+    }
     public function getAvailableEvents()
     {
         return Event::with('organizer')
-            ->where('status', 'active')
-            ->where('date', '>=', now())
+            ->active() // Use the new scope
             ->whereColumn('current_volunteers', '<', 'required_volunteers')
             ->orderBy('date', 'asc')
             ->paginate(10);
@@ -49,58 +61,8 @@ class EventService
     public function getAllEventsForPublic()
     {
         return Event::with('organizer')
-            ->where('status', 'active') // Only show active events to public
-            ->where('date', '>=', now())
+            ->active() // Use the new scope - only shows future active events
             ->orderBy('date', 'asc')
-            ->paginate(10);
-    }
-
-    public function getUserVolunteerStats(User $user): array
-    {
-        if ($user->isVerifiedOrganizer() || $user->isAdmin()) {
-            return $user->getOrganizerStats();
-        } else {
-            return $user->getVolunteerStats();
-        }
-    }
-
-    public function registerForEvent(Event $event, User $user)
-{
-    // Prevent organizer from joining their own event
-    if ($event->organizer_id === $user->id) {
-        throw new \Exception('You cannot join your own event as a volunteer.');
-    }
-
-    // Rest of your existing validation logic...
-    if ($event->isFull()) {
-        throw new \Exception('This event is already full.');
-    }
-
-    if ($this->isUserRegistered($event, $user)) {
-        throw new \Exception('You are already registered for this event.');
-    }
-}
-
-    public function unregisterFromEvent(Event $event, User $user)
-    {
-        $registration = EventVolunteer::where('event_id', $event->id)
-            ->where('volunteer_id', $user->id)
-            ->where('status', 'active')
-            ->first();
-
-        if (!$registration) {
-            throw new \Exception('You are not registered for this event.');
-        }
-
-        $registration->update(['status' => 'cancelled']);
-        $event->decrement('current_volunteers');
-    }
-
-    public function getPendingEvents()
-    {
-        return Event::with('organizer')
-            ->where('status', 'pending')
-            ->latest()
             ->paginate(10);
     }
 
@@ -111,26 +73,30 @@ class EventService
             ->paginate(15);
     }
 
-    public function approveEvent(Event $event)
+    public function getCompletedEvents()
     {
-        $event->update(['status' => 'active']);
-        return $event;
+        return Event::with('organizer')
+            ->completed() // Use the new completed scope
+            ->latest()
+            ->paginate(10);
     }
 
-    public function rejectEvent(Event $event)
-    {
-        $event->update(['status' => 'rejected']);
-        return $event;
-    }
+    // ... rest of your existing methods remain the same ...
 
     public function getEventStatistics(): array
     {
         return [
             'total_events' => Event::count(),
-            'active_events' => Event::where('status', 'active')->count(),
-            'pending_events' => Event::where('status', 'pending')->count(),
-            'completed_events' => Event::where('date', '<', now())->count(),
+            'active_events' => Event::active()->count(),
+            'pending_events' => Event::pending()->count(),
+            'completed_events' => Event::completed()->count(),
             'cancelled_events' => Event::where('status', 'rejected')->count(),
         ];
+    }   
+
+    // NEW: Manual status update method
+    public function updateEventStatus(Event $event): bool
+    {
+        return $event->updateStatusBasedOnDates();
     }
 }

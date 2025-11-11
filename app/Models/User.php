@@ -105,15 +105,21 @@ class User extends Authenticatable
         ];
     }
 
-    public function getOrganizerStats(): array
-    {
-        return [
-            'total_events' => $this->organizedEvents()->count(),
-            'active_events' => $this->organizedEvents()->where('status', 'active')->count(),
-            'pending_events' => $this->organizedEvents()->where('status', 'pending')->count(),
-            'total_volunteers' => EventVolunteer::whereIn('event_id', $this->organizedEvents()->pluck('id'))
+   public function getOrganizerStats(): array
+        {
+            $totalVolunteers = EventVolunteer::whereIn('event_id', $this->organizedEvents()->pluck('id'))
                 ->where('status', 'registered')
-                ->count(),
-        ];
-    }
+                ->count();
+
+            $upcomingEvents = $this->organizedEvents()
+                ->where('status', 'active')
+                ->where('date', '>=', now())
+                ->count();
+
+            return [
+                'total_volunteers' => $totalVolunteers,
+                'upcoming_events' => $upcomingEvents,
+                'total_hours' => 0, // Organizers don't track personal hours
+            ];
+        }
 }
