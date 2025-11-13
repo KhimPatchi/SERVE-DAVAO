@@ -55,7 +55,7 @@
                         </div>
                         <div class="flex items-center gap-2 backdrop-blur-sm bg-white/10 rounded-full px-4 py-2 transition-all duration-300 hover:bg-white/20">
                             <i class="bi bi-calendar-event text-emerald-300"></i>
-                            <span class="font-medium">{{ $event->date->format('M d, Y \\a\\t g:i A') }}</span>
+                            <span class="font-medium">{{ $event->date->setTimezone(config('app.timezone'))->format('M d, Y \\a\\t g:i A') }}</span>
                         </div>
                     </div>
                 </div>
@@ -93,6 +93,78 @@
                             </div>
                         </div>
 
+                        <!-- Enhanced Registered Volunteers Section -->
+                        @if($event->current_volunteers > 0)
+                        <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 feature-card">
+                            <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                                <div class="w-2 h-6 bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full"></div>
+                                Registered Volunteers ({{ $event->current_volunteers }})
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                @php
+                                    // FIXED: Use 'volunteer' relationship instead of 'user'
+                                    $volunteers = $event->volunteers()->with('volunteer')->where('status', 'registered')->get();
+                                @endphp
+                                
+                                @foreach($volunteers as $volunteer)
+                                @php
+                                    // FIXED: Changed from ->user to ->volunteer
+                                    $user = $volunteer->volunteer;
+                                    // COMPREHENSIVE AVATAR FIX FOR VOLUNTEERS
+                                    $avatarUrl = null;
+                                    
+                                    // Check Google avatar first
+                                    if ($user && $user->google_avatar) {
+                                        $avatarUrl = $user->google_avatar;
+                                    }
+                                    // Then check regular avatar
+                                    elseif ($user && $user->avatar) {
+                                        if (str_starts_with($user->avatar, 'http')) {
+                                            $avatarUrl = $user->avatar;
+                                        } elseif (str_starts_with($user->avatar, 'storage/')) {
+                                            $avatarUrl = asset($user->avatar);
+                                        } else {
+                                            $avatarUrl = asset('storage/' . $user->avatar);
+                                        }
+                                    }
+                                    
+                                    $hasValidAvatar = $avatarUrl && filter_var($avatarUrl, FILTER_VALIDATE_URL);
+                                    $userInitial = $user ? strtoupper(substr($user->name, 0, 1)) : 'V';
+                                @endphp
+                                <div class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-200 hover:bg-emerald-50 hover:border-emerald-200 transition-all duration-300">
+                                    @if($hasValidAvatar)
+                                        <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" 
+                                             class="w-10 h-10 rounded-full border-2 border-emerald-200 object-cover shadow-sm"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center border-2 border-emerald-200 shadow-sm" style="display: none;">
+                                            <span class="text-white font-bold text-sm">
+                                                {{ $userInitial }}
+                                            </span>
+                                        </div>
+                                    @else
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center border-2 border-emerald-200 shadow-sm">
+                                            <span class="text-white font-bold text-sm">
+                                                {{ $userInitial }}
+                                            </span>
+                                        </div>
+                                    @endif
+                                    <div class="flex-1 min-w-0">
+                                        <p class="font-semibold text-gray-900 text-sm truncate">{{ $user->name ?? 'Volunteer' }}</p>
+                                        <p class="text-gray-600 text-xs truncate">{{ $user->email ?? '' }}</p>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            
+                            @if($volunteers->isEmpty())
+                            <div class="text-center py-8">
+                                <i class="bi bi-people text-4xl text-gray-300 mb-3"></i>
+                                <p class="text-gray-500">No volunteers registered yet</p>
+                            </div>
+                            @endif
+                        </div>
+                        @endif
+
                         <!-- Enhanced Description -->
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 feature-card">
                             <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-3">
@@ -127,11 +199,15 @@
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 feature-card">
                             @auth
                                 @php
+                                    // FIXED: Use consistent model methods instead of custom logic
                                     $isRegistered = $event->isRegistered(auth()->id());
                                     $isOrganizer = $event->isOrganizer(auth()->id());
+                                    $hasEventStarted = $event->hasStarted();
+                                    $hasEventEnded = $event->hasEnded();
+                                    $canJoinEvent = $event->canBeJoined(auth()->id());
                                 @endphp
 
-                                @if($event->current_status === 'active')
+                                @if($event->isActive())
                                     @if($isRegistered)
                                         <!-- Enhanced Registered State -->
                                         <div class="flex flex-col sm:flex-row gap-6 items-center justify-between p-8 rounded-2xl bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 feature-card">
@@ -144,6 +220,7 @@
                                                     <p class="text-emerald-700">Thank you for volunteering</p>
                                                 </div>
                                             </div>
+                                            @if($event->canBeLeft(auth()->id()))
                                             <form action="{{ route('events.leave', $event) }}" method="POST">
                                                 @csrf
                                                 @method('DELETE')
@@ -153,8 +230,9 @@
                                                     Leave Event
                                                 </button>
                                             </form>
+                                            @endif
                                         </div>
-                                    @elseif($event->current_volunteers < $event->required_volunteers && !$isOrganizer)
+                                    @elseif($canJoinEvent)
                                         <!-- Enhanced Join Button -->
                                         <form action="{{ route('events.join', $event) }}" method="POST">
                                             @csrf
@@ -164,6 +242,24 @@
                                                 Join as Volunteer
                                             </button>
                                         </form>
+                                    @elseif($hasEventStarted || $hasEventEnded)
+                                        <!-- Enhanced Event Status -->
+                                        <div class="text-center p-8 rounded-2xl bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 feature-card">
+                                            <div class="w-16 h-16 rounded-full bg-orange-500 flex items-center justify-center mx-auto mb-4">
+                                                <i class="bi bi-clock-history text-white text-2xl"></i>
+                                            </div>
+                                            <h4 class="text-2xl font-bold text-orange-900 mb-3">
+                                                {{ $hasEventEnded ? 'Event Completed' : 'Event Ongoing' }}
+                                            </h4>
+                                            <p class="text-orange-700 text-lg">
+                                                {{ $hasEventEnded ? 'This event has already taken place' : 'This event is currently in progress' }}
+                                            </p>
+                                            @if($hasEventStarted && !$hasEventEnded)
+                                                <p class="text-orange-600 text-sm mt-2">
+                                                    Started: {{ $event->date->setTimezone(config('app.timezone'))->format('M d, Y \\a\\t g:i A') }}
+                                                </p>
+                                            @endif
+                                        </div>
                                     @elseif($isOrganizer)
                                         <!-- Enhanced Organizer View -->
                                         <div class="text-center p-8 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 feature-card">
@@ -173,7 +269,7 @@
                                             <h4 class="text-2xl font-bold text-blue-900 mb-3">You're the Organizer</h4>
                                             <p class="text-blue-700 text-lg">You created this event</p>
                                         </div>
-                                    @else
+                                    @elseif($event->isFull())
                                         <!-- Enhanced Event Full State -->
                                         <div class="text-center p-8 rounded-2xl bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 feature-card">
                                             <div class="w-16 h-16 rounded-full bg-gray-400 flex items-center justify-center mx-auto mb-4">
@@ -181,6 +277,15 @@
                                             </div>
                                             <h4 class="text-2xl font-bold text-gray-700 mb-3">Event Full</h4>
                                             <p class="text-gray-600">All volunteer spots have been filled</p>
+                                        </div>
+                                    @else
+                                        <!-- Fallback State -->
+                                        <div class="text-center p-8 rounded-2xl bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 feature-card">
+                                            <div class="w-16 h-16 rounded-full bg-gray-400 flex items-center justify-center mx-auto mb-4">
+                                                <i class="bi bi-info-circle text-white text-2xl"></i>
+                                            </div>
+                                            <h4 class="text-2xl font-bold text-gray-700 mb-3">Cannot Join Event</h4>
+                                            <p class="text-gray-600">This event is not available for joining at this time</p>
                                         </div>
                                     @endif
                                 @else
@@ -224,7 +329,12 @@
                                     $organizer = $event->organizer;
                                     // COMPREHENSIVE AVATAR FIX
                                     $avatarUrl = null;
-                                    if ($organizer && $organizer->avatar) {
+                                    // Check Google avatar first
+                                    if ($organizer && $organizer->google_avatar) {
+                                        $avatarUrl = $organizer->google_avatar;
+                                    }
+                                    // Then check regular avatar
+                                    elseif ($organizer && $organizer->avatar) {
                                         if (str_starts_with($organizer->avatar, 'http')) {
                                             $avatarUrl = $organizer->avatar;
                                         } elseif (str_starts_with($organizer->avatar, 'storage/')) {
@@ -272,8 +382,8 @@
                                         Date & Time
                                     </span>
                                     <span class="text-gray-900 font-semibold text-right">
-                                        {{ $event->date->format('M d, Y') }}<br>
-                                        <span class="text-sm text-gray-600">{{ $event->date->format('g:i A') }}</span>
+                                        {{ $event->date->setTimezone(config('app.timezone'))->format('M d, Y') }}<br>
+                                        <span class="text-sm text-gray-600">{{ $event->date->setTimezone(config('app.timezone'))->format('g:i A') }}</span>
                                     </span>
                                 </div>
                                 <div class="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-200">

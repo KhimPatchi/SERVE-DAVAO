@@ -46,7 +46,7 @@
       </p>
     </div>
 
-   <form method="POST" action="{{ route('organizer.verification.store') }}" enctype="multipart/form-data" id="verificationForm" onsubmit="return validateForm()" autocomplete="off">
+   <form method="POST" action="{{ route('organizer.verification.store') }}" enctype="multipart/form-data" id="verificationForm" autocomplete="off">
       @csrf
 
       <!-- Organization Information -->
@@ -148,11 +148,13 @@
                  name="phone" 
                  value="{{ old('phone') }}" 
                  required 
-                 pattern="[0-9+\-\s()]+" 
-                 title="Please enter a valid phone number" />
+                 placeholder="e.g., 09171234567 or 021234567"
+                 minlength="10"
+                 maxlength="13" />
           @error('phone')
             <p class="mt-2 text-sm text-red-600" id="phone_error">{{ $message }}</p>
           @enderror
+          <p class="mt-1 text-sm text-gray-500" id="phone_validation">Enter your phone number</p>
         </div>
 
         <div>
@@ -189,6 +191,54 @@ document.getElementById('organization_name').addEventListener('input', function(
 document.getElementById('address').addEventListener('input', function() {
   const count = this.value.length;
   document.getElementById('address_count').textContent = `${count}/500 characters`;
+});
+
+// SIMPLIFIED Phone Validation - Basic length check only
+function validatePhoneNumber(phone) {
+  const cleaned = phone.replace(/[^\d+]/g, '');
+  return cleaned.length >= 10 && cleaned.length <= 13;
+}
+
+// Real-time phone validation
+document.getElementById('phone').addEventListener('input', function() {
+  const phone = this.value;
+  const validationElement = document.getElementById('phone_validation');
+  const errorElement = document.getElementById('phone_error');
+  
+  // Remove any existing validation classes
+  this.classList.remove('border-green-500', 'border-red-500');
+  validationElement.classList.remove('text-green-600', 'text-red-600', 'text-gray-500');
+  
+  if (!phone.trim()) {
+    validationElement.textContent = 'Enter your phone number';
+    validationElement.className = 'mt-1 text-sm text-gray-500';
+    return;
+  }
+  
+  const cleaned = phone.replace(/[^\d+]/g, '');
+  const isValid = validatePhoneNumber(phone);
+  
+  if (isValid) {
+    this.classList.add('border-green-500');
+    validationElement.textContent = '✓ Valid phone number';
+    validationElement.className = 'mt-1 text-sm text-green-600';
+    
+    // Clear any existing error messages
+    if (errorElement) {
+      errorElement.textContent = '';
+    }
+  } else {
+    this.classList.add('border-red-500');
+    
+    if (cleaned.length < 10) {
+      validationElement.textContent = 'Phone number too short (minimum 10 digits)';
+    } else if (cleaned.length > 13) {
+      validationElement.textContent = 'Phone number too long (maximum 13 digits)';
+    } else {
+      validationElement.textContent = 'Please enter a valid phone number';
+    }
+    validationElement.className = 'mt-1 text-sm text-red-600';
+  }
 });
 
 // File validation
@@ -255,7 +305,7 @@ function validateFile(input) {
   }
 }
 
-// Form validation
+// SIMPLIFIED Form validation
 function validateForm() {
   const form = document.getElementById('verificationForm');
   const submitBtn = document.getElementById('submitBtn');
@@ -271,6 +321,18 @@ function validateForm() {
       field.classList.remove('border-red-500');
     }
   });
+  
+  // SIMPLIFIED Phone validation - only check length
+  const phoneInput = document.getElementById('phone');
+  const phoneValue = phoneInput.value.trim();
+  const cleanedPhone = phoneValue.replace(/[^\d+]/g, '');
+  
+  if (cleanedPhone.length < 10 || cleanedPhone.length > 13) {
+    isValid = false;
+    phoneInput.classList.add('border-red-500');
+    document.getElementById('phone_validation').textContent = 'Phone number must be 10-13 digits';
+    document.getElementById('phone_validation').className = 'mt-1 text-sm text-red-600';
+  }
   
   // File validation
   const fileInput = document.getElementById('identification_document');
@@ -291,6 +353,13 @@ function validateForm() {
   return true;
 }
 
+// Add form submit event listener
+document.getElementById('verificationForm').addEventListener('submit', function(e) {
+  if (!validateForm()) {
+    e.preventDefault();
+  }
+});
+
 // Real-time validation
 document.addEventListener('DOMContentLoaded', function() {
   const fields = document.querySelectorAll('input, select, textarea');
@@ -307,6 +376,12 @@ document.addEventListener('DOMContentLoaded', function() {
       this.classList.remove('border-red-500');
     });
   });
+  
+  // Initialize phone validation on page load if there's existing value
+  const phoneInput = document.getElementById('phone');
+  if (phoneInput.value) {
+    phoneInput.dispatchEvent(new Event('input'));
+  }
 });
 </script>
 @endsection

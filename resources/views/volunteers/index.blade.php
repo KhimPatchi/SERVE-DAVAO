@@ -5,6 +5,40 @@
 @section('content')
 <div class="min-h-screen bg-gray-50/60 p-6">
     
+    <!-- Professional Page Header -->
+    <header class="mb-8">
+        <nav class="mb-4 flex items-center space-x-2 text-sm text-gray-500">
+            <a href="{{ route('dashboard') }}" class="transition-colors hover:text-gray-700">
+                <i class="bi bi-grid mr-1"></i>Dashboard
+            </a>
+            <i class="bi bi-chevron-right text-xs"></i>
+            <span class="text-gray-800 font-medium">Volunteer Opportunities</span>
+        </nav>
+        
+        <div class="flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="rounded-2xl bg-gradient-to-r from-green-500 to-teal-600 p-3">
+                        <i class="bi bi-people text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Volunteer Opportunities</h1>
+                        <p class="mt-2 text-lg text-gray-600">
+                            Discover and join volunteer opportunities in your community
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('volunteers.my-events') }}" 
+                       class="inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3.5 text-base font-semibold text-white transition-all hover:shadow-lg hover:scale-105">
+                        <i class="bi bi-list-ul text-lg"></i>
+                        My Registered Events
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
     <!-- Search and Filter Section -->
     <section class="mb-6">
         <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
@@ -60,10 +94,18 @@
                     $progress = $event->required_volunteers > 0 
                         ? round(($event->current_volunteers / $event->required_volunteers) * 100)
                         : 0;
-                    $isFull = $volunteersNeeded === 0;
+                    $isFull = $event->isFull();
                     $isUrgent = $volunteersNeeded > 0 && $volunteersNeeded <= 3;
                     $isRegistered = auth()->check() && $event->isRegistered(auth()->id());
                     $isOrganizer = auth()->check() && $event->isOrganizer(auth()->id());
+                    
+                    // FIXED: Use consistent model methods
+                    $hasEventStarted = $event->hasStarted();
+                    $hasEventEnded = $event->hasEnded();
+                    $canJoin = $event->canBeJoined(auth()->id());
+                    
+                    // FIXED: Timezone-aware date display
+                    $localDate = $event->date->copy()->setTimezone(config('app.timezone'));
                 @endphp
                 
                 <article class="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 transition-all duration-500 hover:shadow-xl hover:translate-y-[-2px]">
@@ -73,6 +115,16 @@
                             <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 ring-1 ring-blue-200">
                                 <i class="bi bi-person-gear mr-1"></i>
                                 Organizer
+                            </span>
+                        @elseif($hasEventEnded)
+                            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-gray-100 text-gray-800 ring-1 ring-gray-200">
+                                <i class="bi bi-check-circle mr-1"></i>
+                                Completed
+                            </span>
+                        @elseif($hasEventStarted)
+                            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-orange-100 text-orange-800 ring-1 ring-orange-200">
+                                <i class="bi bi-clock-history mr-1"></i>
+                                Ongoing
                             </span>
                         @else
                             <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium 
@@ -104,8 +156,9 @@
                         <div class="flex items-center text-sm text-gray-600">
                             <i class="bi bi-calendar-event mr-3 text-base text-green-500"></i>
                             <div class="flex flex-col">
-                                <span class="font-medium">{{ $event->date->format('M j, Y') }}</span>
-                                <span class="text-xs text-gray-500">{{ $event->date->format('g:i A') }}</span>
+                                {{-- FIXED: Timezone-aware date display --}}
+                                <span class="font-medium">{{ $localDate->format('M j, Y') }}</span>
+                                <span class="text-xs text-gray-500">{{ $localDate->format('g:i A') }}</span>
                             </div>
                         </div>
                         <div class="flex items-center justify-between">
@@ -115,7 +168,8 @@
                             </div>
                             <div class="flex items-center text-xs text-gray-500 bg-gray-50 rounded-lg px-2 py-1">
                                 <i class="bi bi-clock mr-1"></i>
-                                <span>{{ $event->date->diffForHumans() }}</span>
+                                {{-- FIXED: Timezone-aware relative time --}}
+                                <span>{{ $localDate->diffForHumans() }}</span>
                             </div>
                         </div>
                     </div>
@@ -127,12 +181,22 @@
                             <span class="font-semibold">{{ $event->current_volunteers }}/{{ $event->required_volunteers }}</span>
                         </div>
                         <div class="h-2 rounded-full bg-gray-200 overflow-hidden">
-                            <div class="h-full rounded-full bg-gradient-to-r from-green-500 to-teal-500 transition-all duration-1000 ease-out" 
+                            <div class="h-full rounded-full 
+                                {{ $hasEventEnded ? 'bg-gray-400' : 'bg-gradient-to-r from-green-500 to-teal-500' }} 
+                                transition-all duration-1000 ease-out" 
                                  style="width: {{ $progress }}%"></div>
                         </div>
                         <div class="mt-1 flex justify-between text-xs">
                             <span class="text-gray-500">{{ $progress }}% filled</span>
-                            <span class="font-medium text-gray-700">{{ $volunteersNeeded }} spots available</span>
+                            <span class="font-medium text-gray-700">
+                                @if($hasEventEnded)
+                                    Event Ended
+                                @elseif($hasEventStarted)
+                                    In Progress
+                                @else
+                                    {{ $volunteersNeeded }} spots available
+                                @endif
+                            </span>
                         </div>
                     </div>
 
@@ -148,6 +212,16 @@
                                 <span class="inline-flex items-center text-xs text-green-600 font-medium">
                                     <i class="bi bi-check-circle mr-1"></i>
                                     Registered
+                                </span>
+                            @elseif($hasEventEnded)
+                                <span class="inline-flex items-center text-xs text-gray-600 font-medium">
+                                    <i class="bi bi-calendar-check mr-1"></i>
+                                    Event Completed
+                                </span>
+                            @elseif($hasEventStarted)
+                                <span class="inline-flex items-center text-xs text-orange-600 font-medium">
+                                    <i class="bi bi-clock-history mr-1"></i>
+                                    Event in Progress
                                 </span>
                             @elseif($isFull)
                                 <span class="inline-flex items-center text-xs text-red-600 font-medium">
@@ -173,12 +247,13 @@
                                     <i class="bi bi-check-lg mr-1.5"></i>
                                     Joined
                                 </span>
-                            @elseif($isFull)
+                            @elseif($hasEventEnded || $hasEventStarted || $isFull)
                                 <span class="inline-flex items-center px-3 py-1.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-lg">
                                     <i class="bi bi-x-lg mr-1.5"></i>
-                                    Full
+                                    {{ $hasEventEnded ? 'Ended' : ($hasEventStarted ? 'Ongoing' : 'Full') }}
                                 </span>
                             @else
+                                <!-- FIXED: Use FORM POST instead of link -->
                                 <form action="{{ route('events.join', $event) }}" method="POST" class="inline">
                                     @csrf
                                     <button type="submit" 
@@ -239,32 +314,6 @@
             </div>
         @endif
     </main>
-
-    <!-- Quick Actions Section -->
-    <section class="mt-8">
-        <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
-            <div class="flex flex-wrap gap-4">
-                <a href="{{ route('dashboard') }}" 
-                   class="inline-flex items-center gap-2 rounded-xl bg-gray-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-gray-700 hover:shadow-lg">
-                    <i class="bi bi-arrow-left"></i>
-                    Back to Dashboard
-                </a>
-                <a href="{{ route('volunteers.my-events') }}" 
-                   class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-blue-700 hover:shadow-lg">
-                    <i class="bi bi-list-ul"></i>
-                    My Registered Events
-                </a>
-                @if(Auth::user()->is_organizer)
-                <a href="{{ route('volunteers.organized-events') }}" 
-                   class="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-purple-700 hover:shadow-lg">
-                    <i class="bi bi-building"></i>
-                    My Organized Events
-                </a>
-                @endif
-            </div>
-        </div>
-    </section>
 
 </div>
 

@@ -16,17 +16,15 @@ class EventVolunteerController extends Controller
         $user = Auth::user();
         
         // Check if already registered
-        $existingRegistration = EventVolunteer::where('event_id', $event->id)
-            ->where('volunteer_id', $user->id)
-            ->first();
-
-        if ($existingRegistration) {
+        if ($event->isRegistered($user->id)) {
             return back()->with('info', 'You have already joined this event.');
         }
 
-        // Check if event is full
-        if ($event->isFull()) {
-            return back()->with('error', 'This event is already full.');
+        // Use model method for consistent validation
+        if (!$event->canBeJoined($user->id)) {
+            $reason = $this->getJoinRejectionReason($event, $user->id);
+            Log::info("BLOCKING JOIN - {$reason}");
+            return back()->with('error', $reason);
         }
 
         try {
@@ -53,6 +51,13 @@ class EventVolunteerController extends Controller
     {
         $user = Auth::user();
 
+        // Use model method for consistent validation
+        if (!$event->canBeLeft($user->id)) {
+            $reason = $this->getLeaveRejectionReason($event, $user->id);
+            Log::info("BLOCKING LEAVE - {$reason}");
+            return back()->with('error', $reason);
+        }
+
         try {
             // Find and delete the registration
             $registration = EventVolunteer::where('event_id', $event->id)
@@ -74,5 +79,53 @@ class EventVolunteerController extends Controller
             Log::error('Leave event error: ' . $e->getMessage());
             return back()->with('error', 'Unable to leave the event. Please try again.');
         }
+    }
+
+    /**
+     * Get detailed reason why user cannot join
+     */
+    private function getJoinRejectionReason(Event $event, $userId)
+    {
+        if (!$event->isActive()) {
+            return 'This event is not currently accepting volunteers.';
+        }
+
+        if ($event->hasStarted()) {
+            return $event->hasEnded() 
+                ? 'This event has already ended. Registration is closed.'
+                : 'This event has already started. Registration is closed.';
+        }
+
+        if ($event->isFull()) {
+            return 'This event is already full.';
+        }
+
+        if ($event->isRegistered($userId)) {
+            return 'You have already joined this event.';
+        }
+
+        if ($event->isOrganizer($userId)) {
+            return 'You cannot join an event you are organizing.';
+        }
+
+        return 'This event cannot be joined at this time.';
+    }
+
+    /**
+     * Get detailed reason why user cannot leave
+     */
+    private function getLeaveRejectionReason(Event $event, $userId)
+    {
+        if (!$event->isRegistered($userId)) {
+            return 'You are not registered for this event.';
+        }
+
+        if ($event->hasStarted()) {
+            return $event->hasEnded() 
+                ? 'Cannot leave a completed event.'
+                : 'Cannot leave an ongoing event.';
+        }
+
+        return 'Cannot leave this event at this time.';
     }
 }

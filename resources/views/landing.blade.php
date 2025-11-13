@@ -191,6 +191,25 @@
     html {
       scroll-behavior: smooth;
     }
+    
+    /* Contact form styles */
+    .contact-input {
+      transition: all 0.3s ease;
+    }
+    
+    .contact-input:focus {
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+      border-color: #10b981;
+    }
+    
+    .contact-card {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .contact-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
   </style>
 </head>
 
@@ -222,9 +241,7 @@
 
       <div class="hidden md:flex items-center gap-3">
         <a href="/login" class="text-sm font-semibold text-gray-700 hover:text-emerald-600 transition-all duration-300 transform hover:scale-105">Login</a>
-        <a href="/register" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
-          Get Started
-        </a>
+        
       </div>
     </div>
   </nav>
@@ -401,8 +418,158 @@
     </div>
   </section>
 
+  <!-- Contact Us Section -->
+  <section id="contact" class="py-20 bg-white">
+    <div class="container mx-auto px-6">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-4 scroll-fade-in">
+          Contact <span class="text-emerald-600">Us</span>
+        </h2>
+        <p class="text-gray-600 text-lg max-w-2xl mx-auto scroll-fade-in" style="transition-delay: 0.1s">
+          Have questions or want to get involved? We'd love to hear from you.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto stagger-animate">
+        <!-- Contact Information -->
+        <div class="space-y-8">
+          <div class="bg-gray-50 rounded-2xl p-8 contact-card">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">Get In Touch</h3>
+            <p class="text-gray-600 mb-8">
+              We're here to help you get involved with volunteering opportunities in Davao. 
+              Whether you're an organizer or volunteer, reach out with any questions.
+            </p>
+            
+            <div class="space-y-6">
+              <div class="flex items-start gap-4">
+                <div class="bg-emerald-100 p-3 rounded-full text-emerald-600 transform transition-transform duration-300 hover:scale-110">
+                  <i class="bi bi-geo-alt-fill text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-800 mb-1">Our Location</h4>
+                  <p class="text-gray-600">Davao City, Philippines</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start gap-4">
+                <div class="bg-emerald-100 p-3 rounded-full text-emerald-600 transform transition-transform duration-300 hover:scale-110">
+                  <i class="bi bi-envelope-fill text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-800 mb-1">Email Us</h4>
+                  <p class="text-gray-600">contact@servedavao.org</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start gap-4">
+                <div class="bg-emerald-100 p-3 rounded-full text-emerald-600 transform transition-transform duration-300 hover:scale-110">
+                  <i class="bi bi-telephone-fill text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-800 mb-1">Call Us</h4>
+                  <p class="text-gray-600">+63 82 123 4567</p>
+                </div>
+              </div>
+              
+              <div class="flex items-start gap-4">
+                <div class="bg-emerald-100 p-3 rounded-full text-emerald-600 transform transition-transform duration-300 hover:scale-110">
+                  <i class="bi bi-clock-fill text-xl"></i>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-800 mb-1">Response Time</h4>
+                  <p class="text-gray-600">We typically respond within 24 hours</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- FAQ Section -->
+          <div class="bg-emerald-50 rounded-2xl p-8 contact-card">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">Frequently Asked Questions</h3>
+            <div class="space-y-4">
+              <div class="border-b border-emerald-100 pb-4">
+                <h4 class="font-semibold text-gray-800 mb-2">How do I become a volunteer?</h4>
+                <p class="text-gray-600 text-sm">Simply create an account, browse available events, and sign up for those that interest you.</p>
+              </div>
+              <div class="border-b border-emerald-100 pb-4">
+                <h4 class="font-semibold text-gray-800 mb-2">Can organizations post events?</h4>
+                <p class="text-gray-600 text-sm">Yes! Register as an organization to create and manage volunteer events.</p>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800 mb-2">Is there a cost to use ServeDavao?</h4>
+                <p class="text-gray-600 text-sm">No, our platform is completely free for both volunteers and organizers.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Contact Form -->
+        <div class="bg-gray-50 rounded-2xl p-8 contact-card">
+          <h3 class="text-2xl font-bold text-gray-800 mb-6">Send Us a Message</h3>
+          <form id="contactForm" class="space-y-6">
+            <div class="grid md:grid-cols-2 gap-6">
+              <div>
+                <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                <input type="text" id="firstName" name="firstName" required 
+                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none contact-input"
+                       placeholder="Your first name">
+              </div>
+              <div>
+                <label for="lastName" class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                <input type="text" id="lastName" name="lastName" required 
+                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none contact-input"
+                       placeholder="Your last name">
+              </div>
+            </div>
+            
+            <div>
+              <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+              <input type="email" id="email" name="email" required 
+                     class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none contact-input"
+                     placeholder="your.email@example.com">
+            </div>
+            
+            <div>
+              <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+              <select id="subject" name="subject" required 
+                      class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none contact-input">
+                <option value="" disabled selected>Select a subject</option>
+                <option value="volunteer">Volunteer Inquiry</option>
+                <option value="organizer">Organizer Inquiry</option>
+                <option value="partnership">Partnership Opportunity</option>
+                <option value="technical">Technical Support</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            
+            <div>
+              <label for="message" class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+              <textarea id="message" name="message" rows="5" required 
+                        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none contact-input resize-none"
+                        placeholder="Tell us how we can help you..."></textarea>
+            </div>
+            
+            <button type="submit" 
+                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2">
+              <span>Send Message</span>
+              <i class="bi bi-send"></i>
+            </button>
+          </form>
+          
+          <!-- Success Message (hidden by default) -->
+          <div id="successMessage" class="hidden mt-6 p-4 bg-emerald-100 border border-emerald-400 text-emerald-700 rounded-lg">
+            <div class="flex items-center gap-2">
+              <i class="bi bi-check-circle-fill text-emerald-600"></i>
+              <p class="font-medium">Thank you! Your message has been sent successfully.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Footer -->
-  <footer id="contact" class="bg-gray-900 text-gray-400 py-10 mt-16">
+  <footer class="bg-gray-900 text-gray-400 py-10">
     <div class="container mx-auto px-6 text-center">
       <div class="flex justify-center items-center mb-6 scroll-fade-in">
         <img src="/assets/img/logoDav.png" class="w-10 h-10 rounded-full mr-3 transform transition-transform duration-300 hover:scale-110">
@@ -425,7 +592,7 @@
     </div>
   </footer>
 
-  <!-- Enhanced JavaScript with Scroll Animations -->
+   <!-- Enhanced JavaScript with Scroll Animations -->
   <script>
     // Loading animation function - FIXED
     function showLoading(event = null) {
@@ -440,6 +607,8 @@
             // For external links or page navigation, show loading
             if (href && (href.startsWith('/') || href.startsWith('http'))) {
                 event.preventDefault();
+            } else {
+                return; // Don't show loading for other cases
             }
         }
 
@@ -451,7 +620,7 @@
             if (href && (href.startsWith('/') || href.startsWith('http'))) {
                 setTimeout(() => {
                     window.location.href = href;
-                }, 500);
+                }, 800); // Increased timeout to ensure loading is visible
             }
         }
     }
@@ -461,7 +630,30 @@
         loadingOverlay.style.display = 'none';
     }
 
-    // Smooth scrolling for navigation links - ADD THIS FUNCTION
+    // NEW: Handle browser back/forward buttons
+    window.addEventListener('pageshow', function(event) {
+        // If page is loaded from cache (back/forward navigation), hide loading
+        if (event.persisted) {
+            hideLoading();
+        }
+    });
+
+    // NEW: Also hide loading when page becomes visible again
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            // Small delay to ensure page is fully loaded
+            setTimeout(hideLoading, 100);
+        }
+    });
+
+    // NEW: Safety timeout to hide loading after 3 seconds (in case something goes wrong)
+    function setupSafetyTimeout() {
+        setTimeout(() => {
+            hideLoading();
+        }, 3000);
+    }
+
+    // Smooth scrolling for navigation links
     function initSmoothScrolling() {
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -506,7 +698,7 @@
     // Enhanced hover effects
     function initHoverEffects() {
         // Add hover effects to all interactive elements
-        const hoverElements = document.querySelectorAll('a, button, .feature-card, .event-card');
+        const hoverElements = document.querySelectorAll('a, button, .feature-card, .event-card, .contact-card');
         hoverElements.forEach(el => {
             el.addEventListener('mouseenter', function() {
                 this.style.transform = 'translateY(-2px)';
@@ -515,6 +707,42 @@
                 this.style.transform = 'translateY(0)';
             });
         });
+    }
+
+    // Contact form handling
+    function initContactForm() {
+      const contactForm = document.getElementById('contactForm');
+      const successMessage = document.getElementById('successMessage');
+      
+      if (contactForm) {
+        contactForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          // Show loading state
+          const submitButton = contactForm.querySelector('button[type="submit"]');
+          const originalText = submitButton.innerHTML;
+          submitButton.innerHTML = '<span>Sending...</span>';
+          submitButton.disabled = true;
+          
+          // Simulate form submission (replace with actual form submission)
+          setTimeout(() => {
+            // Reset form
+            contactForm.reset();
+            
+            // Show success message
+            successMessage.classList.remove('hidden');
+            
+            // Reset button
+            submitButton.innerHTML = originalText;
+            submitButton.disabled = false;
+            
+            // Hide success message after 5 seconds
+            setTimeout(() => {
+              successMessage.classList.add('hidden');
+            }, 5000);
+          }, 1500);
+        });
+      }
     }
 
     // Initialize everything when DOM is loaded
@@ -527,35 +755,34 @@
         
         // Initialize hover effects
         initHoverEffects();
+        
+        // Initialize contact form
+        initContactForm();
 
-        // Get all buttons and links that should trigger loading - FIXED SELECTOR
-        const actionElements = document.querySelectorAll(
-            'a[href*="/login"], a[href*="/register"], a[href*="/events"], button, a.bg-emerald-600'
+        // Only attach loading to specific action buttons/links
+        const loadingTriggers = document.querySelectorAll(
+            'a[href*="/login"], a[href*="/register"], a[href*="/events"], a.bg-emerald-600'
         );
         
-        actionElements.forEach(element => {
+        loadingTriggers.forEach(element => {
             if (element.tagName === 'A') {
                 // Don't attach loading to section links
                 const href = element.getAttribute('href');
                 if (!href || !href.startsWith('#')) {
-                    element.addEventListener('click', showLoading);
+                    element.addEventListener('click', function(e) {
+                        showLoading(e);
+                        // Setup safety timeout when loading is shown
+                        setupSafetyTimeout();
+                    });
                 }
-            } else if (element.tagName === 'BUTTON') {
-                element.addEventListener('click', function(e) {
-                    showLoading(e);
-                    this.classList.add('button-loading');
-                    this.disabled = true;
-                    
-                    setTimeout(() => {
-                        this.classList.remove('button-loading');
-                        this.disabled = false;
-                    }, 2000);
-                });
             }
         });
 
-        // Handle page load - hide loading if it's still visible
-        window.addEventListener('load', hideLoading);
+        // Handle page load - ensure loading is hidden
+        hideLoading();
+        
+        // Initial safety timeout setup
+        setupSafetyTimeout();
     });
 
     // Logo scroll animation
@@ -568,7 +795,31 @@
             logo.classList.remove("logo-scrolled");
         }
     });
-</script>
 
+    // NEW: Also hide loading when the page is about to be unloaded (beforeunload)
+    window.addEventListener('beforeunload', function() {
+        hideLoading();
+    });
+
+    // NEW: Hide loading when the page gains focus (user returns to tab)
+    window.addEventListener('focus', function() {
+        hideLoading();
+    });
+
+    // NEW: Handle popstate event (back/forward navigation)
+    window.addEventListener('popstate', function() {
+        hideLoading();
+    });
+
+    // NEW: Global click handler to catch any missed navigation
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('a');
+        if (target && target.getAttribute('href') && 
+            !target.getAttribute('href').startsWith('#') &&
+            (target.getAttribute('href').startsWith('/') || target.getAttribute('href').startsWith('http'))) {
+            setupSafetyTimeout();
+        }
+    });
+  </script>
 </body>
-</html>
+</html> 

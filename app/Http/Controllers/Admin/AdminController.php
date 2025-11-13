@@ -37,6 +37,17 @@ class AdminController extends Controller
 
     public function dashboard()
     {
+         // Add no-cache headers
+    $response = response()->view('admin.dashboard', [
+        'stats' => $this->getDashboardStats()
+    ]);
+    
+    return $response->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                   ->header('Pragma', 'no-cache')
+                   ->header('Expires', '0');
+
+
+
         // ✅ UPDATED: Use new OrganizerVerification system
         $totalOrganizers = OrganizerVerification::where('status', 'approved')->count();
         $pendingOrganizers = OrganizerVerification::where('status', 'pending')->count();
@@ -226,4 +237,28 @@ class AdminController extends Controller
 
         return back()->with('success', 'Organizer application rejected successfully!');
     }
+    public function completeEvent(Event $event)
+{
+    $oldStatus = $event->status;
+    
+    // Update event status to completed
+    $event->update(['status' => 'completed']);
+
+    // Audit logging for event completion
+    AuditService::log(
+        'event_completed',
+        "Admin marked event as completed: {$event->title}",
+        get_class($event),
+        $event->id,
+        [
+            'event_title' => $event->title,
+            'organizer_id' => $event->organizer_id,
+            'organizer_email' => $event->organizer->email ?? 'Unknown',
+            'old_status' => $oldStatus,
+            'new_status' => 'completed'
+        ]
+    );
+
+    return back()->with('success', 'Event marked as completed successfully!');
+}
 }

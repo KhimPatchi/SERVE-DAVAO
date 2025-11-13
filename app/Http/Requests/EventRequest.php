@@ -4,13 +4,12 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class EventRequest extends FormRequest
 {
     public function authorize()
     {
-        // Allow any authenticated user to attempt event creation
-        // The controller will handle the organizer verification
         return Auth::check();
     }
 
@@ -19,7 +18,7 @@ class EventRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'date' => 'required|date|after:now',
+            'date' => 'required|date',
             'time' => 'required|date_format:H:i',
             'location' => 'required|string|max:255',
             'required_volunteers' => 'required|integer|min:1',
@@ -30,14 +29,32 @@ class EventRequest extends FormRequest
     public function messages()
     {
         return [
-            'date.after' => 'The event date must be in the future.',
             'time.date_format' => 'Please enter a valid time format.',
         ];
     }
 
-    // Combine date and time into a single datetime
-    public function getEventDateTime()
+    public function withValidator($validator)
     {
-        return $this->date . ' ' . $this->time . ':00';
+        $validator->after(function ($validator) {
+            if ($this->date && $this->time) {
+                $eventDateTime = $this->date . ' ' . $this->time;
+                $eventTime = Carbon::parse($eventDateTime);
+                
+                if ($eventTime->lte(now())) {
+                    $validator->errors()->add('date', 'The event date and time must be in the future.');
+                }
+            }
+        });
+    }
+
+    public function validated($key = null, $default = null)
+    {
+        $validated = parent::validated($key, $default);
+        
+        if (isset($validated['date']) && isset($validated['time'])) {
+            $validated['date'] = $validated['date'] . ' ' . $validated['time'];
+        }
+        
+        return $validated;
     }
 }

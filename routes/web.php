@@ -10,7 +10,7 @@ use App\Http\Controllers\Table\VolunteerController;
 use App\Http\Controllers\EventC\EventController;
 use App\Http\Controllers\Verify\ProfileController;
 use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\Verify\OrganizerVerificationController; // Updated namespace
+use App\Http\Controllers\Verify\OrganizerVerificationController;
 
 // Landing Page
 Route::get('/', function() {
@@ -28,19 +28,14 @@ Route::get('/', function() {
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('google.callback');
 
-// Debug routes (remove these in production)
-Route::get('/debug-create', function() {
-    return "Debug route is working!";
-});
-    
 // Protected routes (auth required) - ALL PROTECTED ROUTES GO HERE
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard - PROTECTED
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
-// Profile Routes
-Route::get('/profile', [\App\Http\Controllers\Verify\ProfileController::class, 'edit'])->name('profile.edit');
-Route::put('/profile', [\App\Http\Controllers\Verify\ProfileController::class, 'update'])->name('profile.update');
+    // ✅ MOVED: Profile Routes INSIDE auth middleware
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     
     // Volunteer Opportunities - PROTECTED
     Route::get('/volunteers', [VolunteerController::class, 'index'])->name('volunteers');
@@ -57,14 +52,14 @@ Route::put('/profile', [\App\Http\Controllers\Verify\ProfileController::class, '
     Route::get('/user/volunteer-stats', [UserController::class, 'getUserVolunteerStats'])->name('user.volunteer-stats');
     Route::get('/user/{user}/volunteer-stats', [UserController::class, 'getUserVolunteerStats'])->name('user.volunteer-stats.admin');
     
-    // ✅ UPDATED: Organizer Verification Routes with new namespace
+    // Organizer Verification Routes
     Route::prefix('organizer')->name('organizer.')->group(function () {
         Route::get('/verification', [OrganizerVerificationController::class, 'create'])->name('verification.create');
         Route::post('/verification', [OrganizerVerificationController::class, 'store'])->name('verification.store');
         Route::get('/verification/status', [OrganizerVerificationController::class, 'status'])->name('verification.status');
     });
     
-    // ALL EVENT ROUTES - PROTECTED (MOVED INSIDE AUTH)
+    // ALL EVENT ROUTES - PROTECTED
     Route::get('/events', [EventController::class, 'index'])->name('events.index');
     Route::get('/events/create', [EventController::class, 'create'])->name('events.create');
     Route::post('/events', [EventController::class, 'store'])->name('events.store');
@@ -93,20 +88,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/organizer-verifications', [AdminController::class, 'organizerVerifications'])->name('organizer-verifications');
     Route::post('/organizer-verifications/{user}/approve', [AdminController::class, 'approveOrganizer'])->name('organizer-verifications.approve');
     Route::post('/organizer-verifications/{user}/reject', [AdminController::class, 'rejectOrganizer'])->name('organizer-verifications.reject');
-});
-
-// Logout route - PROTECTED
-Route::post('/logout', function () {
-    Auth::logout();
-    request()->session()->invalidate();
-    request()->session()->regenerateToken();
-    return redirect('/');
-})->middleware('auth')->name('logout');
-
-
-// Audit Routes
-Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
-    // Audit Routes
+    
+    // ✅ MOVED: Audit Routes INSIDE admin middleware
     Route::prefix('audit')->group(function () {
         Route::get('/logs', [App\Http\Controllers\Audit\AuditController::class, 'logs'])->name('admin.audit.logs');
         Route::get('/user-activity', [App\Http\Controllers\Audit\AuditController::class, 'userActivity'])->name('admin.audit.user-activity');
@@ -120,6 +103,16 @@ Route::prefix('admin')->middleware(['auth', 'admin'])->group(function () {
         Route::get('/export', [App\Http\Controllers\Audit\AuditController::class, 'export'])->name('admin.audit.export');
     });
 });
+
+// Logout route - PROTECTED
+Route::post('/logout', function () {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/');
+})->middleware('auth')->name('logout');
+
+
 
 // Laravel default auth routes
 require __DIR__.'/auth.php';

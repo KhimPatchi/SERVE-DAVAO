@@ -10,9 +10,9 @@ class Event extends Model
     use HasFactory;
 
     protected $fillable = [
-    'title', 'description', 'date', 'location',
-    'required_volunteers', 'current_volunteers',
-    'organizer_id', 'organizer_name', 'status', 'skills_required' // ← ADD organizer_name HERE
+        'title', 'description', 'date', 'location',
+        'required_volunteers', 'current_volunteers',
+        'organizer_id', 'organizer_name', 'status', 'skills_required'
     ];
 
     protected $casts = [
@@ -39,7 +39,7 @@ class Event extends Model
         return $this->morphMany(Audit::class, 'auditable');
     }
 
-    // ADD THIS METHOD TO FIX THE ERROR
+    // REGISTRATION METHODS
     public function isRegistered($userId = null)
     {
         if (!$userId && auth()->check()) {
@@ -69,31 +69,134 @@ class Event extends Model
         return $this->organizer_id == $userId;
     }
 
-    // NEW: Automatic status calculation based on date
+    // =========================================================================
+    // FIXED TIME VALIDATION METHODS
+    // =========================================================================
+
+    /**
+     * Check if event has started (timezone-aware)
+     */
+    public function hasStarted()
+    {
+        $now = Carbon::now(config('app.timezone'));
+        $eventTime = $this->date->copy()->setTimezone(config('app.timezone'));
+        return $now->gte($eventTime);
+    }
+
+    /**
+     * Check if event has ended (timezone-aware)
+     * Assuming 8-hour event duration by default
+     */
+    public function hasEnded($eventDurationHours = 8)
+    {
+        $now = Carbon::now(config('app.timezone'));
+        $eventTime = $this->date->copy()->setTimezone(config('app.timezone'));
+        $eventEndTime = $eventTime->copy()->addHours($eventDurationHours);
+        return $now->gte($eventEndTime);
+    }
+
+    /**
+     * Check if event is currently ongoing
+     */
+    public function isOngoing($eventDurationHours = 8)
+    {
+        return $this->hasStarted() && !$this->hasEnded($eventDurationHours);
+    }
+
+    /**
+     * Check if event can be joined (comprehensive check)
+     */
+    public function canBeJoined($userId = null)
+    {
+        $userId = $userId ?? auth()->id();
+        
+        if (!$userId) {
+            return false;
+        }
+        
+        // DEBUG: Log the validation steps
+        \Log::info("canBeJoined Check for Event {$this->id}:", [
+            'isActive' => $this->isActive(),
+            'hasStarted' => $this->hasStarted(),
+            'hasEnded' => $this->hasEnded(),
+            'isFull' => $this->isFull(),
+            'isRegistered' => $this->isRegistered($userId),
+            'isOrganizer' => $this->isOrganizer($userId),
+            'current_time' => now()->toDateTimeString(),
+            'event_time' => $this->date->toDateTimeString(),
+        ]);
+        
+        return $this->isActive() 
+            && !$this->hasStarted()  // ← THIS IS THE KEY FIX
+            && !$this->hasEnded()
+            && !$this->isFull()
+            && !$this->isRegistered($userId)
+            && !$this->isOrganizer($userId);
+    }
+
+    /**
+     * Check if user can leave the event
+     */
+    public function canBeLeft($userId = null)
+    {
+        $userId = $userId ?? auth()->id();
+        
+        if (!$userId) {
+            return false;
+        }
+        
+        return $this->isRegistered($userId)
+            && !$this->hasStarted()
+            && !$this->hasEnded();
+    }
+
+    // =========================================================================
+    // FIXED STATUS METHODS
+    // =========================================================================
+
+    /**
+     * FIXED: Timezone-aware status calculation
+     */
     public function getCurrentStatusAttribute()
     {
-        $now = Carbon::now();
+        $now = Carbon::now(config('app.timezone'));
+        $eventTime = $this->date->copy()->setTimezone(config('app.timezone'));
         
         // If manually set to completed, cancelled, or rejected, respect that
         if (in_array($this->status, ['completed', 'cancelled', 'rejected'])) {
             return $this->status;
         }
         
-        // If event date is in the past, mark as completed
-        if ($now->gt($this->date)) {
+        // If event has ended, mark as completed
+        if ($this->hasEnded()) {
             return 'completed';
         }
         
+        // If event has started but not ended, it's ongoing
+        if ($this->hasStarted()) {
+            return 'active'; // Keep as active but should show as ongoing in UI
+        }
+        
+        // Otherwise return the original status
         return $this->status;
     }
 
-    // NEW: Check if event should be automatically completed
-    public function shouldBeCompleted()
-    {
-        return Carbon::now()->gt($this->date);
+    /**
+     * FIXED: Direct timezone-aware active check
+     */
+    public function isActive(): bool 
+    { 
+        $now = Carbon::now(config('app.timezone'));
+        $eventTime = $this->date->copy()->setTimezone(config('app.timezone'));
+        
+        return $this->status === 'active' && $now->lt($eventTime);
     }
 
-    // NEW: Update status based on dates
+    public function shouldBeCompleted()
+    {
+        return $this->hasEnded();
+    }
+
     public function updateStatusBasedOnDates()
     {
         if ($this->shouldBeCompleted() && $this->status !== 'completed') {
@@ -104,24 +207,22 @@ class Event extends Model
         return false;
     }
 
-    // CLEAN STATUS METHODS (Updated)
     public function isFull(): bool { 
         return $this->current_volunteers >= $this->required_volunteers; 
     }
     
-    public function isActive(): bool { 
-        return $this->current_status === 'active'; 
-    }
-    
     public function isPending(): bool { 
-        return $this->current_status === 'pending'; 
+        return $this->status === 'pending'; 
     }
     
     public function isCompleted(): bool {
         return $this->current_status === 'completed';
     }
 
-    // CLEAN SCOPES (Updated)
+    // =========================================================================
+    // SCOPES
+    // =========================================================================
+
     public function scopeActive($query) { 
         return $query->where('status', 'active')
                     ->where('date', '>', now());
@@ -131,22 +232,34 @@ class Event extends Model
         return $query->where('status', 'pending'); 
     }
     
-    // NEW: Scope for completed events
     public function scopeCompleted($query) {
         return $query->where(function($q) {
             $q->where('status', 'completed')
-              ->orWhere('date', '<', now());
+              ->orWhere('date', '<', now()->subHours(8)); // Events that ended 8+ hours ago
         });
     }
     
-    // NEW: Scope for upcoming events
     public function scopeUpcoming($query) {
         return $query->where('status', 'active')
                     ->where('date', '>', now());
     }
 
-    // NEW: Scope for all active events (including those that should be completed)
     public function scopeAllActive($query) {
         return $query->where('status', 'active');
+    }
+
+    public function scopeJoinable($query, $userId = null)
+    {
+        $userId = $userId ?? auth()->id();
+        $now = Carbon::now(config('app.timezone'));
+        
+        return $query->where('status', 'active')
+                    ->where('date', '>', $now) // Only future events
+                    ->where('current_volunteers', '<', 'required_volunteers')
+                    ->whereDoesntHave('volunteers', function($q) use ($userId) {
+                        $q->where('volunteer_id', $userId)
+                          ->where('status', 'registered');
+                    })
+                    ->where('organizer_id', '!=', $userId);
     }
 }

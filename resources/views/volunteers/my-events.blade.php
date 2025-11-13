@@ -93,14 +93,14 @@
     </section>
 
     <!-- Main Content Area -->
-    <div class="grid grid-cols-1 gap-8 lg:grid-cols-4">
+    <div class="grid grid-cols-1 gap-8">
         <!-- Main Content - Events -->
-        <main class="lg:col-span-3">
+        <main>
             <!-- Events Header with Quick Actions -->
             <div class="mb-6 flex items-center justify-between">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">Your Event Registrations</h2>
-                    <p class="text-gray-600">Active and upcoming volunteer commitments</p>
+                    <h2 class="text-2xl font-bold text-gray-900">Upcoming & Active Commitments</h2>
+                    <p class="text-gray-600">Manage your current and future volunteer engagements</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <button class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50">
@@ -114,47 +114,37 @@
                 </div>
             </div>
 
-            <!-- Quick Actions & Progress Section -->
-            <div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-                <!-- Quick Actions -->
-                <div class="rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-6 text-white shadow-lg">
-                    <h3 class="mb-4 text-lg font-semibold">Quick Actions</h3>
-                    <div class="space-y-3">
-                        <a href="{{ route('volunteers') }}" 
-                           class="flex w-full items-center justify-between rounded-xl bg-white/20 px-4 py-3 text-sm font-medium backdrop-blur-sm transition-all hover:bg-white/30 hover:shadow-lg">
-                            <span>Find Opportunities</span>
-                            <i class="bi bi-arrow-up-right"></i>
-                        </a>
-                        <a href="{{ route('dashboard') }}" 
-                           class="flex w-full items-center justify-between rounded-xl bg-white/20 px-4 py-3 text-sm font-medium backdrop-blur-sm transition-all hover:bg-white/30 hover:shadow-lg">
-                            <span>Back to Dashboard</span>
-                            <i class="bi bi-grid"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Progress Summary -->
+            <!-- Progress Summary Only (Quick Actions Removed) -->
+            <div class="mb-6">
                 <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
-                    <h3 class="mb-4 text-lg font-semibold text-gray-900">Your Progress</h3>
-                    <div class="space-y-4">
+                    <h3 class="mb-4 text-lg font-semibold text-gray-900">Your Volunteer Progress</h3>
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
                         <div>
                             <div class="mb-2 flex items-center justify-between text-sm">
                                 <span class="text-gray-600">Completion Rate</span>
-                                <span class="font-semibold text-gray-900">85%</span>
+                                <span class="font-semibold text-gray-900">
+                                    @php
+                                        $completionRate = ($events->total() > 0 && isset($completedCount)) 
+                                            ? round(($completedCount / $events->total()) * 100) 
+                                            : 0;
+                                    @endphp
+                                    {{ $completionRate }}%
+                                </span>
                             </div>
                             <div class="h-2 rounded-full bg-gray-200">
-                                <div class="h-full w-4/5 rounded-full bg-green-500"></div>
+                                <div class="h-full rounded-full bg-green-500" 
+                                     style="width: {{ $completionRate }}%"></div>
                             </div>
                         </div>
                         <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-600">Avg. Rating</span>
-                            <span class="flex items-center font-semibold text-yellow-600">
-                                <i class="bi bi-star-fill mr-1"></i>4.8
+                            <span class="text-gray-600">Hours Contributed</span>
+                            <span class="flex items-center font-semibold text-orange-600">
+                                <i class="bi bi-clock mr-1"></i>{{ $totalHours ?? 0 }}h
                             </span>
                         </div>
                         <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-600">Community Rank</span>
-                            <span class="font-semibold text-gray-900">Top 15%</span>
+                            <span class="text-gray-600">Active Events</span>
+                            <span class="font-semibold text-gray-900">{{ $upcomingCount ?? 0 }}</span>
                         </div>
                     </div>
                 </div>
@@ -164,10 +154,44 @@
                 <!-- Events Grid -->
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     @foreach($events as $event)
+                    @php
+                        // FIXED: More accurate date logic
+                        $isUpcoming = $event->date > now()->endOfDay(); // Events after today
+                        $isCompleted = $event->date < now()->startOfDay(); // Events before today
+                        $isToday = $event->date->isToday(); // Events today
+                        
+                        // FIXED: Better status configuration
+                        $statusConfig = [
+                            'today' => ['class' => 'bg-green-500', 'text' => 'Today', 'badge_class' => 'bg-green-100 text-green-800'],
+                            'upcoming' => ['class' => 'bg-blue-500', 'text' => 'Upcoming', 'badge_class' => 'bg-blue-100 text-blue-800'],
+                            'completed' => ['class' => 'bg-purple-500', 'text' => 'Completed', 'badge_class' => 'bg-purple-100 text-purple-800'],
+                        ];
+                        
+                        // FIXED: Determine status with better logic
+                        if ($isToday) {
+                            $status = $statusConfig['today'];
+                        } elseif ($isUpcoming) {
+                            $status = $statusConfig['upcoming'];
+                        } else {
+                            $status = $statusConfig['completed'];
+                        }
+
+                        // FIXED: Better time progress calculation
+                        if ($isUpcoming) {
+                            $eventStart = $event->date;
+                            $now = now();
+                            $daysUntilEvent = $eventStart->diffInDays($now);
+                            $maxDaysToShow = 14; // Show progress for next 14 days
+                            $timeProgress = max(0, min(100, (($maxDaysToShow - $daysUntilEvent) / $maxDaysToShow) * 100));
+                        } else {
+                            $timeProgress = $isCompleted ? 100 : 100; // 100% for today and completed
+                        }
+                    @endphp
+                    
                     <article class="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 transition-all duration-500 hover:shadow-xl hover:ring-2 hover:ring-blue-200">
-                        <!-- Status Ribbon -->
-                        <div class="absolute -right-8 top-6 rotate-45 bg-green-500 px-8 py-1 text-xs font-semibold text-white shadow-lg">
-                            Registered
+                        <!-- FIXED: Dynamic Status Ribbon -->
+                        <div class="absolute -right-8 top-6 rotate-45 {{ $status['class'] }} px-8 py-1 text-xs font-semibold text-white shadow-lg">
+                            {{ $status['text'] }}
                         </div>
 
                         <!-- Event Header -->
@@ -194,33 +218,61 @@
                             </div>
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center text-sm text-gray-600">
-                                    <i class="bi bi-people mr-3 text-lg text-blue-500"></i>
-                                    <span>{{ $event->current_volunteers }}/{{ $event->required_volunteers }} volunteers</span>
+                                    <i class="bi bi-person-check mr-3 text-lg text-blue-500"></i>
+                                    <span>You're Registered</span>
                                 </div>
                                 <div class="flex items-center text-sm text-gray-500">
                                     <i class="bi bi-clock mr-1"></i>
-                                    <span>{{ $event->date->diffForHumans() }}</span>
+                                    <span>
+                                        @if($isUpcoming)
+                                            in {{ $event->date->diffForHumans(now(), true) }}
+                                        @elseif($isToday)
+                                            today at {{ $event->date->format('g:i A') }}
+                                        @else
+                                            {{ $event->date->diffForHumans() }}
+                                        @endif
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Progress Bar -->
+                        <!-- FIXED: Time Progress Bar -->
                         <div class="mb-4">
                             <div class="mb-2 flex items-center justify-between text-xs">
-                                <span class="text-gray-600">Volunteer Progress</span>
-                                <span class="font-semibold text-gray-900">{{ round(($event->current_volunteers / $event->required_volunteers) * 100) }}%</span>
+                                <span class="text-gray-600">
+                                    @if($isUpcoming)
+                                        Time until event
+                                    @elseif($isCompleted)
+                                        Event completed
+                                    @else
+                                        Happening today
+                                    @endif
+                                </span>
+                                <span class="font-semibold text-gray-900">
+                                    @if($isUpcoming)
+                                        {{ round($timeProgress) }}%
+                                    @else
+                                        100%
+                                    @endif
+                                </span>
                             </div>
                             <div class="h-2 rounded-full bg-gray-200">
-                                <div class="h-full rounded-full bg-blue-500" style="width: {{ ($event->current_volunteers / $event->required_volunteers) * 100 }}%"></div>
+                                @if($isUpcoming)
+                                    <div class="h-full rounded-full bg-blue-500 transition-all duration-1000" style="width: {{ $timeProgress }}%"></div>
+                                @elseif($isCompleted)
+                                    <div class="h-full rounded-full bg-purple-500" style="width: 100%"></div>
+                                @else
+                                    <div class="h-full rounded-full bg-green-500 animate-pulse" style="width: 100%"></div>
+                                @endif
                             </div>
                         </div>
 
                         <!-- Event Actions -->
                         <div class="flex items-center justify-between border-t border-gray-100 pt-4">
                             <div class="flex items-center gap-2">
-                                <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                                <span class="inline-flex items-center rounded-full {{ $status['badge_class'] }} px-3 py-1 text-xs font-medium">
                                     <i class="bi bi-person-check mr-1"></i>
-                                    Confirmed
+                                    {{ $status['text'] }}
                                 </span>
                             </div>
                             
@@ -262,17 +314,6 @@
                 </div>
             @endif
         </main>
-
-        <!-- Empty Sidebar (for future use or can be removed) -->
-        <aside class="lg:col-span-1">
-            <!-- This space can be used for additional widgets, notifications, or can be left empty -->
-            <div class="sticky top-6">
-                <div class="rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 p-6 text-center">
-                    <i class="bi bi-lightbulb text-3xl text-gray-400 mb-3"></i>
-                    <p class="text-sm text-gray-600">Space for additional features or announcements</p>
-                </div>
-            </div>
-        </aside>
     </div>
 
 </div>

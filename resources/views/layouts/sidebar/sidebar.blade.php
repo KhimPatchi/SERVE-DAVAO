@@ -372,7 +372,7 @@
               <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider collapsed-text">Audit</span>
             </div>
 
-            <a href="{{ route('admin.audit.logs') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
+            <a href="{{ route('admin.admin.audit.logs') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
               <i class="bi bi-journal-text text-lg"></i>
               <span class="text-sm font-medium collapsed-text">Audit Logs</span>
             </a>

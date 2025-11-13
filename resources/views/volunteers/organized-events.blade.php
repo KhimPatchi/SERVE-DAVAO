@@ -3,11 +3,11 @@
 
 <div class="p-6 bg-gray-50 min-h-screen" id="organized-events">
   
-  <!-- Enhanced Header with Search and Actions -->
-  <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4 scroll-fade-in">
+  <!-- Header Section -->
+  <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-4">
     <div>
       <h1 class="text-3xl font-bold text-gray-800 mb-2">My Organized Events</h1>
-      <p class="text-gray-600">Manage and track all your volunteer events in one place</p>
+      <p class="text-gray-600">Manage current events and track your event history</p>
     </div>
     
     <!-- Search and Create Button -->
@@ -24,197 +24,410 @@
     </div>
   </div>
 
-  <!-- Events Grid with Enhanced Layout -->
-  <div class="mb-8">
-    @if($events->count() > 0)
-      <!-- Events Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 stagger-animate">
-        @foreach($events as $event)
-          @php
-            $isPastEvent = $event->date->isPast();
-            $cardClass = $isPastEvent ? 'opacity-75 grayscale hover:grayscale-0' : '';
-            $borderColor = $isPastEvent ? 'border-gray-300' : 'border-emerald-500';
-          @endphp
-          
-          <div class="bg-white rounded-2xl shadow-lg overflow-hidden event-card group border-l-4 {{ $borderColor }} {{ $cardClass }}">
-            <!-- Event Header with Image -->
-            <div class="relative h-40 bg-gradient-to-r from-emerald-500 to-emerald-600 overflow-hidden">
-              @if($event->image)
-                <img src="{{ $event->image }}" alt="{{ $event->title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-              @else
-                <div class="w-full h-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
-                  <i class="bi bi-calendar-event text-white text-4xl opacity-80"></i>
-                </div>
-              @endif
-              <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-              
-              <!-- Status Badge -->
-              <div class="absolute top-4 left-4">
-                @php
-                  $statusColors = [
-                    'active' => 'emerald',
-                    'completed' => 'blue', 
-                    'cancelled' => 'red',
-                    'draft' => 'gray'
-                  ];
-                  $statusColor = $statusColors[$event->status] ?? 'gray';
-                  
-                  // Override status for past events
-                  if ($isPastEvent && $event->status === 'active') {
-                    $statusColor = 'gray';
-                    $eventStatus = 'completed';
-                    $statusIcon = 'check-circle';
-                  } else {
-                    $eventStatus = $event->status;
-                    $statusIcon = $event->status === 'active' ? 'play-circle' : ($event->status === 'completed' ? 'check-circle' : 'pause-circle');
-                  }
-                @endphp
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-{{ $statusColor }}-500 text-white backdrop-blur-sm">
-                  <i class="bi bi-{{ $statusIcon }} mr-1"></i>
-                  {{ $isPastEvent && $event->status === 'active' ? 'Completed' : ucfirst($eventStatus) }}
-                </span>
-              </div>
-              
-              <!-- Past Event Badge -->
-              @if($isPastEvent)
-                <div class="absolute top-4 right-4">
-                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-600 text-white backdrop-blur-sm">
-                    <i class="bi bi-clock-history mr-1"></i>
-                    Past Event
+  <!-- Event History Toggle -->
+  <div class="mb-6">
+    <div class="bg-white rounded-2xl shadow-sm p-4">
+      <div class="flex flex-wrap gap-4 items-center justify-between">
+        <div class="flex items-center gap-4">
+          <h3 class="text-lg font-semibold text-gray-800">Event Timeline</h3>
+          <div class="flex bg-gray-100 rounded-lg p-1">
+            <button id="showCurrentEvents" class="px-4 py-2 rounded-md bg-emerald-500 text-white text-sm font-medium transition-all duration-300 transform hover:scale-105">
+              Current Events
+            </button>
+            <button id="showEventHistory" class="px-4 py-2 rounded-md text-gray-600 hover:text-gray-800 text-sm font-medium transition-all duration-300 transform hover:scale-105">
+              Event History
+            </button>
+          </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="flex items-center gap-6 text-sm">
+          <div class="text-center">
+            <div class="text-2xl font-bold text-emerald-600">{{ $currentEventsCount }}</div>
+            <div class="text-gray-500">Active</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-blue-600">{{ $completedEventsCount }}</div>
+            <div class="text-gray-500">Completed</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-purple-600">{{ $totalVolunteersCount }}</div>
+            <div class="text-gray-500">Total Volunteers</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Current Events Section -->
+  <div id="currentEventsSection" class="events-section transition-all duration-500 ease-in-out transform">
+    @if($currentEvents->count() > 0)
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+          <i class="bi bi-lightning-fill text-emerald-500"></i>
+          Active & Upcoming Events
+          <span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">
+            {{ $currentEvents->count() }} events
+          </span>
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          @foreach($currentEvents as $event)
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden event-card group border-l-4 border-emerald-500 transition-all duration-500 hover:scale-105">
+              <!-- Event Header -->
+              <div class="relative h-40 bg-gradient-to-r from-emerald-500 to-emerald-600 overflow-hidden">
+                @if($event->image)
+                  <img src="{{ $event->image }}" alt="{{ $event->title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                @else
+                  <div class="w-full h-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
+                    <i class="bi bi-calendar-event text-white text-4xl opacity-80"></i>
+                  </div>
+                @endif
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                
+                <!-- Status Badge -->
+                <div class="absolute top-4 left-4">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500 text-white backdrop-blur-sm transition-all duration-300 group-hover:scale-110">
+                    <i class="bi bi-play-circle mr-1"></i>
+                    Active
                   </span>
                 </div>
-              @else
-                <!-- Quick Actions for future events -->
-                <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                  <div class="flex space-x-1">
-                    <button class="bg-white/20 backdrop-blur-sm text-white p-2 rounded-lg hover:bg-white/30 transition-colors" title="Event Options">
-                      <i class="bi bi-three-dots"></i>
-                    </button>
+                
+                <!-- Event Title -->
+                <div class="absolute bottom-4 left-4 right-4">
+                  <h3 class="text-white font-bold text-lg line-clamp-2 transition-all duration-300 group-hover:text-emerald-200">{{ $event->title }}</h3>
+                </div>
+              </div>
+
+              <!-- Event Content -->
+              <div class="p-6">
+                <p class="text-gray-600 text-sm mb-4 line-clamp-2 transition-colors duration-300 group-hover:text-gray-700">{{ Str::limit($event->description, 100) }}</p>
+
+                <!-- Event Meta -->
+                <div class="space-y-3 mb-4">
+                  <div class="flex items-center text-sm text-gray-600 transition-colors duration-300 group-hover:text-gray-700">
+                    <i class="bi bi-geo-alt mr-3 text-emerald-500 transition-transform duration-300 group-hover:scale-110"></i>
+                    <span class="line-clamp-1">{{ $event->location }}</span>
+                  </div>
+                  <div class="flex items-center text-sm text-gray-600 transition-colors duration-300 group-hover:text-gray-700">
+                    <i class="bi bi-calendar-event mr-3 text-emerald-500 transition-transform duration-300 group-hover:scale-110"></i>
+                    <span>{{ $event->date->format('M j, Y') }}</span>
+                  </div>
+                  <div class="flex items-center text-sm text-gray-600 transition-colors duration-300 group-hover:text-gray-700">
+                    <i class="bi bi-clock mr-3 text-emerald-500 transition-transform duration-300 group-hover:scale-110"></i>
+                    <span>{{ $event->date->format('g:i A') }}</span>
                   </div>
                 </div>
-              @endif
-              
-              <!-- Event Title Overlay -->
-              <div class="absolute bottom-4 left-4 right-4">
-                <h3 class="text-white font-bold text-lg line-clamp-2 group-hover:text-emerald-200 transition-colors">{{ $event->title }}</h3>
-              </div>
-            </div>
 
-            <!-- Event Content -->
-            <div class="p-6">
-              <!-- Description -->
-              <p class="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
-                {{ Str::limit($event->description, 100) }}
-              </p>
-
-              <!-- Event Meta -->
-              <div class="space-y-3 mb-4">
-                <div class="flex items-center text-sm text-gray-600">
-                  <i class="bi bi-geo-alt mr-3 text-emerald-500 transition-transform duration-300 group-hover:scale-110"></i>
-                  <span class="line-clamp-1">{{ $event->location }}</span>
-                </div>
-                <div class="flex items-center text-sm {{ $isPastEvent ? 'text-gray-400' : 'text-gray-600' }}">
-                  <i class="bi bi-calendar-event mr-3 text-emerald-500 transition-transform duration-300 group-hover:scale-110"></i>
-                  <span>{{ $event->date->format('M j, Y') }}</span>
-                </div>
-                <div class="flex items-center text-sm {{ $isPastEvent ? 'text-gray-400' : 'text-gray-600' }}">
-                  <i class="bi bi-clock mr-3 text-emerald-500 transition-transform duration-300 group-hover:scale-110"></i>
-                  <span>{{ $event->date->format('g:i A') }}</span>
-                </div>
-              </div>
-
-              <!-- Volunteer Progress -->
-              <div class="mb-4">
-                <div class="flex justify-between items-center text-xs text-gray-500 mb-2">
-                  <span class="font-medium">Volunteer Progress</span>
-                  <span class="font-semibold">{{ $event->current_volunteers }}/{{ $event->required_volunteers }}</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                  @php
-                    $completionPercentage = $event->required_volunteers > 0 ? ($event->current_volunteers / $event->required_volunteers) * 100 : 0;
-                    $progressColor = $completionPercentage >= 80 ? 'bg-green-500' : ($completionPercentage >= 50 ? 'bg-emerald-400' : 'bg-emerald-300');
-                  @endphp
-                  <div class="h-2 rounded-full transition-all duration-1000 ease-out {{ $progressColor }}" 
-                       style="width: {{ $completionPercentage }}%">
+                <!-- Volunteer Progress -->
+                <div class="mb-4">
+                  <div class="flex justify-between items-center text-xs text-gray-500 mb-2">
+                    <span class="font-medium">Volunteer Progress</span>
+                    <span class="font-semibold">{{ $event->current_volunteers }}/{{ $event->required_volunteers }}</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    @php
+                      $completionPercentage = $event->required_volunteers > 0 ? ($event->current_volunteers / $event->required_volunteers) * 100 : 0;
+                    @endphp
+                    <div class="h-2 rounded-full bg-emerald-500 transition-all duration-1000 ease-out" style="width: {{ $completionPercentage }}%"></div>
+                  </div>
+                  <div class="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>{{ $event->required_volunteers - $event->current_volunteers }} spots left</span>
+                    <span>{{ number_format($completionPercentage, 1) }}% filled</span>
                   </div>
                 </div>
-                <div class="flex justify-between text-xs text-gray-400 mt-1">
-                  <span>{{ $event->required_volunteers - $event->current_volunteers }} spots left</span>
-                  <span>{{ number_format($completionPercentage, 1) }}% filled</span>
-                </div>
-              </div>
 
-              <!-- Action Buttons -->
-              <div class="flex justify-between items-center pt-4 border-t border-gray-100">
-                <div class="flex space-x-2">
+                <!-- Action Buttons -->
+                <div class="flex justify-between items-center pt-4 border-t border-gray-100">
                   <a href="{{ route('volunteers.event-volunteers', $event->id) }}" 
                      class="inline-flex items-center px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 font-medium group/btn">
                     <i class="bi bi-people mr-2 transition-transform duration-300 group-hover/btn:translate-x-1"></i>
                     Volunteers
                   </a>
-                </div>
-                
-                <div class="flex space-x-2">
                   <a href="{{ route('events.show', $event) }}" 
                      class="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 font-medium group/btn">
                     <i class="bi bi-eye mr-2 transition-transform duration-300 group-hover/btn:translate-x-1"></i>
                     View
                   </a>
-                  @if(!$isPastEvent)
-                    <button class="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition-all duration-300 transform hover:scale-105" title="Share Event">
-                      <i class="bi bi-share"></i>
-                    </button>
-                  @endif
                 </div>
               </div>
             </div>
-          </div>
-        @endforeach
+          @endforeach
+        </div>
       </div>
+    @else
+      <!-- No Current Events -->
+      <div class="bg-white rounded-2xl shadow-lg p-12 text-center transition-all duration-500 hover:scale-105">
+        <div class="max-w-md mx-auto">
+          <div class="bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-full p-8 inline-flex mb-4 transition-all duration-500 hover:scale-110">
+            <i class="bi bi-calendar-plus text-4xl text-emerald-600"></i>
+          </div>
+          <h3 class="text-2xl font-bold text-gray-800 mb-3">No Active Events</h3>
+          <p class="text-gray-600 mb-6">Create your first event to get started!</p>
+          <a href="{{ route('events.create') }}" 
+             class="inline-flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg font-semibold group">
+            <i class="bi bi-plus-circle mr-2 transition-transform duration-300 group-hover:rotate-90"></i>
+            Create Event
+          </a>
+        </div>
+      </div>
+    @endif
+  </div>
 
-      <!-- Enhanced Pagination -->
-      <div class="mt-12 scroll-fade-in">
-        <div class="bg-white rounded-2xl shadow-sm p-6">
-          <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p class="text-gray-600 text-sm">
-              Showing {{ $events->firstItem() ?? '0' }} to {{ $events->lastItem() ?? '0' }} of {{ $events->total() }} events
-            </p>
-            {{ $events->links() }}
+  <!-- Event History Section -->
+  <div id="eventHistorySection" class="events-section transition-all duration-500 ease-in-out transform opacity-0 scale-95 absolute top-0 left-0 w-full">
+    @if($pastEvents->count() > 0)
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+          <i class="bi bi-clock-history text-blue-500 transition-transform duration-500"></i>
+          Event History
+          <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium transition-all duration-500">
+            {{ $pastEvents->count() }} past events
+          </span>
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          @foreach($pastEvents as $event)
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden event-card group border-l-4 border-gray-400 transition-all duration-500 hover:scale-105">
+              <!-- Event Header -->
+              <div class="relative h-40 bg-gradient-to-r from-gray-500 to-gray-600 overflow-hidden">
+                @if($event->image)
+                  <img src="{{ $event->image }}" alt="{{ $event->title }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                @else
+                  <div class="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center">
+                    <i class="bi bi-calendar-event text-white text-4xl opacity-80"></i>
+                  </div>
+                @endif
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                
+                <!-- Status Badge -->
+                <div class="absolute top-4 left-4">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-500 text-white transition-all duration-300 group-hover:scale-110">
+                    <i class="bi bi-check-circle mr-1"></i>
+                    Completed
+                  </span>
+                </div>
+                
+                <!-- Event Title -->
+                <div class="absolute bottom-4 left-4 right-4">
+                  <h3 class="text-white font-bold text-lg line-clamp-2 transition-all duration-300 group-hover:text-gray-200">{{ $event->title }}</h3>
+                </div>
+              </div>
+
+              <!-- Event Content -->
+              <div class="p-6">
+                <p class="text-gray-600 text-sm mb-4 line-clamp-2 transition-colors duration-300 group-hover:text-gray-700">{{ Str::limit($event->description, 100) }}</p>
+
+                <!-- Event Meta -->
+                <div class="space-y-3 mb-4">
+                  <div class="flex items-center text-sm text-gray-600 transition-colors duration-300 group-hover:text-gray-700">
+                    <i class="bi bi-geo-alt mr-3 text-blue-500 transition-transform duration-300 group-hover:scale-110"></i>
+                    <span class="line-clamp-1">{{ $event->location }}</span>
+                  </div>
+                  <div class="flex items-center text-sm text-gray-500 transition-colors duration-300 group-hover:text-gray-600">
+                    <i class="bi bi-calendar-event mr-3 text-blue-500 transition-transform duration-300 group-hover:scale-110"></i>
+                    <span>{{ $event->date->format('M j, Y') }}</span>
+                  </div>
+                  <div class="flex items-center text-sm text-gray-500 transition-colors duration-300 group-hover:text-gray-600">
+                    <i class="bi bi-clock mr-3 text-blue-500 transition-transform duration-300 group-hover:scale-110"></i>
+                    <span>{{ $event->date->format('g:i A') }}</span>
+                  </div>
+                </div>
+
+                <!-- Volunteer Progress -->
+                <div class="mb-4">
+                  <div class="flex justify-between items-center text-xs text-gray-500 mb-2">
+                    <span class="font-medium">Volunteer Progress</span>
+                    <span class="font-semibold">{{ $event->current_volunteers }}/{{ $event->required_volunteers }}</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    @php
+                      $completionPercentage = $event->required_volunteers > 0 ? ($event->current_volunteers / $event->required_volunteers) * 100 : 0;
+                    @endphp
+                    <div class="h-2 rounded-full bg-blue-400 transition-all duration-1000 ease-out" style="width: {{ $completionPercentage }}%"></div>
+                  </div>
+                  <div class="flex justify-between text-xs text-gray-400 mt-1">
+                    <span>{{ $event->required_volunteers - $event->current_volunteers }} spots left</span>
+                    <span>{{ number_format($completionPercentage, 1) }}% filled</span>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-between items-center pt-4 border-t border-gray-100">
+                  <a href="{{ route('volunteers.event-volunteers', $event->id) }}" 
+                     class="inline-flex items-center px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 font-medium group/btn">
+                    <i class="bi bi-people mr-2 transition-transform duration-300 group-hover/btn:translate-x-1"></i>
+                    Volunteers
+                  </a>
+                  <a href="{{ route('events.show', $event) }}" 
+                     class="inline-flex items-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition-all duration-300 transform hover:scale-105 font-medium group/btn">
+                    <i class="bi bi-eye mr-2 transition-transform duration-300 group-hover/btn:translate-x-1"></i>
+                    View
+                  </a>
+                </div>
+              </div>
+            </div>
+          @endforeach
+        </div>
+
+        <!-- History Summary -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mt-8 transition-all duration-500 hover:scale-105">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">Event History Summary</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="text-center p-4 bg-blue-50 rounded-xl transition-all duration-500 hover:scale-110">
+              <div class="text-2xl font-bold text-blue-600">{{ $totalEventsCount }}</div>
+              <div class="text-sm text-gray-600">Total Events</div>
+            </div>
+            <div class="text-center p-4 bg-green-50 rounded-xl transition-all duration-500 hover:scale-110">
+              <div class="text-2xl font-bold text-green-600">{{ $successfulEventsCount }}</div>
+              <div class="text-sm text-gray-600">Successful Events</div>
+            </div>
+            <div class="text-center p-4 bg-purple-50 rounded-xl transition-all duration-500 hover:scale-110">
+              <div class="text-2xl font-bold text-purple-600">{{ $totalVolunteersHistory }}</div>
+              <div class="text-sm text-gray-600">Total Volunteers</div>
+            </div>
+            <div class="text-center p-4 bg-orange-50 rounded-xl transition-all duration-500 hover:scale-110">
+              <div class="text-2xl font-bold text-orange-600">
+                @php
+                  $averageParticipation = $totalEventsCount > 0 ? round(($totalVolunteersHistory / $totalEventsCount) * 10) : 0;
+                @endphp
+                {{ $averageParticipation }}%
+              </div>
+              <div class="text-sm text-gray-600">Avg. Participation</div>
+            </div>
           </div>
         </div>
       </div>
-
     @else
-      <!-- Enhanced Empty State -->
-      <div class="bg-white rounded-2xl shadow-lg p-12 text-center scroll-fade-in">
-        <div class="max-w-md mx-auto transform transition-all duration-500 hover:scale-105">
-          <div class="relative mb-6">
-            <div class="bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-full p-8 inline-flex mb-4">
-              <i class="bi bi-calendar-plus text-4xl text-emerald-600"></i>
-            </div>
-            <div class="absolute -top-2 -right-2 bg-emerald-500 text-white rounded-full p-2">
-              <i class="bi bi-lightning"></i>
-            </div>
+      <!-- Empty History State -->
+      <div class="bg-white rounded-2xl shadow-lg p-12 text-center transition-all duration-500 hover:scale-105">
+        <div class="max-w-md mx-auto">
+          <div class="bg-gradient-to-br from-blue-100 to-blue-200 rounded-full p-8 inline-flex mb-4 transition-all duration-500 hover:scale-110">
+            <i class="bi bi-clock-history text-4xl text-blue-600"></i>
           </div>
-          <h3 class="text-2xl font-bold text-gray-800 mb-3">Ready to Make an Impact?</h3>
-          <p class="text-gray-600 mb-8 text-lg leading-relaxed">
-            Create your first volunteer event and start building your community. It only takes a few minutes to get started.
-          </p>
-          <div class="space-y-4">
-            <a href="{{ route('events.create') }}" 
-               class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl font-semibold text-lg">
-              <i class="bi bi-plus-circle mr-3 text-xl"></i>
-              Create Event
-            </a>
-            <div class="text-sm text-gray-500">
-              <p>Need inspiration? <a href="#" class="text-emerald-600 hover:text-emerald-700 font-medium">Browse event ideas</a></p>
-            </div>
-          </div>
+          <h3 class="text-2xl font-bold text-gray-800 mb-3">No Event History Yet</h3>
+          <p class="text-gray-600 mb-6">Your completed events will appear here.</p>
+          <a href="{{ route('events.create') }}" 
+             class="inline-flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg font-semibold group">
+            <i class="bi bi-plus-circle mr-2 transition-transform duration-300 group-hover:rotate-90"></i>
+            Create Event
+          </a>
         </div>
       </div>
     @endif
   </div>
 </div>
 
-<!-- Your existing styles and scripts -->
+<!-- Enhanced JavaScript for Smooth Animated Transitions -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const showCurrentEvents = document.getElementById('showCurrentEvents');
+  const showEventHistory = document.getElementById('showEventHistory');
+  const currentEventsSection = document.getElementById('currentEventsSection');
+  const eventHistorySection = document.getElementById('eventHistorySection');
+
+  let isAnimating = false;
+
+  function switchToCurrentEvents() {
+    if (isAnimating) return;
+    isAnimating = true;
+
+    // Update button states
+    showCurrentEvents.classList.add('bg-emerald-500', 'text-white', 'scale-105');
+    showCurrentEvents.classList.remove('text-gray-600', 'scale-100');
+    showEventHistory.classList.remove('bg-blue-500', 'text-white', 'scale-105');
+    showEventHistory.classList.add('text-gray-600', 'scale-100');
+
+    // Animate sections
+    eventHistorySection.style.transform = 'translateX(-100%) scale(0.95)';
+    eventHistorySection.style.opacity = '0';
+    
+    setTimeout(() => {
+      eventHistorySection.classList.add('hidden');
+      currentEventsSection.classList.remove('hidden');
+      
+      // Trigger reflow
+      currentEventsSection.offsetHeight;
+      
+      currentEventsSection.style.transform = 'translateX(0) scale(1)';
+      currentEventsSection.style.opacity = '1';
+      currentEventsSection.style.position = 'relative';
+      
+      setTimeout(() => {
+        isAnimating = false;
+      }, 300);
+    }, 300);
+  }
+
+  function switchToEventHistory() {
+    if (isAnimating) return;
+    isAnimating = true;
+
+    // Update button states
+    showEventHistory.classList.add('bg-blue-500', 'text-white', 'scale-105');
+    showEventHistory.classList.remove('text-gray-600', 'scale-100');
+    showCurrentEvents.classList.remove('bg-emerald-500', 'text-white', 'scale-105');
+    showCurrentEvents.classList.add('text-gray-600', 'scale-100');
+
+    // Animate sections
+    currentEventsSection.style.transform = 'translateX(100%) scale(0.95)';
+    currentEventsSection.style.opacity = '0';
+    
+    setTimeout(() => {
+      currentEventsSection.classList.add('hidden');
+      eventHistorySection.classList.remove('hidden');
+      
+      // Trigger reflow
+      eventHistorySection.offsetHeight;
+      
+      eventHistorySection.style.transform = 'translateX(0) scale(1)';
+      eventHistorySection.style.opacity = '1';
+      eventHistorySection.style.position = 'relative';
+      
+      setTimeout(() => {
+        isAnimating = false;
+      }, 300);
+    }, 300);
+  }
+
+  // Initialize sections
+  currentEventsSection.style.transform = 'translateX(0) scale(1)';
+  currentEventsSection.style.opacity = '1';
+  currentEventsSection.style.position = 'relative';
+  currentEventsSection.style.transition = 'all 0.5s ease-in-out';
+  
+  eventHistorySection.style.transform = 'translateX(100%) scale(0.95)';
+  eventHistorySection.style.opacity = '0';
+  eventHistorySection.style.position = 'absolute';
+  eventHistorySection.style.transition = 'all 0.5s ease-in-out';
+
+  showCurrentEvents.addEventListener('click', switchToCurrentEvents);
+  showEventHistory.addEventListener('click', switchToEventHistory);
+
+  // Start with current events visible
+  switchToCurrentEvents();
+});
+</script>
+
+<style>
+.events-section {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.event-card {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth scaling for all interactive elements */
+button, a, .transition-element {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced hover effects */
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+</style>
+
 @endsection

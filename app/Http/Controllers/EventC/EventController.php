@@ -21,21 +21,25 @@ class EventController extends Controller
         return view('events.index', compact('events'));
     }
 
-  public function show(Event $event)
-{
-    // Load the organizer relationship properly
-    $event->load(['organizer']);
+    public function show(Event $event)
+    {
+        // FIXED: Load volunteers with their user data
+        $event->load([
+            'organizer',
+            'volunteers.volunteer' // This loads the volunteers with their user data
+        ]);
 
-    // Fix: Convert storage path to public URL if needed
-    if ($event->organizer && $event->organizer->avatar) {
-        // If avatar path starts with 'storage/', convert to public URL
-        if (str_starts_with($event->organizer->avatar, 'storage/')) {
-            $event->organizer->avatar = asset($event->organizer->avatar);
+        // Fix: Convert storage path to public URL if needed
+        if ($event->organizer && $event->organizer->avatar) {
+            // If avatar path starts with 'storage/', convert to public URL
+            if (str_starts_with($event->organizer->avatar, 'storage/')) {
+                $event->organizer->avatar = asset($event->organizer->avatar);
+            }
         }
+
+        return view('events.show', compact('event'));
     }
 
-    return view('events.show', compact('event'));
-}
     public function create()
     {
         // Only verified organizers and admins can create events
@@ -48,26 +52,24 @@ class EventController extends Controller
         return view('events.create');
     }
 
-    public function store(EventRequest $request)
-    {
-        // Only verified organizers and admins can create events
-        if (!Auth::user()->isVerifiedOrganizer() && !Auth::user()->isAdmin()) {
-            // FIX: Changed from 'organizer.verify' to 'organizer.verification.create'
-            return redirect()->route('organizer.verification.create')
-                             ->with('error', 'You need to be a verified organizer to create events.');
-        }
-
-        try {
-            $event = $this->eventService->createEvent($request->validated(), Auth::user());
-            
-            return redirect()->route('events.show', $event)
-                             ->with('success', 'Event created successfully! It is now live and visible to volunteers.');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Failed to create event: ' . $e->getMessage())
-                         ->withInput();
-        }
+ public function store(EventRequest $request)
+{
+    // Only verified organizers and admins can create events
+    if (!Auth::user()->isVerifiedOrganizer() && !Auth::user()->isAdmin()) {
+        return redirect()->route('organizer.verification.create')
+                         ->with('error', 'You need to be a verified organizer to create events.');
     }
 
+    try {
+        $event = $this->eventService->createEvent($request->validated(), Auth::user());
+
+        return redirect()->route('events.show', $event)
+                         ->with('success', 'Event created successfully! It is now live and visible to volunteers.');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Failed to create event: ' . $e->getMessage())
+                     ->withInput();
+    }
+}
     public function register(Event $event)
     {
         try {
