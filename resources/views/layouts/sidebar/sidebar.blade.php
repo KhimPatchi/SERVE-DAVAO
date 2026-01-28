@@ -7,7 +7,8 @@
   <link rel="icon" type="image/png" href="{{ asset('assets/img/logoDav.png') }}">
 
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind CSS -->
+  @vite(['resources/css/app.css', 'resources/js/app.js'])
 
   <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
@@ -414,7 +415,7 @@
             @if(Auth::user()->isVerifiedOrganizer())
             <a href="{{ route('volunteers.organized-events') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
                 <i class="bi bi-person-badge text-lg"></i>
-                <span class="text-sm font-medium collapsed-text">Organized Events</span>
+                <span class="text-sm font-medium collapsed-text">Organize Events</span>
             </a>
             @endif
 

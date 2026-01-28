@@ -36,6 +36,14 @@ class User extends Authenticatable
                     ->withTimestamps();
     }
 
+    // NEW: Unfiltered relationship for history
+    public function allVolunteeringEvents()
+    {
+        return $this->belongsToMany(Event::class, 'event_volunteers', 'volunteer_id', 'event_id')
+                    ->withPivot('status', 'hours_volunteered')
+                    ->withTimestamps();
+    }
+
     public function volunteerRegistrations()
     {
         return $this->hasMany(EventVolunteer::class, 'volunteer_id');

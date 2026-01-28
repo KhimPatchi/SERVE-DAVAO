@@ -11,6 +11,8 @@ use App\Http\Controllers\EventC\EventController;
 use App\Http\Controllers\Verify\ProfileController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Verify\OrganizerVerificationController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Auth\LoginController;
 
 // Landing Page
 Route::get('/', function() {
@@ -29,11 +31,11 @@ Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name(
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('google.callback');
 
 // Protected routes (auth required) - ALL PROTECTED ROUTES GO HERE
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'prevent-back-history'])->group(function () { // ← ADD 'prevent-back-history' HERE
     // Dashboard - PROTECTED
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
-    // ✅ MOVED: Profile Routes INSIDE auth middleware
+    // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     
@@ -71,7 +73,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // Admin routes - PROTECTED (requires both auth and admin role)
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'prevent-back-history'])->group(function () { // ← ADD HERE TOO
     // Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     
@@ -79,6 +81,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/events', [AdminController::class, 'events'])->name('events');
     Route::post('/events/{event}/approve', [AdminController::class, 'approveEvent'])->name('events.approve');
     Route::post('/events/{event}/reject', [AdminController::class, 'rejectEvent'])->name('events.reject');
+
+    Route::post('/events/{event}/complete', [AdminController::class, 'completeEvent'])->name('events.complete');
     
     // User Management
     Route::get('/users', [AdminController::class, 'users'])->name('users');
@@ -89,7 +93,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/organizer-verifications/{user}/approve', [AdminController::class, 'approveOrganizer'])->name('organizer-verifications.approve');
     Route::post('/organizer-verifications/{user}/reject', [AdminController::class, 'rejectOrganizer'])->name('organizer-verifications.reject');
     
-    // ✅ MOVED: Audit Routes INSIDE admin middleware
+    // Audit Routes
     Route::prefix('audit')->group(function () {
         Route::get('/logs', [App\Http\Controllers\Audit\AuditController::class, 'logs'])->name('admin.audit.logs');
         Route::get('/user-activity', [App\Http\Controllers\Audit\AuditController::class, 'userActivity'])->name('admin.audit.user-activity');
@@ -104,14 +108,72 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     });
 });
 
-// Logout route - PROTECTED
+/// Enhanced logout route
 Route::post('/logout', function () {
     Auth::logout();
     request()->session()->invalidate();
     request()->session()->regenerateToken();
-    return redirect('/');
+    
+    // Clear all session data and cache
+    session()->flush();
+    
+    return redirect('/')->withHeaders([
+        'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate, private',
+        'Pragma' => 'no-cache',
+        'Expires' => 'Fri, 01 Jan 1990 00:00:00 GMT',
+    ]);
 })->middleware('auth')->name('logout');
 
+// Contact routes
+Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
+Route::get('/test-simple-contact', function() {
+    try {
+        $request = new Illuminate\Http\Request([
+            'firstName' => 'Test',
+            'lastName' => 'User',
+            'email' => 'test@example.com', 
+            'subject' => 'Test',
+            'message' => 'Test message'
+        ]);
+        
+        $controller = new App\Http\Controllers\ContactController();
+        return $controller->submit($request);
+        
+    } catch (Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
+
+// Custom login routes that use our custom LoginController
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login']);
+
+
+// KEEP THESE - They're safe and won't conflict:
+Route::get('/.env', function () {
+    abort(404, 'Page not found');
+});
+
+Route::get('/storage/{any}', function () {
+    abort(404, 'Page not found');
+})->where('any', '.*');
+
+Route::get('/vendor/{any}', function () {
+    abort(404, 'Page not found');
+})->where('any', '.*');
+
+// KEEP these framework file blocks:
+Route::get('/artisan', function () {
+    abort(404, 'Page not found');
+});
+
+Route::get('/composer.json', function () {
+    abort(404, 'Page not found');
+});
+
+Route::get('/package.json', function () {
+    abort(404, 'Page not found');
+});
 
 
 // Laravel default auth routes

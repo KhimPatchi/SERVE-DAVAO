@@ -220,6 +220,29 @@ class Event extends Model
     }
 
     // =========================================================================
+    // ACCESSORS
+    // =========================================================================
+
+    /**
+     * Get human-readable time until event
+     */
+    public function getTimeUntilEventAttribute()
+    {
+        $now = Carbon::now(config('app.timezone'));
+        $eventTime = $this->date->copy()->setTimezone(config('app.timezone'));
+        
+        if ($this->isOngoing()) {
+            return 'Ongoing';
+        } elseif ($eventTime->isToday()) {
+            return 'Today at ' . $eventTime->format('g:i A');
+        } elseif ($eventTime->isFuture()) {
+            return 'in ' . $eventTime->diffForHumans($now, ['syntax' => Carbon::DIFF_ABSOLUTE]);
+        } else {
+            return $eventTime->diffForHumans();
+        }
+    }
+
+    // =========================================================================
     // SCOPES
     // =========================================================================
 
@@ -262,4 +285,34 @@ class Event extends Model
                     })
                     ->where('organizer_id', '!=', $userId);
     }
+    // Add to your Event.php model in the ACCESSORS section:
+
+/**
+ * Check if event is happening right now (ongoing)
+ */
+public function getIsOngoingAttribute()
+{
+    $now = Carbon::now(config('app.timezone'));
+    $eventTime = $this->date->copy()->setTimezone(config('app.timezone'));
+    
+    return $eventTime->isToday() && 
+           $now->between($eventTime->copy()->startOfDay(), $eventTime->copy()->endOfDay());
+}
+
+/**
+ * Check if event is upcoming (future)
+ */
+public function getIsUpcomingAttribute()
+{
+    return $this->date->isFuture();
+}
+
+/**
+ * Check if event is completed (past)
+ */
+public function getIsCompletedAttribute()
+{
+    return $this->date->isPast();
+}
+
 }

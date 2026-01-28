@@ -37,30 +37,8 @@ class AdminController extends Controller
 
     public function dashboard()
     {
-         // Add no-cache headers
-    $response = response()->view('admin.dashboard', [
-        'stats' => $this->getDashboardStats()
-    ]);
-    
-    return $response->header('Cache-Control', 'no-cache, no-store, must-revalidate')
-                   ->header('Pragma', 'no-cache')
-                   ->header('Expires', '0');
-
-
-
-        // ✅ UPDATED: Use new OrganizerVerification system
-        $totalOrganizers = OrganizerVerification::where('status', 'approved')->count();
-        $pendingOrganizers = OrganizerVerification::where('status', 'pending')->count();
-
-        $stats = [
-            'total_users' => User::count(),
-            'total_organizers' => $totalOrganizers,
-            'pending_organizers' => $pendingOrganizers,
-            'total_events' => Event::count(),
-            'pending_events' => Event::where('status', 'pending')->count(),
-            'active_events' => Event::where('status', 'active')->count(),
-            'total_volunteers' => EventVolunteer::where('status', 'registered')->count(),
-        ];
+        // ✅ FIXED: Add the missing getDashboardStats method call
+        $stats = $this->getDashboardStats();
 
         // Recent pending events for approval
         $pendingEvents = Event::with('organizer')
@@ -76,9 +54,36 @@ class AdminController extends Controller
             ->limit(5)
             ->get();
 
-        return view('admin.dashboard', compact('stats', 'pendingEvents', 'pendingOrganizerApplications'));
+        // Add no-cache headers
+        $response = response()->view('admin.dashboard', compact('stats', 'pendingEvents', 'pendingOrganizerApplications'));
+        
+        return $response->header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                       ->header('Pragma', 'no-cache')
+                       ->header('Expires', '0');
     }
 
+    /**
+     * ✅ ADD THIS MISSING METHOD
+     * Get dashboard statistics
+     */
+    private function getDashboardStats()
+    {
+        // ✅ UPDATED: Use new OrganizerVerification system
+        $totalOrganizers = OrganizerVerification::where('status', 'approved')->count();
+        $pendingOrganizers = OrganizerVerification::where('status', 'pending')->count();
+
+        return [
+            'total_users' => User::count(),
+            'total_organizers' => $totalOrganizers,
+            'pending_organizers' => $pendingOrganizers,
+            'total_events' => Event::count(),
+            'pending_events' => Event::where('status', 'pending')->count(),
+            'active_events' => Event::where('status', 'active')->count(),
+            'total_volunteers' => EventVolunteer::where('status', 'registered')->count(),
+        ];
+    }
+
+    // ... rest of your existing methods remain the same
     public function events()
     {
         $events = Event::with('organizer')
@@ -214,51 +219,91 @@ class AdminController extends Controller
         return back()->with('success', 'Organizer approved successfully!');
     }
 
-    public function rejectOrganizer(User $user, Request $request)
-    {
+   public function rejectOrganizer(User $user, Request $request)
+{
+    // Debug: Log the start of the method
+    \Log::info('=== REJECT ORGANIZER METHOD STARTED ===');
+    \Log::info('User ID: ' . $user->id);
+    \Log::info('Request data: ', $request->all());
+
+    try {
         $request->validate([
             'reason' => 'required|string|max:500'
         ]);
 
+        \Log::info('Validation passed');
+
         $verification = OrganizerVerification::where('user_id', $user->id)
             ->where('status', 'pending')
-            ->firstOrFail();
+            ->first();
+
+        if (!$verification) {
+            \Log::error('No pending organizer verification found for user: ' . $user->id);
+            return back()->with('error', 'No pending organizer verification application found.');
+        }
+
+        \Log::info('Found verification record: ' . $verification->id);
 
         $oldStatus = $verification->status;
         
-        $verification->update([
+        $updateData = [
             'status' => 'rejected',
             'rejection_reason' => $request->reason,
             'rejected_at' => now(),
-        ]);
+        ];
 
-        // Enhanced audit logging using AuditService
-        AuditService::logOrganizerRejection($user, $verification, $request->reason);
+        \Log::info('Update data: ', $updateData);
 
-        return back()->with('success', 'Organizer application rejected successfully!');
+        $updated = $verification->update($updateData);
+
+        if ($updated) {
+            \Log::info('Successfully updated organizer verification to rejected');
+            
+            // Enhanced audit logging using AuditService
+            if (class_exists(AuditService::class)) {
+                AuditService::logOrganizerRejection($user, $verification, $request->reason);
+                \Log::info('Audit log created');
+            }
+
+            \Log::info('=== REJECT ORGANIZER METHOD COMPLETED SUCCESSFULLY ===');
+            return back()->with('success', 'Organizer application rejected successfully!');
+        } else {
+            \Log::error('Failed to update organizer verification');
+            return back()->with('error', 'Failed to reject organizer application.');
+        }
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        \Log::error('Validation failed: ' . json_encode($e->errors()));
+        return back()->with('error', 'Validation failed: ' . implode(', ', $e->errors()['reason'] ?? []));
+    } catch (\Exception $e) {
+        \Log::error('Error rejecting organizer: ' . $e->getMessage());
+        \Log::error('Stack trace: ' . $e->getTraceAsString());
+        return back()->with('error', 'An error occurred while rejecting the organizer application: ' . $e->getMessage());
     }
-    public function completeEvent(Event $event)
-{
-    $oldStatus = $event->status;
-    
-    // Update event status to completed
-    $event->update(['status' => 'completed']);
-
-    // Audit logging for event completion
-    AuditService::log(
-        'event_completed',
-        "Admin marked event as completed: {$event->title}",
-        get_class($event),
-        $event->id,
-        [
-            'event_title' => $event->title,
-            'organizer_id' => $event->organizer_id,
-            'organizer_email' => $event->organizer->email ?? 'Unknown',
-            'old_status' => $oldStatus,
-            'new_status' => 'completed'
-        ]
-    );
-
-    return back()->with('success', 'Event marked as completed successfully!');
 }
+
+    public function completeEvent(Event $event)
+    {
+        $oldStatus = $event->status;
+        
+        // Update event status to completed
+        $event->update(['status' => 'completed']);
+
+        // Audit logging for event completion
+        AuditService::log(
+            'event_completed',
+            "Admin marked event as completed: {$event->title}",
+            get_class($event),
+            $event->id,
+            [
+                'event_title' => $event->title,
+                'organizer_id' => $event->organizer_id,
+                'organizer_email' => $event->organizer->email ?? 'Unknown',
+                'old_status' => $oldStatus,
+                'new_status' => 'completed'
+            ]
+        );
+
+        return back()->with('success', 'Event marked as completed successfully!');
+    }
 }

@@ -265,9 +265,10 @@
         </div>
       </div>
 
-      <!-- Security Section -->
+        <!-- Security Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Password Update Card -->
+        @if(!$user->google_id)
         <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden feature-card">
           <div class="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-5">
             <h2 class="text-xl font-bold text-white flex items-center gap-3">
@@ -334,6 +335,7 @@
             </form>
           </div>
         </div>
+        @endif
 
         <!-- Account Status Card -->
         <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden feature-card">

@@ -2,19 +2,52 @@
 
 @section('content')
 <div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-    <!-- Enhanced Back Navigation -->
-    <div class="max-w-7xl mx-auto mb-8">
-        <a href="{{ route('events.index') }}" 
+   <!-- Secure Back Navigation -->
+<div class="max-w-7xl mx-auto mb-8">
+    @auth
+        <!-- For logged-in users: Smart back button -->
+        <button onclick="handleBackNavigation()" 
+               class="group inline-flex items-center gap-3 text-sm font-medium text-gray-600 hover:text-emerald-600 transition-all duration-300 transform hover:-translate-x-1">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-sm border border-gray-200 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+            </div>
+            <span class="hidden sm:inline">Back to Previous</span>
+        </button>
+    @else
+        <!-- For logged-out users: Always go to home -->
+        <a href="{{ route('landing') }}" 
            class="group inline-flex items-center gap-3 text-sm font-medium text-gray-600 hover:text-emerald-600 transition-all duration-300 transform hover:-translate-x-1">
             <div class="flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-sm border border-gray-200 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-all">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
             </div>
-            <span class="hidden sm:inline">Back to Events</span>
+            <span class="hidden sm:inline">Back to Home</span>
         </a>
-    </div>
+    @endauth
+</div>
 
+@auth
+<script>
+function handleBackNavigation() {
+    const previousUrl = "{{ session('previous_url', '') }}";
+    
+    // If we have a stored previous URL and it's not the current page
+    if (previousUrl && previousUrl !== "{{ url()->current() }}") {
+        window.location.href = previousUrl;
+    } else {
+        // Use browser history or fallback to events index
+        if (document.referrer && document.referrer.includes(window.location.host)) {
+            window.history.back();
+        } else {
+            window.location.href = "{{ route('events.index') }}";
+        }
+    }
+}
+</script>
+@endauth
     <!-- Enhanced Event Details Card -->
     <div class="max-w-7xl mx-auto">
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden event-card group">

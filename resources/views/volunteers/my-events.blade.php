@@ -103,6 +103,10 @@
                     <p class="text-gray-600">Manage your current and future volunteer engagements</p>
                 </div>
                 <div class="flex items-center gap-3">
+                    <a href="#event-history" class="flex items-center gap-2 rounded-lg border border-purple-200 bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700 transition-all hover:bg-purple-100">
+                        <i class="bi bi-clock-history"></i>
+                        History
+                    </a>
                     <button class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50">
                         <i class="bi bi-filter"></i>
                         Filter
@@ -154,39 +158,47 @@
                 <!-- Events Grid -->
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                     @foreach($events as $event)
-                    @php
-                        // FIXED: More accurate date logic
-                        $isUpcoming = $event->date > now()->endOfDay(); // Events after today
-                        $isCompleted = $event->date < now()->startOfDay(); // Events before today
-                        $isToday = $event->date->isToday(); // Events today
-                        
-                        // FIXED: Better status configuration
-                        $statusConfig = [
-                            'today' => ['class' => 'bg-green-500', 'text' => 'Today', 'badge_class' => 'bg-green-100 text-green-800'],
-                            'upcoming' => ['class' => 'bg-blue-500', 'text' => 'Upcoming', 'badge_class' => 'bg-blue-100 text-blue-800'],
-                            'completed' => ['class' => 'bg-purple-500', 'text' => 'Completed', 'badge_class' => 'bg-purple-100 text-purple-800'],
-                        ];
-                        
-                        // FIXED: Determine status with better logic
-                        if ($isToday) {
-                            $status = $statusConfig['today'];
-                        } elseif ($isUpcoming) {
-                            $status = $statusConfig['upcoming'];
-                        } else {
-                            $status = $statusConfig['completed'];
-                        }
+                               @php
+// SIMPLIFIED: Use the model's computed properties
+$isOngoing = $event->is_ongoing;
+$isUpcoming = $event->is_upcoming;
+$isCompleted = $event->is_completed;
 
-                        // FIXED: Better time progress calculation
-                        if ($isUpcoming) {
-                            $eventStart = $event->date;
-                            $now = now();
-                            $daysUntilEvent = $eventStart->diffInDays($now);
-                            $maxDaysToShow = 14; // Show progress for next 14 days
-                            $timeProgress = max(0, min(100, (($maxDaysToShow - $daysUntilEvent) / $maxDaysToShow) * 100));
-                        } else {
-                            $timeProgress = $isCompleted ? 100 : 100; // 100% for today and completed
-                        }
-                    @endphp
+// Status configuration
+$statusConfig = [
+    'ongoing' => ['class' => 'bg-green-500', 'text' => 'Ongoing', 'badge_class' => 'bg-green-100 text-green-800'],
+    'today' => ['class' => 'bg-blue-500', 'text' => 'Today', 'badge_class' => 'bg-blue-100 text-blue-800'],
+    'upcoming' => ['class' => 'bg-orange-500', 'text' => 'Upcoming', 'badge_class' => 'bg-orange-100 text-orange-800'],       
+    'completed' => ['class' => 'bg-purple-500', 'text' => 'Completed', 'badge_class' => 'bg-purple-100 text-purple-800'],     
+];
+
+// Determine status
+if ($isOngoing) {
+    $status = $statusConfig['ongoing'];
+} elseif ($event->date->isToday() && $isUpcoming) {
+    $status = $statusConfig['today'];
+} elseif ($isUpcoming) {
+    $status = $statusConfig['upcoming'];
+} else {
+    $status = $statusConfig['completed'];
+}
+
+// Time progress calculation
+if ($isOngoing) {
+    $timeProgress = 100;
+} elseif ($isUpcoming && $event->date->isToday()) {
+    $eventStart = $event->date;
+    $hoursUntilEvent = $eventStart->diffInHours(now());
+    $timeProgress = max(0, min(100, (24 - $hoursUntilEvent) / 24 * 100));
+} elseif ($isUpcoming) {
+    $eventStart = $event->date;
+    $daysUntilEvent = $eventStart->diffInDays(now());
+    $maxDaysToShow = 14;
+    $timeProgress = max(0, min(100, (($maxDaysToShow - $daysUntilEvent) / $maxDaysToShow) * 100));
+} else {
+    $timeProgress = 100;
+}
+@endphp
                     
                     <article class="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 transition-all duration-500 hover:shadow-xl hover:ring-2 hover:ring-blue-200">
                         <!-- FIXED: Dynamic Status Ribbon -->
@@ -224,10 +236,12 @@
                                 <div class="flex items-center text-sm text-gray-500">
                                     <i class="bi bi-clock mr-1"></i>
                                     <span>
-                                        @if($isUpcoming)
-                                            in {{ $event->date->diffForHumans(now(), true) }}
-                                        @elseif($isToday)
+                                        @if($status['text'] === 'Ongoing')
+                                            happening now
+                                        @elseif($isUpcoming && $isToday)
                                             today at {{ $event->date->format('g:i A') }}
+                                        @elseif($isUpcoming)
+                                            in {{ $event->date->diffForHumans(now(), true) }}
                                         @else
                                             {{ $event->date->diffForHumans() }}
                                         @endif
@@ -240,7 +254,9 @@
                         <div class="mb-4">
                             <div class="mb-2 flex items-center justify-between text-xs">
                                 <span class="text-gray-600">
-                                    @if($isUpcoming)
+                                    @if($status['text'] === 'Ongoing')
+                                        Event in progress
+                                    @elseif($isUpcoming)
                                         Time until event
                                     @elseif($isCompleted)
                                         Event completed
@@ -292,6 +308,84 @@
                     {{ $events->links() }}
                 </div>
                 @endif
+
+                <!-- EVENT HISTORY SECTION (Always Visible) -->
+                <div id="event-history" class="mt-16 pt-8 border-t border-gray-200 scroll-mt-24">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="p-2 bg-purple-100 rounded-lg">
+                            <i class="bi bi-clock-history text-2xl text-purple-600"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900">Event History</h2>
+                            <p class="text-gray-600">Your completed missions and impact</p>
+                        </div>
+                    </div>
+
+                    @if(isset($attendedEvents) && $attendedEvents->count() > 0)
+                    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-gray-50 text-gray-600 font-medium">
+                                    <tr>
+                                        <th class="px-6 py-4">Event Name</th>
+                                        <th class="px-6 py-4">Date & Time</th>
+                                        <th class="px-6 py-4">Organizer</th>
+                                        <th class="px-6 py-4 text-center">Hours Earned</th>
+                                        <th class="px-6 py-4 text-center">Status</th>
+                                        <th class="px-6 py-4 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach($attendedEvents as $history)
+                                    <tr class="hover:bg-gray-50/50 transition-colors">
+                                        <td class="px-6 py-4">
+                                            <div class="font-semibold text-gray-900">{{ $history->title }}</div>
+                                            <div class="text-xs text-gray-500 truncate max-w-[200px]">{{ $history->location }}</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-gray-900">{{ $history->date->format('M j, Y') }}</div>
+                                            <div class="text-xs text-gray-500">{{ $history->date->format('g:i A') }}</div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600">
+                                                    {{ substr($history->organizer->name ?? 'S', 0, 1) }}
+                                                </div>
+                                                <span class="text-gray-700">{{ $history->organizer->name ?? 'ServeDavao' }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <span class="inline-flex items-center gap-1 font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-md">
+                                                <i class="bi bi-lightning-charge-fill text-xs"></i>
+                                                {{ $history->pivot->hours_volunteered ?? 0 }}h
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <span class="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
+                                                Completed
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <a href="{{ route('events.show', $history) }}" class="text-blue-600 hover:text-blue-800 font-medium text-xs hover:underline">
+                                                View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    @else
+                    <div class="rounded-2xl bg-gray-50 p-8 text-center border border-dashed border-gray-300">
+                        <div class="inline-flex rounded-full bg-gray-100 p-4 mb-4">
+                            <i class="bi bi-clock-history text-2xl text-gray-400"></i>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900">No History Yet</h3>
+                        <p class="text-gray-500 mt-1">Events you complete will appear here automatically.</p>
+                    </div>
+                    @endif
+                </div>
 
             @else
                 <!-- Empty State -->

@@ -8,21 +8,85 @@ use App\Models\Event;
 use App\Services\EventService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\StoresPreviousUrl; // ADD THIS
 
 class EventController extends Controller
-{
+{   
+    use StoresPreviousUrl; // ADD THIS
     public function __construct(
         private EventService $eventService
     ) {}
 
     public function index()
     {
+          $this->storePreviousUrl(); // ADD THIS
+
+        // Store previous URL for back navigation
+        $this->storePreviousUrl();
+        
         $events = $this->eventService->getAllEventsForPublic();
-        return view('events.index', compact('events'));
+        
+        // Calculate statistics for the dashboard
+        $upcomingEvents = Event::where('status', 'active')
+                              ->where('date', '>', now())
+                              ->count();
+
+        $activeEvents = Event::where('status', 'active')->count();
+        
+        $eventsNext7Days = Event::where('status', 'active')
+                               ->whereBetween('date', [now(), now()->addDays(7)])
+                               ->count();
+
+        // User-specific statistics
+        $hoursLogged = 0;
+        $myCompletedEvents = 0;
+        $myUpcomingEvents = 0;
+        $myHostedEvents = 0;
+
+        if (auth()->check()) {
+            $user = auth()->user();
+            
+            // Calculate hours logged (adjust based on your data structure)
+            $hoursLogged = $user->volunteerRegistrations()
+                               ->where('status', 'completed')
+                               ->count() * 4; // Assuming 4 hours per event
+
+            // Count completed events
+            $myCompletedEvents = $user->volunteerRegistrations()
+                                     ->where('status', 'completed')
+                                     ->count();
+
+            // Count upcoming events
+            $myUpcomingEvents = $user->volunteerRegistrations()
+                                    ->where('status', 'registered')
+                                    ->whereHas('event', function($query) {
+                                        $query->where('date', '>', now());
+                                    })
+                                    ->count();
+
+            // Count hosted events
+            $myHostedEvents = Event::where('organizer_id', $user->id)->count();
+        }
+
+        return view('events.index', compact(
+            'events',
+            'upcomingEvents',
+            'activeEvents',
+            'eventsNext7Days',
+            'hoursLogged',
+            'myCompletedEvents',
+            'myUpcomingEvents',
+            'myHostedEvents'
+        ));
     }
 
     public function show(Event $event)
-    {
+    {   
+        $this->storePreviousUrl(); // ADD THIS
+
+        // Store previous URL for back navigation
+        $this->storePreviousUrl();
+        
         // FIXED: Load volunteers with their user data
         $event->load([
             'organizer',
@@ -41,7 +105,13 @@ class EventController extends Controller
     }
 
     public function create()
-    {
+
+    {  
+          $this->storePreviousUrl(); // ADD THIS
+
+        // Store previous URL for back navigation
+        $this->storePreviousUrl();
+        
         // Only verified organizers and admins can create events
         if (!Auth::user()->isVerifiedOrganizer() && !Auth::user()->isAdmin()) {
             // FIX: Changed from 'organizer.verify' to 'organizer.verification.create'
@@ -52,24 +122,25 @@ class EventController extends Controller
         return view('events.create');
     }
 
- public function store(EventRequest $request)
-{
-    // Only verified organizers and admins can create events
-    if (!Auth::user()->isVerifiedOrganizer() && !Auth::user()->isAdmin()) {
-        return redirect()->route('organizer.verification.create')
-                         ->with('error', 'You need to be a verified organizer to create events.');
+    public function store(EventRequest $request)
+    {
+        // Only verified organizers and admins can create events
+        if (!Auth::user()->isVerifiedOrganizer() && !Auth::user()->isAdmin()) {
+            return redirect()->route('organizer.verification.create')
+                             ->with('error', 'You need to be a verified organizer to create events.');
+        }
+
+        try {
+            $event = $this->eventService->createEvent($request->validated(), Auth::user());
+
+            return redirect()->route('events.show', $event)
+                             ->with('success', 'Event created successfully! It is now live and visible to volunteers.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to create event: ' . $e->getMessage())
+                         ->withInput();
+        }
     }
 
-    try {
-        $event = $this->eventService->createEvent($request->validated(), Auth::user());
-
-        return redirect()->route('events.show', $event)
-                         ->with('success', 'Event created successfully! It is now live and visible to volunteers.');
-    } catch (\Exception $e) {
-        return back()->with('error', 'Failed to create event: ' . $e->getMessage())
-                     ->withInput();
-    }
-}
     public function register(Event $event)
     {
         try {
@@ -87,6 +158,21 @@ class EventController extends Controller
             return redirect()->back()->with('success', 'Successfully unregistered from the event.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Store the previous URL in session for back navigation
+     * This helps the back button work correctly
+     */
+    private function storePreviousUrl()
+    {
+        $previousUrl = url()->previous();
+        $currentUrl = url()->current();
+        
+        // Only store if it's a different page and from our app
+        if ($previousUrl !== $currentUrl && str_contains($previousUrl, config('app.url'))) {
+            session(['previous_url' => $previousUrl]);
         }
     }
 }

@@ -5,6 +5,46 @@
 
     RewriteEngine On
 
+    # ========================
+    # SECURITY PROTECTIONS
+    # ========================
+    
+    # Block access to sensitive files
+    RewriteRule ^\.env$ - [F,L,NC]
+    RewriteRule ^composer\.(json|lock)$ - [F,L,NC]
+    RewriteRule ^package\.(json|lock)$ - [F,L,NC]
+    RewriteRule ^yarn\.lock$ - [F,L,NC]
+    RewriteRule ^\.gitignore$ - [F,L,NC]
+    RewriteRule ^README\.md$ - [F,L,NC]
+    RewriteRule ^CHANGELOG\.md$ - [F,L,NC]
+    RewriteRule ^LICENSE$ - [F,L,NC]
+    
+    # Block access to sensitive directories
+    RewriteRule ^storage/ - [F,L]
+    RewriteRule ^bootstrap/cache/ - [F,L]
+    RewriteRule ^vendor/ - [F,L]
+    RewriteRule ^node_modules/ - [F,L]
+    RewriteRule ^\.git/ - [F,L]
+    RewriteRule ^tests/ - [F,L]
+    RewriteRule ^database/ - [F,L]
+    RewriteRule ^app/ - [F,L]
+    RewriteRule ^config/ - [F,L]
+    RewriteRule ^resources/ - [F,L]
+    RewriteRule ^routes/ - [F,L]
+
+    # Block common hacking attempts
+    RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
+    RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]) [OR]
+    RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z])
+    RewriteRule .* - [F,L]
+
+    # Block PHP files in uploads directory (if any)
+    RewriteRule ^uploads/.*\.(php|php5|php7|phtml)$ - [F,L]
+
+    # ========================
+    # EXISTING LARAVEL RULES
+    # ========================
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -23,3 +63,47 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# ========================
+# ADDITIONAL SECURITY HEADERS
+# ========================
+<IfModule mod_headers.c>
+    # Security headers
+    Header always set X-Frame-Options "DENY"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    
+    # Prevent content type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+    
+    # Remove server information
+    Header unset X-Powered-By
+    Header always unset X-Powered-By
+    ServerTokens Prod
+</IfModule>
+
+# ========================
+# FILE TYPE PROTECTIONS
+# ========================
+<FilesMatch "\.(env|json|config.js|md|gitignore|gitattributes|lock|yml|yaml|log)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<Files "artisan">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files "phpunit.xml">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Block access to any .php files in public directory (except index.php)
+<FilesMatch "^(?!index\.php).*\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

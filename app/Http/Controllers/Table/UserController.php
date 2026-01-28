@@ -30,7 +30,16 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'role' => 'required|in:volunteer,organizer,admin',
+            'password' => 'nullable|string|min:8',
         ]);
+
+        // Only update password if a new one is provided
+        if (empty($validated['password'])) {
+            unset($validated['password']);
+        }
+
+        // DEBUG: Check if we reach here
+        // dd($validated); 
 
         $user->update($validated);
 

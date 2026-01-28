@@ -7,209 +7,16 @@
   <title>ServeDavao: Volunteer & Event Management</title>
 
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS -->
+  @vite(['resources/css/app.css', 'resources/js/app.js'])
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
+  
+  <!-- Google reCAPTCHA -->
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f8fafc;
-    }
-
-    .hero-bg {
-      background-size: cover;
-      background-position: center;
-      position: relative;
-    }
-
-    .hero-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom right, rgba(0, 0, 0, 0.55), rgba(26, 153, 136, 0.5));
-    }
-
-    /* Scroll animations */
-    .scroll-fade-in {
-      opacity: 0;
-      transform: translateY(30px);
-      transition: all 0.8s ease-out;
-    }
-
-    .scroll-fade-in.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .scroll-fade-in-left {
-      opacity: 0;
-      transform: translateX(-50px);
-      transition: all 0.8s ease-out;
-    }
-
-    .scroll-fade-in-left.visible {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    .scroll-fade-in-right {
-      opacity: 0;
-      transform: translateX(50px);
-      transition: all 0.8s ease-out;
-    }
-
-    .scroll-fade-in-right.visible {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    /* Staggered animations */
-    .stagger-animate > * {
-      opacity: 0;
-      transform: translateY(30px);
-      transition: all 0.6s ease-out;
-    }
-
-    .stagger-animate.visible > * {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .stagger-animate.visible > *:nth-child(1) { transition-delay: 0.1s; }
-    .stagger-animate.visible > *:nth-child(2) { transition-delay: 0.2s; }
-    .stagger-animate.visible > *:nth-child(3) { transition-delay: 0.3s; }
-    .stagger-animate.visible > *:nth-child(4) { transition-delay: 0.4s; }
-    .stagger-animate.visible > *:nth-child(5) { transition-delay: 0.5s; }
-
-    /* Logo scroll animation */
-    .logo-animate {
-      transition: all 0.4s ease-in-out;
-    }
-
-    .logo-scrolled {
-      transform: scale(0.9);
-      opacity: 0.9;
-    }
-
-    /* Loading overlay */
-    .loading-overlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 9999;
-      backdrop-filter: blur(4px);
-    }
-
-    .loading-spinner {
-      border: 4px solid #f3f4f6;
-      border-top: 4px solid #10b981;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    /* Loading text animation */
-    .loading-text {
-      background: linear-gradient(90deg, #10b981, #34d399, #10b981);
-      background-size: 200% 100%;
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: shimmer 2s infinite;
-    }
-
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-
-    /* Button loading state */
-    .button-loading {
-      position: relative;
-      color: transparent;
-      pointer-events: none;
-    }
-
-    .button-loading::after {
-      content: '';
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      top: 50%;
-      left: 50%;
-      margin-left: -10px;
-      margin-top: -10px;
-      border: 2px solid #ffffff;
-      border-radius: 50%;
-      border-top-color: transparent;
-      animation: spin 0.8s ease infinite;
-    }
-
-    /* Enhanced event card styles */
-    .event-card {
-      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .event-card:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    }
-
-    .feature-card {
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .feature-card:hover {
-      transform: translateY(-5px) scale(1.02);
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
-
-    .line-clamp-2 {
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .line-clamp-1 {
-      display: -webkit-box;
-      -webkit-line-clamp: 1;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    /* Smooth scrolling */
-    html {
-      scroll-behavior: smooth;
-    }
-    
-    /* Contact form styles */
-    .contact-input {
-      transition: all 0.3s ease;
-    }
-    
-    .contact-input:focus {
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-      border-color: #10b981;
-    }
-    
-    .contact-card {
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .contact-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    }
+    /* Custom styles moved to resources/css/app.css */
   </style>
 </head>
 
@@ -247,9 +54,14 @@
   </nav>
 
   <!-- Hero Section -->
-  <section id="home" class="hero-bg h-screen flex items-center justify-center relative" style="background-image: url('/assets/img/hero1.jpg');">
-    <div class="hero-overlay"></div>
-    <div class="text-center text-white z-10 px-6">
+  <section id="home" class="hero-bg h-screen flex items-center justify-center relative overflow-hidden">
+    <!-- Animated Background Image -->
+    <div class="absolute inset-0 z-0">
+        <div class="w-full h-full bg-cover bg-center animate-ken-burns" style="background-image: url('/assets/img/hero1.png');"></div>
+    </div>
+    
+    <div class="hero-overlay z-10"></div>
+    <div class="text-center text-white z-20 px-6">
       <h1 class="text-4xl md:text-6xl font-extrabold mb-4 drop-shadow-lg scroll-fade-in">
         Empower Davao Through Volunteerism
       </h1>
@@ -503,67 +315,163 @@
           </div>
         </div>
         
-        <!-- Contact Form -->
-        <div class="bg-gray-50 rounded-2xl p-8 contact-card">
-          <h3 class="text-2xl font-bold text-gray-800 mb-6">Send Us a Message</h3>
-          <form id="contactForm" class="space-y-6">
-            <div class="grid md:grid-cols-2 gap-6">
-              <div>
-                <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+       <!-- Contact Form -->
+<div class="bg-gray-50 rounded-2xl p-8 contact-card">
+    <h3 class="text-2xl font-bold text-gray-800 mb-6">Send Us a Message</h3>
+    <form id="contactFormSecure" action="{{ route('contact.submit') }}" method="POST" class="space-y-6">
+        @csrf
+        
+        <!-- Spam Protection Fields (Hidden from humans) -->
+        <div style="display: none;">
+            <input type="text" name="website" tabindex="-1" autocomplete="off">
+            <input type="url" name="url" tabindex="-1" autocomplete="off">
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+            <div>
+                <label for="firstName" class="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
                 <input type="text" id="firstName" name="firstName" required 
                        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none contact-input"
                        placeholder="Your first name">
-              </div>
-              <div>
-                <label for="lastName" class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+            </div>
+            <div>
+                <label for="lastName" class="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
                 <input type="text" id="lastName" name="lastName" required 
                        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none contact-input"
                        placeholder="Your last name">
-              </div>
             </div>
-            
-            <div>
-              <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-              <input type="email" id="email" name="email" required 
-                     class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none contact-input"
-                     placeholder="your.email@example.com">
-            </div>
-            
-            <div>
-              <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
-              <select id="subject" name="subject" required 
-                      class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none contact-input">
+        </div>
+        
+        <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+            <input type="email" id="email" name="email" required 
+                   class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none contact-input"
+                   placeholder="your.email@example.com">
+        </div>
+        
+        <div>
+            <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
+            <select id="subject" name="subject" required 
+                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none contact-input">
                 <option value="" disabled selected>Select a subject</option>
                 <option value="volunteer">Volunteer Inquiry</option>
                 <option value="organizer">Organizer Inquiry</option>
                 <option value="partnership">Partnership Opportunity</option>
                 <option value="technical">Technical Support</option>
                 <option value="other">Other</option>
-              </select>
-            </div>
-            
-            <div>
-              <label for="message" class="block text-sm font-medium text-gray-700 mb-2">Message</label>
-              <textarea id="message" name="message" rows="5" required 
-                        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none contact-input resize-none"
-                        placeholder="Tell us how we can help you..."></textarea>
-            </div>
-            
-            <button type="submit" 
-                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2">
-              <span>Send Message</span>
-              <i class="bi bi-send"></i>
-            </button>
-          </form>
-          
-          <!-- Success Message (hidden by default) -->
-          <div id="successMessage" class="hidden mt-6 p-4 bg-emerald-100 border border-emerald-400 text-emerald-700 rounded-lg">
-            <div class="flex items-center gap-2">
-              <i class="bi bi-check-circle-fill text-emerald-600"></i>
-              <p class="font-medium">Thank you! Your message has been sent successfully.</p>
-            </div>
-          </div>
+            </select>
         </div>
+        
+        <div>
+            <label for="message" class="block text-sm font-medium text-gray-700 mb-2">Message *</label>
+            <textarea id="message" name="message" rows="5" required 
+                      class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none contact-input resize-none"
+                      placeholder="Tell us how we can help you..."></textarea>
+        </div>
+        
+        <!-- reCAPTCHA -->
+        <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
+        
+        <button type="submit" 
+                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-2">
+            <span>Send Message</span>
+            <i class="bi bi-send"></i>
+        </button>
+    </form>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const contactForm = document.getElementById('contactFormSecure');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const successText = document.getElementById('successText');
+        const errorText = document.getElementById('errorText');
+        
+        if (contactForm) {
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                successMessage.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+
+                // reCAPTCHA check
+                let recaptchaResponse = null;
+                if (typeof grecaptcha !== 'undefined') {
+                    recaptchaResponse = grecaptcha.getResponse();
+                    if (!recaptchaResponse) {
+                        errorText.textContent = 'Please complete the reCAPTCHA verification.';
+                        errorMessage.classList.remove('hidden');
+                        return;
+                    }
+                } else {
+                    errorText.textContent = 'Verification service not loaded. Please refresh.';
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+                
+                const submitButton = contactForm.querySelector('button[type="submit"]');
+                const originalContent = submitButton.innerHTML;
+                submitButton.innerHTML = '<span>Sending...</span>';
+                submitButton.disabled = true;
+                
+                const formData = new FormData(contactForm);
+                formData.set('g-recaptcha-response', recaptchaResponse);
+                
+                fetch(contactForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json().then(data => ({ status: response.status, body: data })))
+                .then(({ status, body }) => {
+                    if (status >= 200 && status < 300 && body.success) {
+                        successText.textContent = body.message || 'Message sent successfully!';
+                        successMessage.classList.remove('hidden');
+                        contactForm.reset();
+                        if (typeof grecaptcha !== 'undefined') grecaptcha.reset();
+                    } else {
+                        let msg = body.message || 'Error sending message.';
+                        if (body.errors) {
+                            const first = Object.values(body.errors)[0];
+                            if (first) msg = first[0] || msg;
+                        }
+                        errorText.textContent = msg;
+                        errorMessage.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    errorText.textContent = 'Network error. Please try again.';
+                    errorMessage.classList.remove('hidden');
+                })
+                .finally(() => {
+                    submitButton.innerHTML = originalContent;
+                    submitButton.disabled = false;
+                });
+            });
+        }
+    });
+    </script>
+    
+    <!-- SUCCESS Message (GREEN) -->
+    <div id="successMessage" class="hidden mt-6 p-4 bg-emerald-100 border border-emerald-400 text-emerald-700 rounded-lg">
+        <div class="flex items-center gap-2">
+            <i class="bi bi-check-circle-fill text-emerald-600"></i>
+            <p class="font-medium" id="successText">Thank you! Your message has been sent successfully.</p>
+        </div>
+    </div>
+    
+    <!-- ERROR Message (RED) -->
+    <div id="errorMessage" class="hidden mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+        <div class="flex items-center gap-2">
+            <i class="bi bi-exclamation-circle-fill text-red-600"></i>
+            <p class="font-medium" id="errorText">There was an error sending your message. Please try again later.</p>
+        </div>
+    </div>
+</div>
       </div>
     </div>
   </section>
@@ -592,234 +500,7 @@
     </div>
   </footer>
 
-   <!-- Enhanced JavaScript with Scroll Animations -->
-  <script>
-    // Loading animation function - FIXED
-    function showLoading(event = null) {
-        if (event) {
-            const href = event.currentTarget.getAttribute('href');
-            
-            // ALLOW smooth scrolling to sections without loading
-            if (href && href.startsWith('#')) {
-                return; // Don't show loading for section links
-            }
-            
-            // For external links or page navigation, show loading
-            if (href && (href.startsWith('/') || href.startsWith('http'))) {
-                event.preventDefault();
-            } else {
-                return; // Don't show loading for other cases
-            }
-        }
-
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        loadingOverlay.style.display = 'flex';
-        
-        if (event && event.currentTarget.tagName === 'A') {
-            const href = event.currentTarget.getAttribute('href');
-            if (href && (href.startsWith('/') || href.startsWith('http'))) {
-                setTimeout(() => {
-                    window.location.href = href;
-                }, 800); // Increased timeout to ensure loading is visible
-            }
-        }
-    }
-
-    function hideLoading() {
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        loadingOverlay.style.display = 'none';
-    }
-
-    // NEW: Handle browser back/forward buttons
-    window.addEventListener('pageshow', function(event) {
-        // If page is loaded from cache (back/forward navigation), hide loading
-        if (event.persisted) {
-            hideLoading();
-        }
-    });
-
-    // NEW: Also hide loading when page becomes visible again
-    document.addEventListener('visibilitychange', function() {
-        if (!document.hidden) {
-            // Small delay to ensure page is fully loaded
-            setTimeout(hideLoading, 100);
-        }
-    });
-
-    // NEW: Safety timeout to hide loading after 3 seconds (in case something goes wrong)
-    function setupSafetyTimeout() {
-        setTimeout(() => {
-            hideLoading();
-        }, 3000);
-    }
-
-    // Smooth scrolling for navigation links
-    function initSmoothScrolling() {
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                
-                const targetId = this.getAttribute('href');
-                if (targetId === '#') return;
-                
-                const targetElement = document.querySelector(targetId);
-                if (targetElement) {
-                    // Smooth scroll to target
-                    targetElement.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-    }
-
-    // Scroll animation observer
-    function initScrollAnimations() {
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, observerOptions);
-
-        // Observe all elements with scroll animation classes
-        document.querySelectorAll('.scroll-fade-in, .scroll-fade-in-left, .scroll-fade-in-right, .stagger-animate').forEach(el => {
-            observer.observe(el);
-        });
-    }
-
-    // Enhanced hover effects
-    function initHoverEffects() {
-        // Add hover effects to all interactive elements
-        const hoverElements = document.querySelectorAll('a, button, .feature-card, .event-card, .contact-card');
-        hoverElements.forEach(el => {
-            el.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-2px)';
-            });
-            el.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-            });
-        });
-    }
-
-    // Contact form handling
-    function initContactForm() {
-      const contactForm = document.getElementById('contactForm');
-      const successMessage = document.getElementById('successMessage');
-      
-      if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          
-          // Show loading state
-          const submitButton = contactForm.querySelector('button[type="submit"]');
-          const originalText = submitButton.innerHTML;
-          submitButton.innerHTML = '<span>Sending...</span>';
-          submitButton.disabled = true;
-          
-          // Simulate form submission (replace with actual form submission)
-          setTimeout(() => {
-            // Reset form
-            contactForm.reset();
-            
-            // Show success message
-            successMessage.classList.remove('hidden');
-            
-            // Reset button
-            submitButton.innerHTML = originalText;
-            submitButton.disabled = false;
-            
-            // Hide success message after 5 seconds
-            setTimeout(() => {
-              successMessage.classList.add('hidden');
-            }, 5000);
-          }, 1500);
-        });
-      }
-    }
-
-    // Initialize everything when DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize smooth scrolling FIRST
-        initSmoothScrolling();
-        
-        // Initialize scroll animations
-        initScrollAnimations();
-        
-        // Initialize hover effects
-        initHoverEffects();
-        
-        // Initialize contact form
-        initContactForm();
-
-        // Only attach loading to specific action buttons/links
-        const loadingTriggers = document.querySelectorAll(
-            'a[href*="/login"], a[href*="/register"], a[href*="/events"], a.bg-emerald-600'
-        );
-        
-        loadingTriggers.forEach(element => {
-            if (element.tagName === 'A') {
-                // Don't attach loading to section links
-                const href = element.getAttribute('href');
-                if (!href || !href.startsWith('#')) {
-                    element.addEventListener('click', function(e) {
-                        showLoading(e);
-                        // Setup safety timeout when loading is shown
-                        setupSafetyTimeout();
-                    });
-                }
-            }
-        });
-
-        // Handle page load - ensure loading is hidden
-        hideLoading();
-        
-        // Initial safety timeout setup
-        setupSafetyTimeout();
-    });
-
-    // Logo scroll animation
-    window.addEventListener("scroll", () => {
-        const logo = document.querySelector(".logo-animate");
-        const scrollY = window.scrollY;
-        if (scrollY > 50) {
-            logo.classList.add("logo-scrolled");
-        } else {
-            logo.classList.remove("logo-scrolled");
-        }
-    });
-
-    // NEW: Also hide loading when the page is about to be unloaded (beforeunload)
-    window.addEventListener('beforeunload', function() {
-        hideLoading();
-    });
-
-    // NEW: Hide loading when the page gains focus (user returns to tab)
-    window.addEventListener('focus', function() {
-        hideLoading();
-    });
-
-    // NEW: Handle popstate event (back/forward navigation)
-    window.addEventListener('popstate', function() {
-        hideLoading();
-    });
-
-    // NEW: Global click handler to catch any missed navigation
-    document.addEventListener('click', function(e) {
-        const target = e.target.closest('a');
-        if (target && target.getAttribute('href') && 
-            !target.getAttribute('href').startsWith('#') &&
-            (target.getAttribute('href').startsWith('/') || target.getAttribute('href').startsWith('http'))) {
-            setupSafetyTimeout();
-        }
-    });
-  </script>
+  <!-- Enhanced JavaScript with Scroll Animations -->
+  <!-- Scripts moved to resources/js/app.js -->
 </body>
-</html> 
+</html>
