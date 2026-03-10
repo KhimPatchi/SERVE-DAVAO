@@ -1,6 +1,6 @@
-@extends('layouts.sidebar.sidebar')
+﻿@extends ('layouts.sidebar.sidebar')
 
-@section('content')
+@section ('content')
 <div class="main-content p-6">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
@@ -71,9 +71,9 @@
             <h2 class="text-lg font-semibold text-gray-800">Pending Event Approvals</h2>
         </div>
         <div class="p-6">
-            @if($pendingEvents->count() > 0)
+            @if ($pendingEvents->count() > 0)
                 <div class="space-y-4">
-                    @foreach($pendingEvents as $event)
+                    @foreach ($pendingEvents as $event)
                     <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                         <div>
                             <h3 class="font-semibold text-gray-800">{{ $event->title }}</h3>

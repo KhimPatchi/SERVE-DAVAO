@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@yield('title', 'ServeDavao Dashboard')</title>
+    <title>@yield ('title', 'ServeDavao Dashboard')</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -87,7 +87,7 @@
                 
                 @auth
                     <!-- Organizer Verification Link -->
-                    @if(!Auth::user()->isVerifiedOrganizer() && !Auth::user()->hasPendingVerification())
+                    @if (!Auth::user()->isVerifiedOrganizer() && !Auth::user()->hasPendingVerification())
                     <a href="{{ route('organizer.verify') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition">
                         <i class="bi bi-patch-check text-lg"></i>
                         <span class="text-sm font-medium">Become an Organizer</span>
@@ -95,7 +95,7 @@
                     @endif
 
                     <!-- Verification Status Link -->
-                    @if(Auth::user()->hasPendingVerification())
+                    @if (Auth::user()->hasPendingVerification())
                     <a href="{{ route('organizer.verification.status') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700 transition">
                         <i class="bi bi-hourglass-split text-lg"></i>
                         <span class="text-sm font-medium">Verification Status</span>
@@ -103,7 +103,7 @@
                     @endif
 
                     <!-- Organized Events Link -->
-                    @if(Auth::user()->isVerifiedOrganizer())
+                    @if (Auth::user()->isVerifiedOrganizer())
                     <a href="{{ route('volunteers.organized-events') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition">
                         <i class="bi bi-person-badge text-lg"></i>
                         <span class="text-sm font-medium">Organized Events</span>
@@ -131,8 +131,8 @@
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div class="flex justify-between items-center">
                         <div>
-                            <h1 class="text-2xl font-bold text-gray-900">@yield('page-title', 'Organizer Verification')</h1>
-                            <p class="mt-1 text-sm text-gray-600">@yield('page-description', 'Complete your organizer verification')</p>
+                            <h1 class="text-2xl font-bold text-gray-900">@yield ('page-title', 'Organizer Verification')</h1>
+                            <p class="mt-1 text-sm text-gray-600">@yield ('page-description', 'Complete your organizer verification')</p>
                         </div>
                     </div>
                 </div>
@@ -140,13 +140,13 @@
 
             <!-- Content -->
             <main class="p-6">
-                @yield('content')
+                @yield ('content')
             </main>
         </div>
     </div>
 
     <!-- Success/Error Messages -->
-    @if(session('success'))
+    @if (session('success'))
         <div class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-in">
             <div class="flex items-center">
                 <i class="bi bi-check-circle-fill mr-2"></i>
@@ -155,7 +155,7 @@
         </div>
     @endif
 
-    @if(session('error'))
+    @if (session('error'))
         <div class="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-in">
             <div class="flex items-center">
                 <i class="bi bi-exclamation-triangle-fill mr-2"></i>

@@ -53,7 +53,7 @@
                                     </div>
                                     <input name="name" type="text" required class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors" placeholder="John Doe" value="{{ old('name') }}">
                                 </div>
-                                @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                @error ('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Email address</label>
@@ -63,7 +63,7 @@
                                     </div>
                                     <input name="email" type="email" required class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors" placeholder="you@example.com" value="{{ old('email') }}">
                                 </div>
-                                @error('email') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                @error ('email') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Password</label>
@@ -73,7 +73,7 @@
                                     </div>
                                     <input name="password" type="password" required class="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm transition-colors" placeholder="Create a password">
                                 </div>
-                                @error('password') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                @error ('password') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
@@ -87,7 +87,7 @@
                             
                             <!-- reCAPTCHA -->
                             <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
-                            @error('g-recaptcha-response') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+                            @error ('g-recaptcha-response') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                         <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all transform hover:scale-[1.02]">Create Account</button>
                     </form>
@@ -166,7 +166,7 @@
 
                         <!-- reCAPTCHA -->
                         <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
-                        @error('g-recaptcha-response') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+                        @error ('g-recaptcha-response') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
 
                         <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all transform hover:scale-[1.02]">Sign in</button>
                     </form>

@@ -4,23 +4,21 @@ namespace App\Http\Controllers\Table;
 
 use App\Http\Controllers\Controller;
 use App\Services\EventService;
+use App\Services\ContentBasedFilteringService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function __construct(
-        private EventService $eventService
+        private EventService $eventService,
+        private ContentBasedFilteringService $cbfService
     ) {}
 
    public function index()
 {   
-    // ✅ FIXED: Get the user FIRST before checking their role
+    // Get the authenticated user
     $user = Auth::user();
-    
-    // ✅ FIXED: Now check if user is admin and redirect
-    if ($user->isAdmin()) {
-        return redirect()->route('admin.dashboard');
-    }
     
     $this->storePreviousUrl();
 
@@ -47,20 +45,45 @@ class DashboardController extends Controller
                     ->get();
     }
 
+    // Events the volunteer attended whose date has passed, but hasn't submitted a suggestion for yet
+    $pendingSuggestionEvents = collect();
+    if (!$user->isVerifiedOrganizer()) {
+        $alreadyRespondedEventIds = DB::table('event_suggestion_responses')
+            ->where('user_id', $user->id)
+            ->pluck('event_id')
+            ->toArray();
+
+        $pendingSuggestionEvents = $user->allVolunteeringEvents()
+            ->where('event_volunteers.status', 'attended')
+            ->where('events.date', '<', now())
+            ->whereNotIn('events.id', $alreadyRespondedEventIds)
+            ->orderBy('events.date', 'desc')
+            ->limit(1)
+            ->get();
+    }
+
+    // AI Recommendations (Phase 4 Integration)
+    $recommendations = collect();
+    if (!$user->isVerifiedOrganizer()) {
+        $recommendations = $this->cbfService->recommendEventsForVolunteer($user->id, 3);
+    }
+
     // USER-SPECIFIC CACHE BUSTING
     return response()
         ->view('contentside.dashboard', [
-            'totalVolunteers' => $stats['total_volunteers'] ?? 0,
-            'upcomingEvents' => $stats['upcoming_events'] ?? 0,
-            'totalHours' => $stats['total_hours'] ?? 0,
-            'events' => $events,
-            'user' => $user,
-            'cacheBuster' => $userHash // Add this
+            'totalVolunteers'        => $stats['total_volunteers'] ?? 0,
+            'upcomingEvents'         => $stats['upcoming_events'] ?? 0,
+            'totalHours'             => $stats['total_hours'] ?? 0,
+            'events'                 => $events,
+            'user'                   => $user,
+            'cacheBuster'            => $userHash,
+            'pendingSuggestionEvents'=> $pendingSuggestionEvents,
+            'recommendations'        => $recommendations,
         ])
         ->withHeaders([
             'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate, private',
-            'Pragma' => 'no-cache',
-            'Expires' => 'Fri, 01 Jan 1990 00:00:00 GMT',
+            'Pragma'        => 'no-cache',
+            'Expires'       => 'Fri, 01 Jan 1990 00:00:00 GMT',
             'Last-Modified' => gmdate('D, d M Y H:i:s') . ' GMT',
         ]);
 }       

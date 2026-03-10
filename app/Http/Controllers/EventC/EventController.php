@@ -6,15 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\EventRequest;
 use App\Models\Event;
 use App\Services\EventService;
+use App\Services\ContentBasedFilteringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Traits\StoresPreviousUrl; // ADD THIS
+use Illuminate\Support\Facades\Storage;
+use App\Traits\StoresPreviousUrl;
 
 class EventController extends Controller
 {   
-    use StoresPreviousUrl; // ADD THIS
+    use StoresPreviousUrl;
+    
     public function __construct(
-        private EventService $eventService
+        private EventService $eventService,
+        private ContentBasedFilteringService $cbfService
     ) {}
 
     public function index()
@@ -42,6 +46,7 @@ class EventController extends Controller
         $myCompletedEvents = 0;
         $myUpcomingEvents = 0;
         $myHostedEvents = 0;
+        $recommendations = collect();
 
         if (auth()->check()) {
             $user = auth()->user();
@@ -66,6 +71,27 @@ class EventController extends Controller
 
             // Count hosted events
             $myHostedEvents = Event::where('organizer_id', $user->id)->count();
+
+            // AI Recommendations for the main list (Phase 4)
+            $recommendations = collect();
+            if (!$user->isVerifiedOrganizer()) {
+                $rawRecommendations = $this->cbfService->recommendEventsForVolunteer($user->id, 20);
+                
+                // Map to events with matching attributes for the view
+                $recommendations = $rawRecommendations->map(function($rec) {
+                    $event = $rec['event'];
+                    $event->match_percentage = $rec['match_percentage'];
+                    return $event;
+                });
+
+                // ALSO attach these percentages to the main events list so badges show up there too
+                $events->each(function($event) use ($rawRecommendations) {
+                    $match = $rawRecommendations->firstWhere('event.id', $event->id);
+                    if ($match) {
+                        $event->match_percentage = $match['match_percentage'];
+                    }
+                });
+            }
         }
 
         return view('events.index', compact(
@@ -76,7 +102,8 @@ class EventController extends Controller
             'hoursLogged',
             'myCompletedEvents',
             'myUpcomingEvents',
-            'myHostedEvents'
+            'myHostedEvents',
+            'recommendations'
         ));
     }
 
@@ -101,7 +128,13 @@ class EventController extends Controller
             }
         }
 
-        return view('events.show', compact('event'));
+        // AI Recommended Volunteers (Organizer Feature - Phase 4)
+        $recommendedVolunteers = collect();
+        if (auth()->check() && $event->organizer_id === auth()->id()) {
+            $recommendedVolunteers = $this->cbfService->recommendVolunteersForEvent($event->id, 6);
+        }
+
+        return view('events.show', compact('event', 'recommendedVolunteers'));
     }
 
     public function create()
@@ -112,8 +145,8 @@ class EventController extends Controller
         // Store previous URL for back navigation
         $this->storePreviousUrl();
         
-        // Only verified organizers and admins can create events
-        if (!Auth::user()->isVerifiedOrganizer() && !Auth::user()->isAdmin()) {
+        // Only verified organizers can create events
+        if (!Auth::user()->isVerifiedOrganizer()) {
             // FIX: Changed from 'organizer.verify' to 'organizer.verification.create'
             return redirect()->route('organizer.verification.create')
                              ->with('error', 'You need to be a verified organizer to create events. Please apply to become an organizer first.');
@@ -124,8 +157,8 @@ class EventController extends Controller
 
     public function store(EventRequest $request)
     {
-        // Only verified organizers and admins can create events
-        if (!Auth::user()->isVerifiedOrganizer() && !Auth::user()->isAdmin()) {
+        // Only verified organizers can create events
+        if (!Auth::user()->isVerifiedOrganizer()) {
             return redirect()->route('organizer.verification.create')
                              ->with('error', 'You need to be a verified organizer to create events.');
         }
@@ -138,6 +171,56 @@ class EventController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to create event: ' . $e->getMessage())
                          ->withInput();
+        }
+    }
+
+    public function edit(Event $event)
+    {
+        // Only the event organizer can edit their own event
+        if ($event->organizer_id !== Auth::id()) {
+            abort(403, 'Unauthorized access. You can only edit your own events.');
+        }
+
+        return view('events.edit', compact('event'));
+    }
+
+    public function update(EventRequest $request, Event $event)
+    {
+        // Only the event organizer can update their own event
+        if ($event->organizer_id !== Auth::id()) {
+            abort(403, 'Unauthorized access. You can only update your own events.');
+        }
+
+        try {
+            $this->eventService->updateEvent($event, $request->validated());
+
+            return redirect()->route('events.show', $event)
+                             ->with('success', 'Event updated successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to update event: ' . $e->getMessage())
+                         ->withInput();
+        }
+    }
+
+    public function destroy(Event $event)
+    {
+        // Only the event organizer can delete their own event
+        if ($event->organizer_id !== Auth::id()) {
+            abort(403, 'Unauthorized access. You can only delete your own events.');
+        }
+
+        try {
+            // Delete associated image if it exists
+            if ($event->image) {
+                Storage::disk('public')->delete($event->image);
+            }
+            
+            $event->delete();
+
+            return redirect()->route('volunteers.organized-events')
+                             ->with('success', 'Event deleted successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to delete event: ' . $e->getMessage());
         }
     }
 
@@ -155,10 +238,62 @@ class EventController extends Controller
     {
         try {
             $this->eventService->unregisterFromEvent($event, Auth::user());
-            return redirect()->back()->with('success', 'Successfully unregistered from the event.');
+            return redirect()->back()->with('success', 'Successfully un registered from the event.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Get AI-powered event recommendations for the logged-in volunteer
+     */
+    public function getRecommendations(Request $request)
+    {
+        if (!auth()->check()) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $topN = $request->input('limit', 10);
+        $threshold = $request->input('threshold', 0.3);
+
+        $recommendations = $this->cbfService->recommendEventsForVolunteer(
+            auth()->id(),
+            $topN,
+            $threshold
+        );
+
+        return response()->json([
+            'success' => true,
+            'recommendations' => $recommendations,
+            'count' => count($recommendations)
+        ]);
+    }
+
+    /**
+     * Get recommended volunteers for an event (Organizer feature)
+     */
+    public function getRecommendedVolunteers(Event $event, Request $request)
+    {
+        // Only allow organizers to see recommended volunteers for their own events
+        if (!auth()->check() || $event->organizer_id !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $topN = $request->input('limit', 20);
+        $threshold = $request->input('threshold', 0.3);
+
+        $recommendations = $this->cbfService->recommendVolunteersForEvent(
+            $event->id,
+            $topN,
+            $threshold
+        );
+
+        return response()->json([
+            'success' => true,
+            'event' => $event->title,
+            'recommendations' => $recommendations,
+            'count' => count($recommendations)
+        ]);
     }
 
     /**

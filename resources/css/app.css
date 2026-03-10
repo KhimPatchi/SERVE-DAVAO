@@ -55,22 +55,36 @@ body {
 }
 
 /* Staggered animations */
-.stagger-animate > * {
+.stagger-animate>* {
     opacity: 0;
     transform: translateY(30px);
     transition: all 0.6s ease-out;
 }
 
-.stagger-animate.visible > * {
+.stagger-animate.visible>* {
     opacity: 1;
     transform: translateY(0);
 }
 
-.stagger-animate.visible > *:nth-child(1) { transition-delay: 0.1s; }
-.stagger-animate.visible > *:nth-child(2) { transition-delay: 0.2s; }
-.stagger-animate.visible > *:nth-child(3) { transition-delay: 0.3s; }
-.stagger-animate.visible > *:nth-child(4) { transition-delay: 0.4s; }
-.stagger-animate.visible > *:nth-child(5) { transition-delay: 0.5s; }
+.stagger-animate.visible>*:nth-child(1) {
+    transition-delay: 0.1s;
+}
+
+.stagger-animate.visible>*:nth-child(2) {
+    transition-delay: 0.2s;
+}
+
+.stagger-animate.visible>*:nth-child(3) {
+    transition-delay: 0.3s;
+}
+
+.stagger-animate.visible>*:nth-child(4) {
+    transition-delay: 0.4s;
+}
+
+.stagger-animate.visible>*:nth-child(5) {
+    transition-delay: 0.5s;
+}
 
 /* Logo scroll animation */
 .logo-animate {
@@ -105,8 +119,13 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Loading text animation */
@@ -120,8 +139,13 @@ body {
 }
 
 @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
 }
 
 /* Button loading state */
@@ -205,9 +229,17 @@ html {
 
 /* Ken Burns Animation */
 @keyframes kenBurns {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .animate-ken-burns {

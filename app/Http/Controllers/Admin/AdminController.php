@@ -9,6 +9,7 @@ use App\Models\EventVolunteer;
 use App\Models\OrganizerVerification;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\View;
 
 class AdminController extends Controller
@@ -21,18 +22,7 @@ class AdminController extends Controller
 
     private function shareSidebarData()
     {
-        // Only share data for admin users
-        if (auth()->check() && auth()->user()->isAdmin()) {
-            $pendingOrganizerCount = OrganizerVerification::where('status', 'pending')->count();
-            $recentOrganizerRequests = OrganizerVerification::with('user')
-                ->where('status', 'pending')
-                ->latest()
-                ->limit(3)
-                ->get();
-
-            View::share('pendingOrganizerCount', $pendingOrganizerCount);
-            View::share('recentOrganizerRequests', $recentOrganizerRequests);
-        }
+        // Admin system removed - no sidebar data to share
     }
 
     public function dashboard()

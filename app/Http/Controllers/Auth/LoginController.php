@@ -12,16 +12,11 @@ class LoginController extends Controller
     use AuthenticatesUsers;
 
     /**
-     * Where to redirect users after login based on their role.
+     * Where to redirect users after login.
      */
     protected function authenticated(Request $request, $user)
     {
-        // Redirect admins to admin dashboard
-        if ($user->isAdmin()) {
-            return redirect()->route('admin.dashboard');
-        }
-
-        // Redirect all other users to regular dashboard
+        // All users redirect to dashboard
         return redirect()->route('dashboard');
     }
 

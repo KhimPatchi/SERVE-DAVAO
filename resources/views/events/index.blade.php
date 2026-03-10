@@ -1,8 +1,8 @@
-    @extends('layouts.sidebar.sidebar')
+﻿    @extends ('layouts.sidebar.sidebar')
 
-    @section('title', 'Event Discovery - ServeDavao')
+    @section ('title', 'Event Discovery - ServeDavao')
 
-    @section('content')
+    @section ('content')
     <div class="min-h-screen bg-gray-50/60 p-6">
 
         <!-- Professional Page Header -->
@@ -25,9 +25,7 @@
                             <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Event Discovery</h1>
                             <p class="mt-2 text-lg text-gray-600">
                                 @auth
-                                    @if(Auth::user()->isAdmin())
-                                        System-wide event monitoring and management
-                                    @elseif(Auth::user()->isVerifiedOrganizer())
+                                    @if (Auth::user()->isVerifiedOrganizer())
                                         Manage your organized events and volunteers
                                     @else
                                         Discover and join volunteer opportunities
@@ -39,18 +37,10 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
-                        <!-- Export Button for Admins -->
-                        @auth
-                            @if(Auth::user()->isAdmin())
-                            <button class="flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50">
-                                <i class="bi bi-download"></i>
-                                <span class="hidden sm:inline">Export</span>
-                            </button>
-                            @endif
-                        @endauth
+                        {{-- Export Button removed (was for admins) --}}
 
                         @auth
-                            @if(Auth::user()->isVerifiedOrganizer() || Auth::user()->isAdmin())
+                            @if (Auth::user()->isVerifiedOrganizer())
                             <a href="{{ route('events.create') }}"
                             class="inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-3.5 text-base font-semibold text-white transition-all hover:shadow-lg hover:scale-105 shadow-md">
                                 <i class="bi bi-plus-circle text-lg"></i>
@@ -74,7 +64,7 @@
                             <h2 class="text-3xl font-bold text-gray-900 mb-2">{{ $upcomingEvents }}</h2>
                             <div class="flex items-center text-xs text-gray-500">
                                 <i class="bi bi-calendar-check mr-1"></i>
-                                <span>{{ $activeEvents }} active • {{ $eventsNext7Days }} this week</span>
+                                <span>{{ $activeEvents }} active â€¢ {{ $eventsNext7Days }} this week</span>
                             </div>
                         </div>
                         <button class="rounded-2xl bg-blue-500/10 p-3 ml-4 hover:bg-blue-500/20 transition-colors"
@@ -111,7 +101,7 @@
                             <h2 class="text-3xl font-bold text-gray-900 mb-2">{{ $myUpcomingEvents + $myCompletedEvents }}</h2>
                             <div class="flex items-center text-xs text-gray-500">
                                 <i class="bi bi-person-check mr-1"></i>
-                                <span>{{ $myUpcomingEvents }} upcoming • {{ $myCompletedEvents }} completed</span>
+                                <span>{{ $myUpcomingEvents }} upcoming â€¢ {{ $myCompletedEvents }} completed</span>
                             </div>
                         </div>
                         <a href="{{ route('volunteers.my-events') }}"
@@ -181,17 +171,17 @@
                     @endphp
 
                     <!-- Day headers -->
-                    @foreach($days as $day)
+                    @foreach ($days as $day)
                         <div class="text-xs font-semibold text-gray-500 py-2">{{ $day }}</div>
                     @endforeach
 
                     <!-- Empty days before month starts -->
-                    @for($i = 0; $i < $firstDayOfMonth->dayOfWeek; $i++)
+                    @for ($i = 0; $i < $firstDayOfMonth->dayOfWeek; $i++)
                         <div class="h-8"></div>
                     @endfor
 
                     <!-- Month days -->
-                    @for($day = 1; $day <= $lastDayOfMonth->day; $day++)
+                    @for ($day = 1; $day <= $lastDayOfMonth->day; $day++)
                         @php
                             $currentDate = $today->copy()->setDay($day);
                             $dayEvents = $monthEvents->filter(function($event) use ($currentDate) {
@@ -224,15 +214,15 @@
                             <span class="{{ $isToday ? 'text-white' : '' }}">{{ $day }}</span>
 
                             <!-- Event Indicators -->
-                            @if($hasEvents || $hasUserEvents)
+                            @if ($hasEvents || $hasUserEvents)
                                 <div class="absolute -top-1 -right-1 flex gap-0.5">
-                                    @if($isUserHosting)
+                                    @if ($isUserHosting)
                                         <div class="w-1.5 h-1.5 bg-orange-500 rounded-full" title="You're hosting"></div>
-                                    @elseif($isUserAttendingUpcoming)
+                                    @elseif ($isUserAttendingUpcoming)
                                         <div class="w-1.5 h-1.5 bg-green-500 rounded-full" title="You're attending"></div>
-                                    @elseif($isUserAttendedPast)
+                                    @elseif ($isUserAttendedPast)
                                         <div class="w-1.5 h-1.5 bg-blue-500 rounded-full" title="You attended"></div>
-                                    @elseif($hasAvailableEvents)
+                                    @elseif ($hasAvailableEvents)
                                         <div class="w-1.5 h-1.5 bg-purple-400 rounded-full" title="Available events"></div>
                                     @endif
                                 </div>
@@ -266,6 +256,66 @@
             </div>
         </section>
 
+        <!-- Recommended Events Section -->
+        @if (auth()->check() && isset($recommendations) && $recommendations->isNotEmpty())
+        <section class="mb-12">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-4">
+                    <div class="h-10 w-1 rounded-full bg-blue-600"></div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                            Recommended for You
+                        </h2>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Based on your <span class="text-blue-600 font-semibold">{{ auth()->user()->preferences }}</span> interests and schedule
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+                @foreach ($recommendations as $event)
+                @php
+                    $progress = $event->required_volunteers > 0 ? round(($event->current_volunteers / $event->required_volunteers) * 100) : 0;
+                    $spotsLeft = max(0, $event->required_volunteers - $event->current_volunteers);
+                    $isFull = $spotsLeft === 0;
+                @endphp
+                <article class="group relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                    <div class="relative h-32 overflow-hidden bg-gray-100">
+                        @if ($event->image)
+                            <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
+                        @else
+                            <div class="w-full h-full flex items-center justify-center bg-gray-50">
+                                <i class="bi bi-calendar-event text-3xl text-gray-200"></i>
+                            </div>
+                        @endif
+                        <div class="absolute top-2 left-2 z-10">
+                            <div class="glass-match-badge px-2 py-1 text-white text-[9px] font-black rounded-lg shadow-lg flex items-center gap-1">
+                                <i class="bi bi-stars"></i>
+                                <span>{{ $event->match_percentage }}% MATCH</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h4 class="font-bold text-gray-900 line-clamp-1 mb-1 text-sm group-hover:text-blue-600 transition-colors">{{ $event->title }}</h4>
+                        <div class="flex items-center text-[10px] text-gray-500 mb-3 gap-2">
+                            <span class="flex items-center gap-1 text-blue-600"><i class="bi bi-calendar3"></i> {{ $event->date->format('M j') }}</span>
+                            <span>â€¢</span>
+                            <span class="truncate"><i class="bi bi-geo-alt"></i> {{ Str::limit($event->location, 15) }}</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden mb-3">
+                            <div class="h-full bg-blue-500 rounded-full" style="width: {{ $progress }}%"></div>
+                        </div>
+                        <a href="{{ route('events.show', $event) }}" class="block w-full py-2 text-center text-[11px] font-bold bg-gray-900 text-white rounded-xl hover:bg-blue-600 transition-colors">
+                            View Details
+                        </a>
+                    </div>
+                </article>
+                @endforeach
+            </div>
+        </section>
+        @endif
+
         <!-- Advanced Filter & Search System -->
         <section class="mb-6">
             <div class="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
@@ -273,9 +323,7 @@
                     <div class="flex-1">
                         <h2 class="text-xl font-bold text-gray-900">
                             @auth
-                                @if(Auth::user()->isAdmin())
-                                    Event Registry
-                                @elseif(Auth::user()->isVerifiedOrganizer())
+                                @if (Auth::user()->isVerifiedOrganizer())
                                     My Organized Events
                                 @else
                                     Available Events
@@ -286,9 +334,7 @@
                         </h2>
                         <p class="text-gray-600">
                             @auth
-                                @if(Auth::user()->isAdmin())
-                                    Comprehensive view of all system events
-                                @elseif(Auth::user()->isVerifiedOrganizer())
+                                @if (Auth::user()->isVerifiedOrganizer())
                                     Manage and monitor your event portfolio
                                 @else
                                     Browse and join volunteer opportunities
@@ -328,7 +374,7 @@
                             </select>
 
                             @auth
-                                @if(!Auth::user()->isAdmin() && !Auth::user()->isVerifiedOrganizer())
+                                @if (!Auth::user()->isVerifiedOrganizer())
                                 <select class="appearance-none pl-4 pr-10 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-sm transition-all cursor-pointer">
                                     <option>All Locations</option>
                                     <option>Near Me (5km)</option>
@@ -347,10 +393,10 @@
         <!-- Main Content Area -->
         <div class="grid grid-cols-1 gap-8">
             <main>
-                @if($events->count() > 0)
+                @if ($events->count() > 0)
                     <!-- Professional Events Grid -->
                     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-                        @foreach($events as $event)
+                        @foreach ($events as $event)
                         @php
                             $progress = $event->required_volunteers > 0
                                 ? round(($event->current_volunteers / $event->required_volunteers) * 100)
@@ -371,7 +417,11 @@
                             $isToday = $event->date->isToday();
                             $isTomorrow = $event->date->isTomorrow();
                             $isThisWeek = $event->date->between(now(), now()->addDays(7));
-                            $registrationClosing = $event->date->diffInHours(now()) <= 24;
+                            $hoursUntilEvent = now(config('app.timezone'))->diffInHours(
+                                $event->date->copy()->setTimezone(config('app.timezone')),
+                                false // signed: negative if event is in the past
+                            );
+                            $registrationClosing = $hoursUntilEvent > 0 && $hoursUntilEvent <= 24;
 
                             // Status badges conditions - REDUCED CLUTTER
                             $showTodayBadge = $isToday;
@@ -380,24 +430,47 @@
                             $showOrganizerBadge = $isOrganizer;
                         @endphp
 
-                        <article class="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100 transition-all duration-500 hover:shadow-xl hover:translate-y-[-2px] {{ $isToday ? 'ring-2 ring-blue-200 bg-blue-50/30' : '' }}">
-                            <!-- Date Status Badges - Simplified -->
+
+                        <article class="group relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-all duration-500 hover:shadow-xl hover:translate-y-[-2px] {{ $isToday ? 'ring-2 ring-blue-200 bg-blue-50/30' : '' }}">
+                            <!-- Event Image -->
+                            <div class="relative h-48 overflow-hidden bg-gray-100">
+                                @if ($event->image)
+                                    <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
+                                        <i class="bi bi-calendar-event text-5xl text-purple-200"></i>
+                                    </div>
+                                @endif
+                            </div>
+                            
+                            <!-- Card Content Wrapper -->
+                            <div class="p-6">
+
+                            <!-- Premium Match Badge -->
+                            @if (isset($event->match_percentage) && $event->match_percentage > 0)
+                                <div class="absolute top-3 right-3 z-30">
+                                    <div class="glass-match-badge px-3 py-1.5 text-white text-[10px] font-black rounded-xl shadow-lg flex items-center gap-1.5">
+                                        <i class="bi bi-stars"></i>
+                                        <span>{{ $event->match_percentage }}% MATCH</span>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="absolute top-4 left-4 flex flex-col gap-2 transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0">
-                                @if($showTodayBadge)
+                                @if ($showTodayBadge && !(auth()->check() && isset($recommendations) && $recommendations->firstWhere('event.id', $event->id)))
                                 <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 ring-1 ring-blue-200 transition-all duration-300">
                                     <i class="bi bi-star-fill mr-1"></i>
                                     Today
                                 </span>
                                 @endif
 
-                                @if($showTomorrowBadge)
+                                @if ($showTomorrowBadge)
                                 <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-green-100 text-green-800 ring-1 ring-green-200 transition-all duration-300 delay-75">
                                     <i class="bi bi-sun mr-1"></i>
                                     Tomorrow
                                 </span>
                                 @endif
 
-                                @if($showRegistrationClosingBadge)
+                                @if ($showRegistrationClosingBadge)
                                 <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-orange-100 text-orange-800 ring-1 ring-orange-200 transition-all duration-300 delay-150">
                                     <i class="bi bi-exclamation-triangle mr-1"></i>
                                     Registration Closing
@@ -407,7 +480,7 @@
 
                             <!-- Role-based Status Badges - Simplified -->
                             <div class="absolute top-4 right-4 flex flex-col gap-2 transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0">
-                                @if($showOrganizerBadge)
+                                @if ($showOrganizerBadge)
                                 <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 ring-1 ring-purple-200 transition-all duration-300">
                                     <i class="bi bi-star-fill mr-1"></i>
                                     Your Event
@@ -455,7 +528,7 @@
                                     <div class="flex flex-col">
                                         <span class="font-medium">{{ $event->date->format('M j, Y') }}</span>
                                         <span class="text-xs text-gray-500 group-hover:text-gray-600 transition-colors">
-                                            {{ $event->date->format('g:i A') }} • 
+                                            {{ $event->date->format('g:i A') }} â€¢ 
                                             <span class="{{ $isToday ? 'text-blue-600 font-semibold' : 'text-gray-500 group-hover:text-gray-600' }}">
                                                 {{ $event->time_until_event }}
                                             </span>
@@ -467,7 +540,7 @@
                                         <i class="bi bi-person-check mr-3 text-base text-purple-500 group-hover:scale-110 transition-transform"></i> 
                                         <span class="font-medium">{{ $event->organizer->name ?? 'System Organizer' }}</span>
                                     </div>
-                                    @if($event->skills_required)
+                                    @if ($event->skills_required)
                                     <div class="flex items-center text-xs text-gray-500 bg-gray-50 rounded-lg px-2 py-1 group-hover:bg-gray-100 group-hover:text-gray-600 transition-all">
                                         <i class="bi bi-tags mr-1"></i>
                                         <span>{{ $event->skills_required }}</span>
@@ -501,13 +574,13 @@
                             <div class="flex items-center justify-between border-t border-gray-100 pt-4 group-hover:border-gray-200 transition-colors">
                                 <div class="flex items-center gap-2">
                                     @auth
-                                        @if($isOrganizer)
+                                        @if ($isOrganizer)
                                         <span class="inline-flex items-center text-xs text-purple-600 font-medium group-hover:text-purple-700 transition-colors">
                                             <i class="bi bi-gear mr-1 group-hover:rotate-90 transition-transform"></i>
                                             Manage Event
                                         </span>
                                         @else
-                                            @if($isActuallyRegistered)
+                                            @if ($isActuallyRegistered)
                                             <span class="inline-flex items-center text-xs text-green-600 font-medium group-hover:text-green-700 transition-colors">
                                                 <i class="bi bi-check-circle mr-1 group-hover:scale-110 transition-transform"></i>
                                                 Already Joined
@@ -531,12 +604,13 @@
                                     </a>
                                 </div>
                             </div>
+                            </div> <!-- Close p-6 wrapper -->
                         </article>
                         @endforeach
                     </div>
 
                     <!-- Professional Pagination -->
-                    @if($events->hasPages())
+                    @if ($events->hasPages())
                     <div class="mt-8">
                         <div class="flex items-center justify-between">
                             <div class="text-sm text-gray-600">
@@ -558,7 +632,7 @@
                             </div>
                             <h3 class="mb-4 text-2xl font-bold text-gray-900">
                                 @auth
-                                    @if(Auth::user()->isVerifiedOrganizer())
+                                    @if (Auth::user()->isVerifiedOrganizer())
                                         No Events Created Yet
                                     @else
                                         No Events Available
@@ -569,7 +643,7 @@
                             </h3>
                             <p class="mb-8 text-lg text-gray-600 leading-relaxed">
                                 @auth
-                                    @if(Auth::user()->isVerifiedOrganizer())
+                                    @if (Auth::user()->isVerifiedOrganizer())
                                         You haven't created any events yet. Start by creating your first event to engage volunteers.
                                     @else
                                         There are currently no events available. Check back later for new opportunities!
@@ -580,7 +654,7 @@
                             </p>
                             <div class="space-y-4">
                                 @auth
-                                    @if(Auth::user()->isVerifiedOrganizer() || Auth::user()->isAdmin())
+                                    @if (Auth::user()->isVerifiedOrganizer())
                                     <a href="{{ route('events.create') }}"
                                     class="inline-flex items-center gap-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-8 py-4 text-lg font-semibold text-white transition-all hover:shadow-lg hover:scale-105 shadow-md">
                                         <i class="bi bi-plus-circle"></i>
@@ -591,7 +665,7 @@
                                 <div class="text-sm text-gray-500">
                                     <i class="bi bi-info-circle mr-1"></i>
                                     @auth
-                                        @if(Auth::user()->isVerifiedOrganizer())
+                                        @if (Auth::user()->isVerifiedOrganizer())
                                             Events help you organize volunteer activities and manage participants
                                         @else
                                             Events are created by verified organizers in your community
@@ -722,8 +796,54 @@
         border-radius: 3px;
     }
 
-    ::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
+    }
+
+    /* Premium Match Badge Styles */
+    @keyframes float-glow {
+        0%, 100% { transform: translateY(0); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); }
+        50% { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); }
+    }
+
+    @keyframes flash-glow {
+        0%, 100% { filter: brightness(1) drop-shadow(0 0 0px rgba(16, 185, 129, 0)); }
+        50% { filter: brightness(1.2) drop-shadow(0 0 8px rgba(16, 185, 129, 0.5)); }
+    }
+
+    .glass-match-badge {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(20, 184, 166, 0.95) 100%);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        animation: float-glow 3s ease-in-out infinite, flash-glow 2s ease-in-out infinite;
+        position: relative;
+        overflow: hidden;
+        z-index: 50;
+    }
+
+    .glass-match-badge::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+            45deg, 
+            transparent 0%, 
+            rgba(255, 255, 255, 0) 40%, 
+            rgba(255, 255, 255, 0.3) 50%, 
+            rgba(255, 255, 255, 0) 60%, 
+            transparent 100%
+        );
+        transform: rotate(45deg);
+        animation: shine-sweep 3s infinite;
+    }
+
+    @keyframes shine-sweep {
+        0% { transform: translateX(-150%) rotate(45deg); }
+        100% { transform: translateX(150%) rotate(45deg); }
     }
     </style>
     @endsection

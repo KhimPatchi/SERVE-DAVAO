@@ -111,7 +111,7 @@
                 <span class="label">Subject</span>
                 <div class="value">
                     <strong>{{ $subjectLabel }}</strong>
-                    @if($subject !== $subjectLabel)
+                    @if ($subject !== $subjectLabel)
                         <br><small style="color: #6b7280;">Internal: {{ $subject }}</small>
                     @endif
                 </div>

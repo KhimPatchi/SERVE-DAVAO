@@ -15,10 +15,9 @@ class AdminMiddleware
             return redirect()->route('login');
         }
 
-        // Check if user is admin
-        if (!Auth::user()->isAdmin()) {
-            return redirect()->route('dashboard')->with('error', 'Access denied. Admin only.');
-        }
+        // Admin role has been removed from the system.
+        // All admin features are being deleted.
+        return redirect()->route('dashboard')->with('error', 'Access denied. The admin system is no longer active.');
 
         return $next($request);
     }

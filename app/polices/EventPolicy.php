@@ -13,7 +13,8 @@ class EventPolicy
      */
     public function manageEvent(User $user, Event $event): bool
     {
-        return $user->id === $event->organizer_id || $user->isAdmin();
+        // Only the event organizer can manage their event
+        return $user->id === $event->organizer_id;
     }
 
     /**
@@ -21,6 +22,7 @@ class EventPolicy
      */
     public function organizerAccess(User $user): bool
     {
-        return $user->isVerifiedOrganizer() || $user->isAdmin();
+        // Only verified organizers have organizer access
+        return $user->isVerifiedOrganizer();
     }
 }

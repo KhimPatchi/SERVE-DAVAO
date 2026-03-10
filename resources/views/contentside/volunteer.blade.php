@@ -1,11 +1,11 @@
-    @extends('layouts.sidebar.sidebar')
+    @extends ('layouts.sidebar.sidebar')
 
-    @section('content')
+    @section ('content')
     <div class="p-6 bg-gray-50 min-h-screen">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Volunteers</h1>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            @forelse($volunteers as $volunteer)
+            @forelse ($volunteers as $volunteer)
                 <div class="bg-white shadow-lg rounded-2xl p-6 hover:shadow-2xl transition duration-300">
                     <div class="flex items-center gap-4 mb-4">
                         {{-- Avatar picture --}}

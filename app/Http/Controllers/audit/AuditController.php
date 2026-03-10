@@ -20,18 +20,7 @@ class AuditController extends Controller
 
     private function shareSidebarData()
     {
-        // Only share data for admin users
-        if (auth()->check() && auth()->user()->isAdmin()) {
-            $pendingOrganizerCount = OrganizerVerification::where('status', 'pending')->count();
-            $recentOrganizerRequests = OrganizerVerification::with('user')
-                ->where('status', 'pending')
-                ->latest()
-                ->limit(3)
-                ->get();
-
-            View::share('pendingOrganizerCount', $pendingOrganizerCount);
-            View::share('recentOrganizerRequests', $recentOrganizerRequests);
-        }
+        // Admin system removed - no sidebar data to share
     }
 
     public function logs(Request $request)

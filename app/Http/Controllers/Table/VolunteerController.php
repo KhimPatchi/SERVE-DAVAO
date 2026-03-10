@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Table;
 
 use App\Http\Controllers\Controller;
 use App\Services\EventService;
+use App\Services\ContentBasedFilteringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Event;
@@ -15,29 +16,60 @@ class VolunteerController extends Controller
     use StoresPreviousUrl; // ADD THIS
 
     public function __construct(
-        private EventService $eventService
+        private EventService $eventService,
+        private ContentBasedFilteringService $cbfService
     ) {}
 
     public function index()
     {
         $this->storePreviousUrl(); // ADD THIS
 
-        $events = $this->eventService->getAvailableEvents();
+        // Get CBF recommendations if user is authenticated
+        $recommendedEvents = collect();
+        $otherEvents = collect();
+        
+        if (Auth::check()) {
+            $userId = Auth::id();
+            $recommendations = $this->cbfService->recommendEventsForVolunteer($userId, 20);
+            
+            // Get recommended event IDs
+            $recommendedEventIds = $recommendations->pluck('event.id')->toArray();
+            
+            // Attach match_percentage to the event objects
+            $recommendedEvents = $recommendations->map(function($rec) {
+                $event = $rec['event'];
+                $event->match_percentage = $rec['match_percentage'];
+                return $event;
+            });
+            
+            // Get other events (not in recommendations) - USE COLLECTION FOR SPLITTING
+            $allEventsCollection = $this->eventService->getAllAvailableEventsCollection();
+            $otherEvents = $allEventsCollection->whereNotIn('id', $recommendedEventIds);
+        } else {
+            // Not authenticated - show all events normally
+            $otherEvents = $this->eventService->getAllAvailableEventsCollection();
+        }
+        
         return response()
-            ->view('volunteers.index', compact('events'))
+            ->view('volunteers.index', [
+                'recommendedEvents' => $recommendedEvents,
+                'otherEvents' => $otherEvents,
+                'events' => $this->eventService->getAvailableEvents() // This is now back to being a Paginator
+            ])
             ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
             ->header('Pragma', 'no-cache')
             ->header('Expires', '0');
     }
 
-    public function myEvents()
+    public function myEvents(Request $request)
     {
         $this->storePreviousUrl();
 
         $user = Auth::user();
+        $search = $request->input('search');
         
         // 1. Upcoming & Active Events
-        $events = $user->volunteeringEvents()
+        $eventsQuery = $user->allVolunteeringEvents()
             ->with('organizer')
             ->where(function($query) {
                 $query->where('events.date', '>', now()->subDay())
@@ -46,44 +78,50 @@ class VolunteerController extends Controller
                       });
             })
             ->where('events.status', 'active')
-            ->orderBy('events.date', 'asc')
-            ->paginate(10);
+            ->whereNotIn('event_volunteers.status', ['cancelled']);
 
-        // 2. Attended/History Events (New Feature)
-        // Use allVolunteeringEvents to capture 'attended', 'completed', etc.
+        if ($search) {
+            $eventsQuery->where(function($q) use ($search) {
+                $q->where('events.title', 'like', "%{$search}%")
+                  ->orWhere('events.description', 'like', "%{$search}%")
+                  ->orWhere('events.location', 'like', "%{$search}%");
+            });
+        }
+
+        $events = $eventsQuery->orderBy('events.date', 'asc')
+            ->paginate(10)
+            ->withQueryString();
+
+        // 2. Attended/History Events
+        // Filter: Event is done (past/completed) OR user is done (attended/completed)
         $attendedEvents = $user->allVolunteeringEvents()
             ->with(['organizer'])
             ->where(function($query) {
-                // Show if event is explicitly completed OR if it's in the past
                 $query->where('events.status', 'completed')
-                      ->orWhere('events.date', '<', now()->startOfDay());
+                      ->orWhere('events.date', '<', now());
             })
-            // Also include events where user status is explicitly 'attended' or 'completed'
-            // regardless of event date/status (e.g. early completion)
-            ->orWherePivotIn('status', ['attended', 'completed'])
             ->orderBy('events.date', 'desc')
             ->get();
 
-        // Statistics
-        $upcomingCount = $user->volunteeringEvents()
-            ->where('events.date', '>', now()->endOfDay())
-            ->where('events.status', 'active')
-            ->count();
+        // 3. Statistics (Based on full history)
+        $allParticipations = $user->allVolunteeringEvents()->get();
+        $now = now();
 
-        $ongoingCount = $user->volunteeringEvents()
-            ->where('events.status', 'active')
-            ->whereDate('events.date', now()->toDateString())
-            ->count();
+        $upcomingCount = $allParticipations->filter(function($e) use ($now) {
+            return $e->status === 'active' && $e->date > $now && $e->pivot->status === 'registered';
+        })->count();
 
-        $completedCount = $user->volunteeringEvents()
-            ->where(function($query) {
-                $query->where('events.status', 'completed')
-                      ->orWhere('events.date', '<', now()->startOfDay());
-            })
-            ->count();
+        $ongoingCount = $allParticipations->filter(function($e) use ($now) {
+            // Very simple ongoing check: same day
+            return $e->status === 'active' && $e->date->isToday();
+        })->count();
 
-        $totalHours = $user->volunteerRegistrations
-            ->where('status', 'registered')
+        $completedCount = $attendedEvents->count();
+
+        // Only count hours for completed events where the user actually attended
+        $totalHours = $user->volunteerRegistrations()
+            ->where('status', 'attended')
+            ->whereHas('event', fn($q) => $q->where('status', 'completed'))
             ->sum('hours_volunteered');
 
         return response()
@@ -175,7 +213,8 @@ class VolunteerController extends Controller
     {
         $this->storePreviousUrl(); // ADD THIS
         
-        if ($event->organizer_id !== Auth::id() && !Auth::user()->isAdmin()) {
+        // Only the event organizer can view their event's volunteers
+        if ($event->organizer_id !== Auth::id()) {
             abort(403, 'Unauthorized access. You can only manage your own events.');
         }
 

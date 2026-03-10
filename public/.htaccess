@@ -81,7 +81,6 @@
     # Remove server information
     Header unset X-Powered-By
     Header always unset X-Powered-By
-    ServerTokens Prod
 </IfModule>
 
 # ========================
@@ -101,9 +100,3 @@
     Order allow,deny
     Deny from all
 </Files>
-
-# Block access to any .php files in public directory (except index.php)
-<FilesMatch "^(?!index\.php).*\.php$">
-    Order allow,deny
-    Deny from all
-</FilesMatch>

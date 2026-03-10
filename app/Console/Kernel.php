@@ -9,8 +9,11 @@ class Kernel extends ConsoleKernel
 {
     protected function schedule(Schedule $schedule): void
     {
-        // ADD THIS LINE - runs every hour to check events
+        // Updates event status based on dates
         $schedule->command('events:update-status')->hourly();
+
+        // Marks no-show volunteers and completes past events
+        $schedule->command('events:close-attendance')->hourly();
     }
 
     protected function commands(): void

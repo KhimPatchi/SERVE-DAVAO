@@ -46,6 +46,17 @@ return [
         'secret_key' => env('RECAPTCHA_SECRET_KEY', '6LfkqSYsAAAAACqSOpAa9yy4z6teLEVbisPqGGHG'),
     ],
 
+    'idanalyzer' => [
+        'api_key' => env('ID_ANALYZER_API_KEY'),
+        'region' => env('ID_ANALYZER_REGION', 'US'),
+        'verify_face' => env('ID_ANALYZER_VERIFY_FACE', true),
+        'accepted_documents' => env('ID_ANALYZER_ACCEPTED_DOCUMENTS', 'passport,driverlicense,nationalid'),
+        'confidence_threshold' => env('ID_ANALYZER_CONFIDENCE_THRESHOLD', 0.5),
+        'profile_id' => env('ID_ANALYZER_PROFILE_ID'),
+    ],
 
+    'mapbox' => [
+        'token' => env('MAPBOX_PUBLIC_TOKEN', ''),
+    ],
 
 ];

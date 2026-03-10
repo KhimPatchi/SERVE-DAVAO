@@ -1,15 +1,15 @@
-@extends('layouts.sidebar.sidebar')
+﻿@extends ('layouts.sidebar.sidebar')
 
-@section('title', 'Dashboard | ServeDavao')
+@section ('title', 'Dashboard | ServeDavao')
 
-@section('content')
+@section ('content')
 <div class="space-y-8 animate-fade-in">
     
     <!-- 1. Header Section -->
     <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
             <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
-                Welcome back, {{ explode(' ', trim(auth()->user()->name))[0] }}! 👋
+                Welcome back, {{ explode(' ', trim(auth()->user()->name))[0] }}! ðŸ‘‹
             </h1>
             <p class="text-gray-500 mt-1 flex items-center gap-2 font-medium">
                 <i class="bi bi-calendar3"></i>
@@ -18,12 +18,12 @@
         </div>
         
         <div class="flex items-center gap-3">
-             @if(auth()->user()->isVerifiedOrganizer())
+             @if (auth()->user()->isVerifiedOrganizer())
                 <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-100 shadow-sm transition-transform hover:scale-105">
                     <i class="bi bi-patch-check-fill"></i>
                     Verified Organizer
                 </span>
-            @elseif(auth()->user()->hasPendingVerification())
+            @elseif (auth()->user()->hasPendingVerification())
                  <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 text-amber-700 font-semibold border border-amber-100 shadow-sm transition-transform hover:scale-105">
                     <i class="bi bi-hourglass-split"></i>
                     Verification Pending
@@ -36,6 +36,29 @@
             @endif
         </div>
     </header>
+
+    {{-- Post-Event Suggestion Prompt --}}
+    @if (isset($pendingSuggestionEvents) && $pendingSuggestionEvents->isNotEmpty())
+        @php $promptEvent = $pendingSuggestionEvents->first(); @endphp
+        <div id="suggestion-banner"
+             class="flex items-start gap-4 bg-amber-50 border border-amber-200 rounded-2xl px-6 py-5 shadow-sm relative animate-fade-in">
+            <div class="p-3 bg-amber-100 rounded-xl text-amber-600 flex-shrink-0">
+                <i class="bi bi-lightbulb-fill text-xl"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="font-bold text-amber-900 text-sm">You attended <span class="text-amber-700">{{ $promptEvent->title }}</span> â€” thank you! ðŸ™Œ</p>
+                <p class="text-amber-700 text-sm mt-0.5">What kind of event should we organize next? Share your idea with us!</p>
+                <a href="{{ route('suggestions.create', ['event_id' => $promptEvent->id]) }}"
+                   class="inline-flex items-center gap-2 mt-3 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-5 py-2 rounded-xl transition-all shadow hover:-translate-y-0.5 hover:shadow-amber-200">
+                    <i class="bi bi-pencil-fill"></i> Suggest a Future Event
+                </a>
+            </div>
+            <button onclick="document.getElementById('suggestion-banner').remove()"
+                    class="text-amber-400 hover:text-amber-700 transition-colors absolute top-4 right-4 p-1">
+                <i class="bi bi-x-lg text-sm"></i>
+            </button>
+        </div>
+    @endif
 
     <!-- 2. Statistics Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -92,9 +115,9 @@
                 <div>
                     <p class="text-emerald-100 text-xs font-bold uppercase tracking-wider">Current Level</p>
                      <h3 class="text-2xl font-bold mt-2 tracking-tight">
-                        @if($totalHours >= 50) Champion
-                        @elseif($totalHours >= 20) Leader
-                        @elseif($totalHours >= 5) Supporter
+                        @if ($totalHours >= 50) Champion
+                        @elseif ($totalHours >= 20) Leader
+                        @elseif ($totalHours >= 5) Supporter
                         @else Beginner
                         @endif
                     </h3>
@@ -115,8 +138,57 @@
     <!-- 3. Main Content & Sidebar Layout -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        <!-- Left: Upcoming Events (Table) -->
-        <div class="lg:col-span-2 space-y-6">
+        <!-- Left: AI Recommendations & Upcoming Events -->
+        <div class="lg:col-span-2 space-y-8">
+            
+            {{-- AI Recommended Section (For Volunteers) --}}
+            @if (!auth()->user()->isVerifiedOrganizer() && isset($recommendations) && count($recommendations) > 0)
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                             <h2 class="text-xl font-bold text-gray-900 tracking-tight">Recommended for You</h2>
+                             <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase rounded-md tracking-wider">AI Powered</span>
+                        </div>
+                        <a href="{{ route('events.index') }}" class="text-sm font-semibold text-emerald-600 hover:text-emerald-700 hover:underline transition-all">
+                            View All Events
+                        </a>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        @foreach ($recommendations as $rec)
+                            @php $recEvent = $rec['event']; @endphp
+                            <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-xl hover:border-emerald-200 transition-all duration-300 group relative overflow-hidden">
+                                <!-- Premium Match Badge -->
+                                <div class="absolute top-3 right-3 z-10">
+                                    <div class="glass-match-badge px-3 py-1.5 text-white text-[10px] font-black rounded-xl shadow-lg flex items-center gap-1.5">
+                                        <i class="bi bi-stars"></i>
+                                        <span>{{ $rec['match_percentage'] }}% MATCH</span>
+                                    </div>
+                                </div>
+
+                                <div class="aspect-video w-full rounded-xl bg-gray-100 mb-4 overflow-hidden bg-cover bg-center transition-transform group-hover:scale-105 duration-500"
+                                     style="background-image: url('{{ $recEvent->image ?? asset('assets/img/event-placeholder.jpg') }}')">
+                                </div>
+                                
+                                <h4 class="font-black text-gray-900 line-clamp-1 group-hover:text-emerald-600 transition-colors text-base leading-tight">{{ $recEvent->title }}</h4>
+                                <div class="text-[10px] font-bold text-gray-400 mt-2 flex items-center gap-2">
+                                    <span class="flex items-center gap-1 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100 whitespace-nowrap text-gray-500">
+                                        <i class="bi bi-calendar-event text-emerald-500"></i> {{ $recEvent->date->format('M d') }}
+                                    </span>
+                                    <span class="flex items-center gap-1 truncate">
+                                        <i class="bi bi-geo-alt text-emerald-500"></i> {{ Str::limit($recEvent->location, 20) }}
+                                    </span>
+                                </div>
+                                
+                                <a href="{{ route('events.show', $recEvent) }}" class="mt-5 w-full flex items-center justify-center py-2.5 bg-gray-900 hover:bg-emerald-600 text-white text-[10px] font-black rounded-xl transition-all shadow-sm hover:shadow-emerald-200">
+                                    LEARN MORE
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-bold text-gray-900 tracking-tight">
                      {{ auth()->user()->isVerifiedOrganizer() ? 'Upcoming Organized Events' : 'Upcoming Schedule' }}
@@ -128,7 +200,7 @@
             </div>
 
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
-                @if(count($events) > 0)
+                @if (count($events) > 0)
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -140,7 +212,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
-                                @foreach($events as $event)
+                                @foreach ($events as $event)
                                 <tr class="hover:bg-gray-50/50 transition-colors group">
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-4">
@@ -194,7 +266,7 @@
             <h2 class="text-xl font-bold text-gray-900 tracking-tight">Quick Actions</h2>
             
             <div class="grid grid-cols-1 gap-4">
-                 @if(auth()->user()->canCreateEvents())
+                 @if (auth()->user()->canCreateEvents())
                     <a href="{{ route('events.create') }}" class="flex items-center p-4 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-200 hover:-translate-y-1 transition-all duration-300 group w-full text-left">
                         <div class="p-3 bg-white/20 rounded-xl mr-4 group-hover:scale-110 transition-transform">
                             <i class="bi bi-plus-lg text-xl"></i>
@@ -204,7 +276,7 @@
                             <p class="text-emerald-100 text-xs opacity-90 font-medium">Host a new activity</p>
                         </div>
                     </a>
-                @elseif(!auth()->user()->isVerifiedOrganizer() && !auth()->user()->hasPendingVerification())
+                @elseif (!auth()->user()->isVerifiedOrganizer() && !auth()->user()->hasPendingVerification())
                      <a href="{{ route('organizer.verification.create') }}" class="flex items-center p-4 bg-gray-900 text-white rounded-2xl hover:bg-black hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group w-full text-left">
                         <div class="p-3 bg-white/20 rounded-xl mr-4 group-hover:scale-110 transition-transform">
                             <i class="bi bi-patch-check text-xl"></i>
@@ -256,13 +328,50 @@
 </div>
 
 <style>
-/* Custom Animation for Loading */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+/* Premium Match Badge Styles */
+@keyframes float-glow {
+    0%, 100% { transform: translateY(0); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2); }
+    50% { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); }
 }
-.animate-fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
+
+@keyframes flash-glow {
+    0%, 100% { filter: brightness(1) drop-shadow(0 0 0px rgba(16, 185, 129, 0)); }
+    50% { filter: brightness(1.2) drop-shadow(0 0 8px rgba(16, 185, 129, 0.5)); }
+}
+
+.glass-match-badge {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(20, 184, 166, 0.95) 100%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    animation: float-glow 3s ease-in-out infinite, flash-glow 2s ease-in-out infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-match-badge::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0) 40%, 
+        rgba(255, 255, 255, 0.3) 50%, 
+        rgba(255, 255, 255, 0) 60%, 
+        transparent 100%
+    );
+    transform: rotate(45deg);
+    animation: shine-sweep 3s infinite;
+}
+
+@keyframes shine-sweep {
+    0% { transform: translateX(-150%) rotate(45deg); }
+    100% { transform: translateX(150%) rotate(45deg); }
 }
 </style>
 @endsection

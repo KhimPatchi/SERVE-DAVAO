@@ -10,13 +10,18 @@ class Event extends Model
     use HasFactory;
 
     protected $fillable = [
-        'title', 'description', 'date', 'location',
+        'title', 'description', 'image', 'date', 'end_time', 'location',
+        'latitude', 'longitude', 'target_radius',
         'required_volunteers', 'current_volunteers',
-        'organizer_id', 'organizer_name', 'status', 'skills_required'
+        'organizer_id', 'organizer_name', 'status', 'skills_preferred'
     ];
 
     protected $casts = [
-        'date' => 'datetime',
+        'date'          => 'datetime',
+        'end_time'      => 'datetime',
+        'latitude'      => 'float',
+        'longitude'     => 'float',
+        'target_radius' => 'float',
     ];
 
     protected $attributes = [
@@ -37,6 +42,31 @@ class Event extends Model
     public function audits()
     {
         return $this->morphMany(Audit::class, 'auditable');
+    }
+
+    /**
+     * Get users who are registered as volunteers for this event
+     */
+    public function registeredVolunteers()
+    {
+        return $this->belongsToMany(User::class, 'event_volunteers', 'event_id', 'volunteer_id')
+                    ->wherePivot('status', 'registered')
+                    ->withTimestamps();
+    }
+
+    // MESSAGING RELATIONSHIP
+    public function conversation()
+    {
+        return $this->hasOne(Conversation::class)->where('type', 'event_group');
+    }
+
+    public function createOrGetConversation(): Conversation
+    {
+        if ($this->conversation) {
+            return $this->conversation;
+        }
+
+        return Conversation::createEventConversation($this);
     }
 
     // REGISTRATION METHODS
@@ -85,22 +115,27 @@ class Event extends Model
 
     /**
      * Check if event has ended (timezone-aware)
-     * Assuming 8-hour event duration by default
+     * Uses stored end_time if available, otherwise defaults to 8-hour duration.
      */
     public function hasEnded($eventDurationHours = 8)
     {
         $now = Carbon::now(config('app.timezone'));
-        $eventTime = $this->date->copy()->setTimezone(config('app.timezone'));
-        $eventEndTime = $eventTime->copy()->addHours($eventDurationHours);
-        return $now->gte($eventEndTime);
+
+        if ($this->end_time) {
+            $endTime = $this->end_time->copy()->setTimezone(config('app.timezone'));
+        } else {
+            $endTime = $this->date->copy()->setTimezone(config('app.timezone'))->addHours($eventDurationHours);
+        }
+
+        return $now->gte($endTime);
     }
 
     /**
      * Check if event is currently ongoing
      */
-    public function isOngoing($eventDurationHours = 8)
+    public function isOngoing()
     {
-        return $this->hasStarted() && !$this->hasEnded($eventDurationHours);
+        return $this->hasStarted() && !$this->hasEnded();
     }
 
     /**

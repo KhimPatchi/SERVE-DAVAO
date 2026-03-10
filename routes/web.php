@@ -9,8 +9,9 @@ use App\Http\Controllers\Table\EventVolunteerController;
 use App\Http\Controllers\Table\VolunteerController;
 use App\Http\Controllers\EventC\EventController;
 use App\Http\Controllers\Verify\ProfileController;
-use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Verify\OrganizerVerificationController;
+use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\SuggestionController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Auth\LoginController;
 
@@ -54,7 +55,7 @@ Route::middleware(['auth', 'verified', 'prevent-back-history'])->group(function 
     Route::get('/user/volunteer-stats', [UserController::class, 'getUserVolunteerStats'])->name('user.volunteer-stats');
     Route::get('/user/{user}/volunteer-stats', [UserController::class, 'getUserVolunteerStats'])->name('user.volunteer-stats.admin');
     
-    // Organizer Verification Routes
+    // Organizer Verification Routes (automated - no admin approval needed)
     Route::prefix('organizer')->name('organizer.')->group(function () {
         Route::get('/verification', [OrganizerVerificationController::class, 'create'])->name('verification.create');
         Route::post('/verification', [OrganizerVerificationController::class, 'store'])->name('verification.store');
@@ -66,45 +67,80 @@ Route::middleware(['auth', 'verified', 'prevent-back-history'])->group(function 
     Route::get('/events/create', [EventController::class, 'create'])->name('events.create');
     Route::post('/events', [EventController::class, 'store'])->name('events.store');
     Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
+    Route::get('/events/{event}/edit', [EventController::class, 'edit'])->name('events.edit');
+    Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
+    Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
+    
+    // AI Recommendation routes - PROTECTED
+    Route::get('/events/api/recommendations', [EventController::class, 'getRecommendations'])->name('events.recommendations');
+    Route::get('/events/{event}/recommended-volunteers', [EventController::class, 'getRecommendedVolunteers'])->name('events.recommended-volunteers');
+    
+    // Feedback routes - PROTECTED
+    Route::get('/events/{event}/feedback/create', [FeedbackController::class, 'create'])->name('feedback.create');
+    Route::post('/events/{event}/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+    Route::get('/events/{event}/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
+    Route::get('/events/{event}/feedback/stats', [FeedbackController::class, 'stats'])->name('feedback.stats');
+    
+    // Event Suggestions routes - PROTECTED
+    Route::get('/suggestions', [SuggestionController::class, 'index'])->name('suggestions.index');
+    Route::get('/suggestions/create', [SuggestionController::class, 'create'])->name('suggestions.create');
+    Route::post('/suggestions', [SuggestionController::class, 'store'])->name('suggestions.store');
+    Route::post('/suggestions/{suggestion}/vote', [SuggestionController::class, 'vote'])->name('suggestions.vote');
+    Route::get('/suggestions/popular', [SuggestionController::class, 'popular'])->name('suggestions.popular');
+    Route::put('/suggestions/{suggestion}/status', [SuggestionController::class, 'updateStatus'])->name('suggestions.update-status');
+
+    // Polls routes - PROTECTED
+    Route::get('/polls', [\App\Http\Controllers\PollController::class, 'index'])->name('polls.index');
+    Route::get('/polls/create', [\App\Http\Controllers\PollController::class, 'create'])->name('polls.create');
+    Route::post('/polls', [\App\Http\Controllers\PollController::class, 'store'])->name('polls.store');
+    Route::get('/polls/{poll}', [\App\Http\Controllers\PollController::class, 'show'])->name('polls.show');
+    Route::post('/polls/{poll}/vote', [\App\Http\Controllers\PollController::class, 'vote'])->name('polls.vote');
+    Route::put('/polls/{poll}/status', [\App\Http\Controllers\PollController::class, 'updateStatus'])->name('polls.status');
+
+    
+    // Volunteer Preferences routes - PROTECTED
+    Route::get('/profile/preferences', [\App\Http\Controllers\Verify\ProfileController::class, 'editPreferences'])->name('profile.preferences');
+    Route::post('/profile/preferences', [\App\Http\Controllers\Verify\ProfileController::class, 'updatePreferences'])->name('profile.preferences.update');
+    Route::get('/api/preferences/popular-tags', [\App\Http\Controllers\Verify\ProfileController::class, 'getPopularTags'])->name('api.preferences.tags');
     
     // Volunteer registration routes - PROTECTED
     Route::post('/events/{event}/join', [EventVolunteerController::class, 'join'])->name('events.join');
     Route::delete('/events/{event}/leave', [EventVolunteerController::class, 'leave'])->name('events.leave');
-});
 
-// Admin routes - PROTECTED (requires both auth and admin role)
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin', 'prevent-back-history'])->group(function () { // ← ADD HERE TOO
-    // Dashboard
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-    
-    // Event Management
-    Route::get('/events', [AdminController::class, 'events'])->name('events');
-    Route::post('/events/{event}/approve', [AdminController::class, 'approveEvent'])->name('events.approve');
-    Route::post('/events/{event}/reject', [AdminController::class, 'rejectEvent'])->name('events.reject');
+    // ─── QR Ticket (Volunteer) ───────────────────────────────────────────────
+    // Returns QR code JSON for the volunteer's check-in ticket modal
+    Route::get('/events/{event}/ticket', [EventVolunteerController::class, 'ticket'])->name('events.ticket');
 
-    Route::post('/events/{event}/complete', [AdminController::class, 'completeEvent'])->name('events.complete');
+    // ─── QR Attendance (Organizer) ───────────────────────────────────────────
+    Route::prefix('organizer')->name('organizer.')->group(function () {
+        // Scanner page — organizer views live check-in list and camera
+        Route::get('/events/{event}/scan', [\App\Http\Controllers\Attendance\AttendanceController::class, 'scanView'])
+            ->name('attendance.scan');
+
+        // End event — marks no-shows, completes event, fires Reverb broadcast
+        Route::post('/events/{event}/end', [\App\Http\Controllers\Attendance\AttendanceController::class, 'endEvent'])
+            ->name('attendance.end');
+    });
+
+    // Signed check-in endpoint — URL is embedded in the volunteer's QR code
+    // The `signed` middleware validates the URL signature before the controller runs
+    Route::get('/organizer/events/{event}/checkin/{volunteer}',
+        [\App\Http\Controllers\Attendance\AttendanceController::class, 'checkin'])
+        ->name('attendance.checkin')
+        ->middleware('signed');
     
-    // User Management
-    Route::get('/users', [AdminController::class, 'users'])->name('users');
-    Route::post('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('users.role');
-    
-    // Organizer Verification Management Routes
-    Route::get('/organizer-verifications', [AdminController::class, 'organizerVerifications'])->name('organizer-verifications');
-    Route::post('/organizer-verifications/{user}/approve', [AdminController::class, 'approveOrganizer'])->name('organizer-verifications.approve');
-    Route::post('/organizer-verifications/{user}/reject', [AdminController::class, 'rejectOrganizer'])->name('organizer-verifications.reject');
-    
-    // Audit Routes
-    Route::prefix('audit')->group(function () {
-        Route::get('/logs', [App\Http\Controllers\Audit\AuditController::class, 'logs'])->name('admin.audit.logs');
-        Route::get('/user-activity', [App\Http\Controllers\Audit\AuditController::class, 'userActivity'])->name('admin.audit.user-activity');
-        Route::get('/security', [App\Http\Controllers\Audit\AuditController::class, 'security'])->name('admin.audit.security');
-        Route::get('/events', [App\Http\Controllers\Audit\AuditController::class, 'events'])->name('admin.audit.events');
-        Route::get('/financial', [App\Http\Controllers\Audit\AuditController::class, 'financial'])->name('admin.audit.financial');
-        Route::get('/database', [App\Http\Controllers\Audit\AuditController::class, 'database'])->name('admin.audit.database');
-        Route::get('/api', [App\Http\Controllers\Audit\AuditController::class, 'api'])->name('admin.audit.api');
-        Route::get('/compliance', [App\Http\Controllers\Audit\AuditController::class, 'compliance'])->name('admin.audit.compliance');
-        Route::get('/monitoring', [App\Http\Controllers\Audit\AuditController::class, 'monitoring'])->name('admin.audit.monitoring');
-        Route::get('/export', [App\Http\Controllers\Audit\AuditController::class, 'export'])->name('admin.audit.export');
+    // MESSAGING ROUTES - PROTECTED
+    Route::prefix('messages')->name('messages.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ConversationController::class, 'index'])->name('index');
+        Route::get('/start/{user}', [\App\Http\Controllers\ConversationController::class, 'startDirect'])->name('start-direct');
+        Route::get('/event/{event}', [\App\Http\Controllers\ConversationController::class, 'startEventGroup'])->name('start-event');
+        Route::get('/search', [\App\Http\Controllers\ConversationController::class, 'search'])->name('search');
+        Route::get('/{conversation}', [\App\Http\Controllers\ConversationController::class, 'show'])->name('show');
+        Route::post('/{conversation}/mark-read', [\App\Http\Controllers\ConversationController::class, 'markAsRead'])->name('mark-read');
+        
+        // Message operations
+        Route::post('/{conversation}/messages', [\App\Http\Controllers\MessageController::class, 'store'])->name('send');
+        Route::delete('/message/{message}', [\App\Http\Controllers\MessageController::class, 'destroy'])->name('delete');
     });
 });
 

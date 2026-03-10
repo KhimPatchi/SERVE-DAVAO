@@ -1,387 +1,380 @@
-@extends('layouts.sidebar.sidebar')
+﻿@extends ('layouts.sidebar.sidebar')
 
-@section('content')
-<div class="p-6 bg-gray-50 min-h-screen">
-  
-  <!-- Header - AVATAR REMOVED -->
-  <div class="flex justify-between items-center mb-8">
-    <h1 class="text-3xl font-bold text-gray-800">Become a Verified Organizer</h1>
-    <div class="text-gray-600">
-    </div>
-  </div>
+@section ('content')
+<div class="min-h-screen bg-gray-50/60 p-6">
+    <div class="max-w-5xl mx-auto">
+        <!-- Professional Header -->
+        <div class="mb-8">
+            <nav class="mb-4 flex items-center space-x-2 text-sm text-gray-500">
+                <a href="{{ route('dashboard') }}" class="transition-colors hover:text-gray-700">
+                    <i class="bi bi-grid mr-1"></i>Dashboard
+                </a>
+                <i class="bi bi-chevron-right text-xs"></i>
+                <span class="text-gray-800 font-medium">Organizer Verification</span>
+            </nav>
 
-  <!-- Success/Error Messages -->
-  @if(session('success'))
-    <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg relative" role="alert">
-      <strong class="font-bold">Success!</strong>
-      <span class="block sm:inline">{{ session('success') }}</span>
-    </div>
-  @endif
-
-  @if(session('error'))
-    <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
-      <strong class="font-bold">Error!</strong>
-      <span class="block sm:inline">{{ session('error') }}</span>
-    </div>
-  @endif
-
-  @if($errors->any())
-    <div class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
-      <strong class="font-bold">Please fix the following errors:</strong>
-      <ul class="mt-1 list-disc list-inside">
-        @foreach($errors->all() as $error)
-          <li>{{ $error }}</li>
-        @endforeach
-      </ul>
-    </div>
-  @endif
-
-  <!-- Verification Form Card -->
-  <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-    <div class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-800 mb-2">Organizer Verification</h2>
-      <p class="text-gray-600">
-        To create and manage events, you need to be verified as an organizer. 
-        Please provide the following information for verification.
-      </p>
-    </div>
-
-   <form method="POST" action="{{ route('organizer.verification.store') }}" enctype="multipart/form-data" id="verificationForm" autocomplete="off">
-      @csrf
-
-      <!-- Organization Information -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div>
-          <label for="organization_name" class="block text-sm font-medium text-gray-700 mb-2">Organization Name *</label>
-          <input id="organization_name" 
-                 class="block w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3 border @error('organization_name') border-red-500 @enderror" 
-                 type="text" 
-                 name="organization_name" 
-                 value="{{ old('organization_name') }}" 
-                 required 
-                 maxlength="255" />
-          @error('organization_name')
-            <p class="mt-2 text-sm text-red-600" id="organization_name_error">{{ $message }}</p>
-          @enderror
-          <p class="mt-1 text-sm text-gray-500" id="organization_name_count">0/255 characters</p>
+            <div class="flex items-center gap-4">
+                <div class="rounded-2xl bg-blue-600 p-3">
+                    <i class="bi bi-shield-check text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Identity Verification</h1>
+                    <p class="mt-1 text-gray-600">Complete these steps to unlock event creation and management</p>
+                </div>
+            </div>
         </div>
 
-        <div>
-          <label for="organization_type" class="block text-sm font-medium text-gray-700 mb-2">Organization Type *</label>
-          <select id="organization_type" 
-                  name="organization_type" 
-                  class="block w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg shadow-sm px-4 py-3 border @error('organization_type') border-red-500 @enderror" 
-                  required>
-            <option value="">Select Type</option>
-            <option value="non_profit" {{ old('organization_type') == 'non_profit' ? 'selected' : '' }}>Non-Profit Organization</option>
-            <option value="school" {{ old('organization_type') == 'school' ? 'selected' : '' }}>School/University</option>
-            <option value="community" {{ old('organization_type') == 'community' ? 'selected' : '' }}>Community Group</option>
-            <option value="business" {{ old('organization_type') == 'business' ? 'selected' : '' }}>Business</option>
-            <option value="individual" {{ old('organization_type') == 'individual' ? 'selected' : '' }}>Individual</option>
-            <option value="other" {{ old('organization_type') == 'other' ? 'selected' : '' }}>Other</option>
-          </select>
-          @error('organization_type')
-            <p class="mt-2 text-sm text-red-600" id="organization_type_error">{{ $message }}</p>
-          @enderror
-        </div>
-      </div>
+        <!-- Session Alerts -->
+        @if (session('success'))
+            <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-5 py-4 rounded-2xl flex items-center gap-3 shadow-sm" role="alert">
+                <i class="bi bi-check-circle-fill text-2xl"></i>
+                <span class="font-medium">{{ session('success') }}</span>
+            </div>
+        @endif
 
-      <!-- Identification -->
-      <div class="mb-6">
-        <label for="identification_number" class="block text-sm font-medium text-gray-700 mb-2">Government ID Number *</label>
-        <input id="identification_number" 
-               class="block w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3 border @error('identification_number') border-red-500 @enderror" 
-               type="text" 
-               name="identification_number" 
-               value="{{ old('identification_number') }}" 
-               required 
-               maxlength="50" 
-               pattern="[A-Za-z0-9-]+" 
-               title="Only letters, numbers, and hyphens are allowed" />
-        @error('identification_number')
-          <p class="mt-2 text-sm text-red-600" id="identification_number_error">{{ $message }}</p>
-        @enderror
-        <p class="mt-1 text-sm text-gray-500">Format: Letters, numbers, and hyphens only</p>
-      </div>
+        @if (session('error'))
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-2xl flex items-center gap-3 shadow-sm" role="alert">
+                <i class="bi bi-exclamation-triangle-fill text-2xl"></i>
+                <span class="font-medium">{{ session('error') }}</span>
+            </div>
+        @endif
 
-      <!-- Identification Document Upload -->
-      <div class="mb-6">
-        <label for="identification_document" class="block text-sm font-medium text-gray-700 mb-2">
-          Upload ID Document (JPG, PNG, PDF - Max 2MB) *
-        </label>
-        
-        <!-- Custom File Upload -->
-        <div class="relative">
-          <input id="identification_document" 
-                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 @error('identification_document') border-red-500 @enderror" 
-                 type="file" 
-                 name="identification_document" 
-                 accept=".jpg,.jpeg,.png,.pdf" 
-                 required 
-                 onchange="validateFile(this)" />
-          
-          <!-- Custom styled file input -->
-          <div class="flex items-center justify-between border border-gray-300 rounded-lg shadow-sm px-4 py-3 bg-white hover:border-teal-500 transition cursor-pointer @error('identification_document') border-red-500 @enderror" id="file-upload-area">
-            <span class="text-gray-600 truncate mr-2" id="file-name">No file chosen</span>
-            <span class="bg-teal-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-teal-700 transition whitespace-nowrap">
-              Choose File
-            </span>
-          </div>
-        </div>
-        
-        <!-- Selected file info -->
-        <p class="mt-2 text-sm text-gray-500" id="selected-file-info"></p>
-        <p class="mt-1 text-sm text-gray-500">Accepted formats: JPG, JPEG, PNG, PDF | Max size: 2MB</p>
-        
-        @error('identification_document')
-          <p class="mt-2 text-sm text-red-600" id="identification_document_error">{{ $message }}</p>
-        @enderror
-      </div>
+        @if ($errors->any())
+            <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-2xl shadow-sm" role="alert">
+                <div class="flex items-center gap-3 mb-3">
+                    <i class="bi bi-x-circle-fill text-2xl"></i>
+                    <strong class="font-bold text-lg">Please fix the following errors:</strong>
+                </div>
+                <ul class="list-disc list-inside ml-9 space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li class="text-sm">{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-      <!-- Contact Information -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div>
-          <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-          <input id="phone" 
-                 class="block w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 px-4 py-3 border @error('phone') border-red-500 @enderror" 
-                 type="tel" 
-                 name="phone" 
-                 value="{{ old('phone') }}" 
-                 required 
-                 placeholder="e.g., 09171234567 or 021234567"
-                 minlength="10"
-                 maxlength="13" />
-          @error('phone')
-            <p class="mt-2 text-sm text-red-600" id="phone_error">{{ $message }}</p>
-          @enderror
-          <p class="mt-1 text-sm text-gray-500" id="phone_validation">Enter your phone number</p>
+        <!-- Enhanced Stepper -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between relative px-8">
+                <!-- Progress Line -->
+                <div class="absolute top-6 left-0 right-0 h-1 bg-gray-200 -z-10 mx-8"></div>
+                <div class="absolute top-6 left-0 h-1 bg-blue-600 transition-all duration-500 -z-10 mx-8" id="step-progress" style="width: 0%"></div>
+
+                <!-- Step 1 -->
+                <div class="flex flex-col items-center">
+                    <div class="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-lg transition-all duration-300 step-circle relative z-10" data-step="1">1</div>
+                    <span class="mt-3 text-sm font-semibold text-blue-700 step-label">Organization</span>
+                </div>
+                <!-- Step 2 -->
+                <div class="flex flex-col items-center">
+                    <div class="w-12 h-12 rounded-full bg-white border-2 border-gray-300 text-gray-500 flex items-center justify-center font-bold text-lg shadow transition-all duration-300 step-circle relative z-10" data-step="2">2</div>
+                    <span class="mt-3 text-sm font-medium text-gray-500 step-label">Documents</span>
+                </div>
+                <!-- Step 3 -->
+                <div class="flex flex-col items-center">
+                    <div class="w-12 h-12 rounded-full bg-white border-2 border-gray-300 text-gray-500 flex items-center justify-center font-bold text-lg shadow transition-all duration-300 step-circle relative z-10" data-step="3">3</div>
+                    <span class="mt-3 text-sm font-medium text-gray-500 step-label">Consent</span>
+                </div>
+            </div>
         </div>
 
-        <div>
-          <label for="address" class="block text-sm font-medium text-gray-700 mb-2">Address *</label>
-          <textarea id="address" 
-                    name="address" 
-                    rows="3" 
-                    class="block w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg shadow-sm px-4 py-3 border @error('address') border-red-500 @enderror" 
-                    required 
-                    maxlength="500">{{ old('address') }}</textarea>
-          @error('address')
-            <p class="mt-2 text-sm text-red-600" id="address_error">{{ $message }}</p>
-          @enderror
-          <p class="mt-1 text-sm text-gray-500" id="address_count">0/500 characters</p>
-        </div>
-      </div>
+        <!-- Form Card -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden ring-1 ring-gray-100">
+            <!-- Accent top bar -->
+            <div class="h-2 bg-blue-600"></div>
+            
+            <form action="{{ route('organizer.verification.store') }}" method="POST" enctype="multipart/form-data" id="multiStepForm">
+                @csrf
+                
+                <!-- Step 1: Organization Details -->
+                <div class="p-8 step-content" id="step-1-content">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+                        <div class="p-2 rounded-xl bg-blue-50">
+                            <i class="bi bi-building text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">Organization Information</h3>
+                            <p class="text-sm text-gray-500">Tell us about your organization</p>
+                        </div>
+                    </div>
 
-      <div class="flex items-center justify-end mt-8">
-        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed" id="submitBtn">
-          Submit for Verification
-        </button>
-      </div>
-    </form>
-  </div>
+                    <div class="grid grid-cols-1 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Organization Name *</label>
+                            <input type="text" name="organization_name" required value="{{ old('organization_name') }}"
+                                class="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm hover:border-gray-300"
+                                placeholder="Enter legal organization name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Organization Type *</label>
+                            <select name="organization_type" required
+                                class="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm hover:border-gray-300">
+                                <option value="">Select Type</option>
+                                <option value="non_profit" {{ old('organization_type') == 'non_profit' ? 'selected' : '' }}>Non-Profit Organization</option>
+                                <option value="school" {{ old('organization_type') == 'school' ? 'selected' : '' }}>Educational Institution</option>
+                                <option value="community" {{ old('organization_type') == 'community' ? 'selected' : '' }}>Community Group</option>
+                                <option value="business" {{ old('organization_type') == 'business' ? 'selected' : '' }}>Registered Business</option>
+                                <option value="individual" {{ old('organization_type') == 'individual' ? 'selected' : '' }}>Individual Organizer</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Contact Phone *</label>
+                            <input type="tel" name="phone" id="phone_input" required value="{{ old('phone') }}"
+                                class="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm hover:border-gray-300"
+                                placeholder="e.g., 09171234567"
+                                maxlength="11"
+                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Office Address *</label>
+                            <textarea name="address" required rows="3"
+                                class="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm hover:border-gray-300"
+                                placeholder="Complete street address, city">{{ old('address') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Identity Verification -->
+                <div class="p-8 step-content hidden" id="step-2-content">
+                    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+                        <div class="p-2 rounded-xl bg-blue-50">
+                            <i class="bi bi-shield-lock text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">Identity Documents</h3>
+                            <p class="text-sm text-gray-500">Upload your Valid ID and a selfie</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- ID Number -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">ID Number *</label>
+                            <input type="text" name="identification_number" required value="{{ old('identification_number') }}"
+                                class="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm hover:border-gray-300"
+                                placeholder="e.g., 123-456-789">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- ID File -->
+                            <div>
+                                    <div class="relative group">
+                                        <div class="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all bg-gray-50 cursor-pointer overflow-hidden h-64 flex flex-col items-center justify-center relative" onclick="document.getElementById('id_file').click()">
+                                            <!-- Default Content -->
+                                            <div id="id-default-content" class="flex flex-col items-center">
+                                                <div class="w-12 h-12 mb-2 rounded-full bg-blue-100 flex items-center justify-center">
+                                                    <i class="bi bi-card-image text-xl text-blue-600"></i>
+                                                </div>
+                                                <p class="text-sm font-semibold text-gray-700">Upload ID</p>
+                                                <p class="text-xs text-gray-500 mt-1">JPG/PNG, max 10MB</p>
+                                            </div>
+                                            <!-- Image Preview -->
+                                            <img id="id-preview" class="hidden absolute inset-0 w-full h-full object-contain p-2 rounded-2xl bg-gray-100/50" src="" alt="ID Preview">
+                                            <!-- Overlay on Hover (when image is present) -->
+                                            <div id="id-overlay" class="hidden absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                                                <span class="text-white text-sm font-semibold"><i class="bi bi-pencil mr-1"></i> Change</span>
+                                            </div>
+                                        </div>
+                                        <input type="file" name="identification_document" id="id_file" required accept="image/*" class="hidden" onchange="previewFile(this, 'id-preview', 'id-default-content', 'id-overlay')">
+                                    </div>
+                            </div>
+
+                            <!-- Selfie File -->
+                            <div>
+                                    <div class="relative group">
+                                        <div class="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all bg-gray-50 cursor-pointer overflow-hidden h-64 flex flex-col items-center justify-center relative" onclick="document.getElementById('selfie_file').click()">
+                                            <!-- Default Content -->
+                                            <div id="selfie-default-content" class="flex flex-col items-center">
+                                                <div class="w-12 h-12 mb-2 rounded-full bg-blue-100 flex items-center justify-center">
+                                                    <i class="bi bi-camera text-xl text-blue-600"></i>
+                                                </div>
+                                                <p class="text-sm font-semibold text-gray-700">Upload Selfie</p>
+                                                <p class="text-xs text-gray-500 mt-1">JPG/PNG, max 5MB</p>
+                                            </div>
+                                            <!-- Image Preview -->
+                                            <img id="selfie-preview" class="hidden absolute inset-0 w-full h-full object-contain p-2 rounded-2xl bg-gray-100/50" src="" alt="Selfie Preview">
+                                            <!-- Overlay on Hover (when image is present) -->
+                                            <div id="selfie-overlay" class="hidden absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                                                <span class="text-white text-sm font-semibold"><i class="bi bi-pencil mr-1"></i> Change</span>
+                                            </div>
+                                        </div>
+                                        <input type="file" name="selfie" id="selfie_file" required accept="image/*" class="hidden" onchange="previewFile(this, 'selfie-preview', 'selfie-default-content', 'selfie-overlay')">
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Consent -->
+                <div class="p-8 step-content hidden" id="step-3-content">
+                    <div class="text-center mb-8">
+                        <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="bi bi-shield-check text-4xl text-blue-600"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Security & Privacy</h3>
+                        <p class="text-gray-600">Review and confirm your submission</p>
+                    </div>
+
+                    <div class="bg-blue-50 rounded-2xl p-6 mb-6 border border-blue-100">
+                        <div class="flex items-start gap-4 mb-5">
+                            <input type="checkbox" required class="mt-1 w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-gray-300 cursor-pointer">
+                            <div class="text-sm text-gray-700">
+                                <span class="font-bold text-gray-900">Privacy Consent</span>
+                                <p class="mt-1.5 leading-relaxed">I consent to the collection and automated processing of my identification documents and biometric data (selfie) for identity verification purposes.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <input type="checkbox" required class="mt-1 w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-gray-300 cursor-pointer">
+                            <div class="text-sm text-gray-700">
+                                <span class="font-bold text-gray-900">Accuracy Declaration</span>
+                                <p class="mt-1.5 leading-relaxed">I declare that all information provided is true and accurate. Fraudulent submissions will result in permanent account suspension.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="loadingOverlay" class="hidden text-center py-6 bg-blue-50 rounded-2xl">
+                        <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-blue-200 border-t-blue-600 mb-4"></div>
+                        <p class="text-blue-800 font-semibold">verifying your documents...</p>
+                        <p class="text-blue-600 text-sm mt-1">Please don't close this window</p>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="px-8 py-6 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+                    <button type="button" id="prevBtn" class="px-6 py-3 rounded-xl text-gray-600 font-semibold hover:bg-gray-200 transition-all invisible">
+                        <i class="bi bi-arrow-left mr-2"></i>Previous
+                    </button>
+                    <button type="button" id="nextBtn" class="px-8 py-3 rounded-xl bg-blue-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+                        Next Step<i class="bi bi-arrow-right ml-2"></i>
+                    </button>
+                    <button type="submit" id="submitBtn" class="px-8 py-3 rounded-xl bg-blue-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all hidden">
+                        <i class="bi bi-shield-check mr-2"></i>Submit for Verification
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>
-// Character counters
-document.getElementById('organization_name').addEventListener('input', function() {
-  const count = this.value.length;
-  document.getElementById('organization_name_count').textContent = `${count}/255 characters`;
-});
+    let currentStep = 1;
 
-document.getElementById('address').addEventListener('input', function() {
-  const count = this.value.length;
-  document.getElementById('address_count').textContent = `${count}/500 characters`;
-});
+    function updateStepUI() {
+        // Update contents
+        document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById(`step-${currentStep}-content`).classList.remove('hidden');
 
-// SIMPLIFIED Phone Validation - Basic length check only
-function validatePhoneNumber(phone) {
-  const cleaned = phone.replace(/[^\d+]/g, '');
-  return cleaned.length >= 10 && cleaned.length <= 13;
-}
+        // Update stepper circles
+        document.querySelectorAll('.step-circle').forEach((el, index) => {
+            const step = parseInt(el.dataset.step);
+            el.classList.remove('bg-blue-600', 'text-white', 'bg-white', 'text-gray-500', 'border-gray-300', 'bg-gray-300');
+            
+            if (step === currentStep) {
+                el.classList.add('bg-blue-600', 'text-white', 'scale-110');
+            } else if (step < currentStep) {
+                el.classList.add('bg-blue-600', 'text-white');
+                el.innerHTML = '<i class="bi bi-check-lg text-xl"></i>';
+            } else {
+                el.classList.add('bg-white', 'text-gray-400', 'border-2', 'border-gray-300');
+                el.textContent = step;
+            }
+        });
 
-// Real-time phone validation
-document.getElementById('phone').addEventListener('input', function() {
-  const phone = this.value;
-  const validationElement = document.getElementById('phone_validation');
-  const errorElement = document.getElementById('phone_error');
-  
-  // Remove any existing validation classes
-  this.classList.remove('border-green-500', 'border-red-500');
-  validationElement.classList.remove('text-green-600', 'text-red-600', 'text-gray-500');
-  
-  if (!phone.trim()) {
-    validationElement.textContent = 'Enter your phone number';
-    validationElement.className = 'mt-1 text-sm text-gray-500';
-    return;
-  }
-  
-  const cleaned = phone.replace(/[^\d+]/g, '');
-  const isValid = validatePhoneNumber(phone);
-  
-  if (isValid) {
-    this.classList.add('border-green-500');
-    validationElement.textContent = '✓ Valid phone number';
-    validationElement.className = 'mt-1 text-sm text-green-600';
-    
-    // Clear any existing error messages
-    if (errorElement) {
-      errorElement.textContent = '';
+        // Update step labels
+        document.querySelectorAll('.step-label').forEach((label, index) => {
+            const step = index + 1;
+            if (step === currentStep) {
+                label.classList.remove('text-gray-500');
+                label.classList.add('text-blue-700', 'font-semibold');
+            } else if (step < currentStep) {
+                label.classList.remove('text-gray-500', 'font-medium');
+                label.classList.add('text-blue-600', 'font-semibold');
+            } else {
+                label.classList.remove('text-blue-600', 'text-blue-700', 'font-semibold');
+                label.classList.add('text-gray-500', 'font-medium');
+            }
+        });
+
+        // Update progress bar
+        const progress = ((currentStep - 1) / 2) * 100;
+        document.getElementById('step-progress').style.width = `${progress}%`;
+
+        // Update buttons
+        document.getElementById('prevBtn').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+        if (currentStep === 3) {
+            document.getElementById('nextBtn').classList.add('hidden');
+            document.getElementById('submitBtn').classList.remove('hidden');
+        } else {
+            document.getElementById('nextBtn').classList.remove('hidden');
+            document.getElementById('submitBtn').classList.add('hidden');
+        }
     }
-  } else {
-    this.classList.add('border-red-500');
-    
-    if (cleaned.length < 10) {
-      validationElement.textContent = 'Phone number too short (minimum 10 digits)';
-    } else if (cleaned.length > 13) {
-      validationElement.textContent = 'Phone number too long (maximum 13 digits)';
-    } else {
-      validationElement.textContent = 'Please enter a valid phone number';
-    }
-    validationElement.className = 'mt-1 text-sm text-red-600';
-  }
-});
 
-// File validation
-function validateFile(input) {
-  const file = input.files[0];
-  const fileInfo = document.getElementById('selected-file-info');
-  const fileNameDisplay = document.getElementById('file-name');
-  const fileUploadArea = document.getElementById('file-upload-area');
-  const errorElement = document.getElementById('identification_document_error');
-  
-  // Reset styles
-  fileUploadArea.classList.remove('border-red-500', 'border-green-500');
-  
-  if (file) {
-    const fileSize = (file.size / 1024 / 1024).toFixed(2);
-    const fileExtension = file.name.split('.').pop().toLowerCase();
-    const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
-    const maxSize = 2; // 2MB
-    
-    // Validate file type
-    if (!allowedExtensions.includes(fileExtension)) {
-      fileInfo.textContent = `Error: Please select JPG, PNG, or PDF file only`;
-      fileInfo.className = 'mt-2 text-sm text-red-600';
-      fileUploadArea.classList.add('border-red-500');
-      input.value = ''; // Clear the file input
-      fileNameDisplay.textContent = 'No file chosen';
-      
-      if (errorElement) {
-        errorElement.textContent = 'Please select a valid file type (JPG, PNG, PDF)';
-      }
-      return false;
-    }
-    
-    // Validate file size
-    if (fileSize > maxSize) {
-      fileInfo.textContent = `Error: File size (${fileSize} MB) exceeds 2MB limit`;
-      fileInfo.className = 'mt-2 text-sm text-red-600';
-      fileUploadArea.classList.add('border-red-500');
-      input.value = ''; // Clear the file input
-      fileNameDisplay.textContent = 'No file chosen';
-      
-      if (errorElement) {
-        errorElement.textContent = 'File size must be less than 2MB';
-      }
-      return false;
-    }
-    
-    // Valid file
-    fileInfo.textContent = `Selected: ${file.name} (${fileSize} MB)`;
-    fileInfo.className = 'mt-2 text-sm text-green-600';
-    fileUploadArea.classList.add('border-green-500');
-    fileNameDisplay.textContent = file.name;
-    
-    // Clear any existing errors
-    if (errorElement) {
-      errorElement.textContent = '';
-    }
-    
-    return true;
-  } else {
-    fileInfo.textContent = '';
-    fileNameDisplay.textContent = 'No file chosen';
-    return false;
-  }
-}
-
-// SIMPLIFIED Form validation
-function validateForm() {
-  const form = document.getElementById('verificationForm');
-  const submitBtn = document.getElementById('submitBtn');
-  let isValid = true;
-  
-  // Basic required field validation
-  const requiredFields = form.querySelectorAll('[required]');
-  requiredFields.forEach(field => {
-    if (!field.value.trim()) {
-      isValid = false;
-      field.classList.add('border-red-500');
-    } else {
-      field.classList.remove('border-red-500');
-    }
-  });
-  
-  // SIMPLIFIED Phone validation - only check length
-  const phoneInput = document.getElementById('phone');
-  const phoneValue = phoneInput.value.trim();
-  const cleanedPhone = phoneValue.replace(/[^\d+]/g, '');
-  
-  if (cleanedPhone.length < 10 || cleanedPhone.length > 13) {
-    isValid = false;
-    phoneInput.classList.add('border-red-500');
-    document.getElementById('phone_validation').textContent = 'Phone number must be 10-13 digits';
-    document.getElementById('phone_validation').className = 'mt-1 text-sm text-red-600';
-  }
-  
-  // File validation
-  const fileInput = document.getElementById('identification_document');
-  if (fileInput.files.length === 0) {
-    isValid = false;
-    document.getElementById('file-upload-area').classList.add('border-red-500');
-  }
-  
-  if (!isValid) {
-    alert('Please fill in all required fields correctly.');
-    return false;
-  }
-  
-  // Disable submit button to prevent double submission
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Submitting...';
-  
-  return true;
-}
-
-// Add form submit event listener
-document.getElementById('verificationForm').addEventListener('submit', function(e) {
-  if (!validateForm()) {
-    e.preventDefault();
-  }
-});
-
-// Real-time validation
-document.addEventListener('DOMContentLoaded', function() {
-  const fields = document.querySelectorAll('input, select, textarea');
-  fields.forEach(field => {
-    field.addEventListener('blur', function() {
-      if (this.hasAttribute('required') && !this.value.trim()) {
-        this.classList.add('border-red-500');
-      } else {
-        this.classList.remove('border-red-500');
-      }
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        if (validateStep(currentStep)) {
+            currentStep++;
+            updateStepUI();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     });
-    
-    field.addEventListener('input', function() {
-      this.classList.remove('border-red-500');
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+        currentStep--;
+        updateStepUI();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-  });
-  
-  // Initialize phone validation on page load if there's existing value
-  const phoneInput = document.getElementById('phone');
-  if (phoneInput.value) {
-    phoneInput.dispatchEvent(new Event('input'));
-  }
-});
+
+    function validateStep(step) {
+        const currentContent = document.getElementById(`step-${step}-content`);
+        const inputs = currentContent.querySelectorAll('[required]');
+        let valid = true;
+        
+        inputs.forEach(input => {
+            if (!input.value || !input.value.trim()) {
+                input.classList.add('border-red-500', 'ring-2', 'ring-red-200');
+                valid = false;
+            } else {
+                input.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+            }
+        });
+
+        if (!valid) {
+            alert('âš ï¸ Please fill out all required fields before proceeding.');
+        }
+        return valid;
+    }
+
+    function previewFile(input, previewId, defaultContentId, overlayId) {
+        const file = input.files[0];
+        const previewFn = document.getElementById(previewId);
+        const defaultContent = document.getElementById(defaultContentId);
+        const overlay = document.getElementById(overlayId);
+
+        if (file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                previewFn.src = e.target.result;
+                previewFn.classList.remove('hidden');
+                defaultContent.classList.add('hidden');
+                if (overlay) overlay.classList.remove('hidden');
+            }
+            
+            reader.readAsDataURL(file);
+        }
+    }
+
+    document.getElementById('multiStepForm').addEventListener('submit', function() {
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('submitBtn').classList.add('opacity-50', 'cursor-not-allowed');
+        document.getElementById('loadingOverlay').classList.remove('hidden');
+    });
 </script>
+
+<style>
+    .step-circle {
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+</style>
 @endsection
+

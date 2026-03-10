@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>@yield('title', 'ServeDavao Dashboard')</title>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>@yield ('title', 'ServeDavao Dashboard')</title>
   <link rel="icon" type="image/png" href="{{ asset('assets/img/logoDav.png') }}">
+  @stack ('head')
 
   <!-- Tailwind CSS -->
   <!-- Tailwind CSS -->
@@ -218,22 +220,15 @@
         display: flex;
       }
       
-      /* Enhanced scrollbar for desktop */
+      /* Hide scrollbar for Chrome, Safari and Opera */
       #sidebar::-webkit-scrollbar {
-        width: 4px;
+        display: none;
       }
-      
-      #sidebar::-webkit-scrollbar-track {
-        background: #f1f5f9;
-      }
-      
-      #sidebar::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 2px;
-      }
-      
-      #sidebar::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
+
+      /* Hide scrollbar for IE, Edge and Firefox */
+      #sidebar {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
       }
     }
 
@@ -345,40 +340,6 @@
       <!-- Enhanced Desktop Navigation - Black Color Scheme -->
       <nav class="desktop-nav flex-col flex-grow space-y-2 px-3 hidden md:flex py-4">
         @auth
-          @if(Auth::user()->isAdmin())
-            <!-- ADMIN ONLY LINKS - Black Color Scheme -->
-            <div class="px-3 py-2">
-              <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider collapsed-text">Main Admin</span>
-            </div>
-            
-            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
-              <i class="bi bi-speedometer2 text-lg"></i>
-              <span class="text-sm font-medium collapsed-text">Admin Dashboard</span>
-            </a>
-            <a href="{{ route('admin.organizer-verifications') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
-              <i class="bi bi-person-check text-lg"></i>
-              <span class="text-sm font-medium collapsed-text">Organizer Verifications</span>
-            </a>
-            <a href="{{ route('admin.events') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
-              <i class="bi bi-calendar-check text-lg"></i>
-              <span class="text-sm font-medium collapsed-text">Manage Events</span>
-            </a>
-            <a href="{{ route('admin.users') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
-              <i class="bi bi-people text-lg"></i>
-              <span class="text-sm font-medium collapsed-text">Manage Users</span>
-            </a>
-
-            <!-- AUDIT SECTION - Simple and Functional -->
-            <div class="px-3 py-2 mt-4">
-              <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider collapsed-text">Audit</span>
-            </div>
-
-            <a href="{{ route('admin.admin.audit.logs') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
-              <i class="bi bi-journal-text text-lg"></i>
-              <span class="text-sm font-medium collapsed-text">Audit Logs</span>
-            </a>
-
-          @else
             <!-- REGULAR USER LINKS - Black Color Scheme -->
             <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
               <i class="bi bi-house-door-fill text-lg"></i>
@@ -386,33 +347,55 @@
             </a>
             <a href="{{ route('events.index') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
               <i class="bi bi-calendar-event text-lg"></i>
-              <span class="text-sm font-medium collapsed-text">Events</span>
+              <span class="text-sm font-medium collapsed-text">Calendar</span>
             </a>
             <a href="{{ route('volunteers') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
               <i class="bi bi-people-fill text-lg"></i>
-              <span class="text-sm font-medium collapsed-text">Volunteer Opportunities</span>
+              <span class="text-sm font-medium collapsed-text">Events</span>
             </a>
             <a href="{{ route('volunteers.my-events') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
               <i class="bi bi-clock-fill text-lg"></i>
-              <span class="text-sm font-medium collapsed-text">My Events</span>
+              <span class="text-sm font-medium collapsed-text">Recent Participation</span>
+            </a>
+            @if (auth()->user()->isVerifiedOrganizer())
+              <a href="{{ route('suggestions.index') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
+                <i class="bi bi-lightbulb-fill text-lg"></i>
+                <span class="text-sm font-medium collapsed-text">Event Suggestions</span>
+              </a>
+            @endif
+            <a href="{{ route('polls.index') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
+              <i class="bi bi-ui-checks text-lg"></i>
+              <span class="text-sm font-medium collapsed-text">Voting Polls</span>
+            </a>
+            <a href="{{ route('messages.index') }}" class="flex items-center justify-between px-3 py-3 rounded-xl transition-all duration-300">
+              <div class="flex items-center gap-3">
+                <i class="bi bi-chat-dots-fill text-lg"></i>
+                <span class="text-sm font-medium collapsed-text">Messages</span>
+              </div>
+              @php $unreadCount = auth()->user()->getTotalUnreadMessagesCount(); @endphp
+              @if ($unreadCount > 0)
+                <span class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full collapsed-text">
+                  {{ $unreadCount }}
+                </span>
+              @endif
             </a>
             
-            <!-- Organizer Links - Black Color Scheme -->
-            @if(!Auth::user()->isVerifiedOrganizer() && !Auth::user()->hasPendingVerification())
+            <!-- Organizer Verification Links -->
+            @if (!Auth::user()->isVerifiedOrganizer() && !Auth::user()->hasPendingVerification())
             <a href="{{ route('organizer.verification.create') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
                 <i class="bi bi-patch-check text-lg"></i>
                 <span class="text-sm font-medium collapsed-text">Get Verified</span>
             </a>
             @endif
 
-            @if(Auth::user()->hasPendingVerification())
+            @if (Auth::user()->hasPendingVerification())
             <a href="{{ route('organizer.verification.status') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
                 <i class="bi bi-hourglass-split text-lg"></i>
                 <span class="text-sm font-medium collapsed-text">Verification Pending</span>
             </a>
             @endif
 
-            @if(Auth::user()->isVerifiedOrganizer())
+            @if (Auth::user()->isVerifiedOrganizer())
             <a href="{{ route('volunteers.organized-events') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
                 <i class="bi bi-person-badge text-lg"></i>
                 <span class="text-sm font-medium collapsed-text">Organize Events</span>
@@ -424,7 +407,6 @@
                 <i class="bi bi-person text-lg profile-icon"></i>
                 <span class="text-sm font-medium collapsed-text">Profile</span>
             </a>
-          @endif
         @endauth
       </nav>
 
@@ -473,7 +455,7 @@
                 }
             @endphp
 
-            @if($hasValidAvatar)
+            @if ($hasValidAvatar)
                 <!-- Show actual avatar image with error handling -->
                 <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" 
                      class="w-8 h-8 rounded-full border-2 border-gray-200 object-cover"
@@ -495,7 +477,7 @@
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-900 truncate">{{ $user->name ?? 'User' }}</p>
                 <p class="text-xs text-gray-500 truncate">{{ $user->email ?? '' }}</p>
-                @if($user && $user->provider)
+                @if ($user && $user->provider)
                     <p class="text-xs text-gray-400 capitalize">
                         {{ $user->provider }} account
                     </p>
@@ -519,7 +501,7 @@
 
     <!-- Main Content -->
     <div class="main-content flex-1 p-6 md:p-8 lg:p-10 collapsed">
-      @yield('content')
+      @yield ('content')
     </div>
   </div>
 
@@ -679,5 +661,135 @@
       }
     });
   </script>
+  <!-- Global Notification Toast Container -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-[60] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Real-time Notification Script -->
+  @auth
+  <!-- Echo/Pusher Fallback -->
+  <script src="https://js.pusher.com/8.0/pusher.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... (toast function remains same) ...
+        window.showNotification = function(title, message, avatarUrl) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-white border border-gray-100 shadow-lg rounded-xl p-4 flex items-start gap-3 w-80 transform transition-all duration-300 translate-x-full opacity-0 pointer-events-auto cursor-pointer hover:bg-gray-50';
+            
+            toast.innerHTML = `
+                <img src="${avatarUrl || '{{ asset('images/default-avatar.svg') }}'}" class="w-10 h-10 rounded-full object-cover border border-gray-200">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-900 truncate">${title}</p>
+                    <p class="text-xs text-gray-500 line-clamp-2">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+                    <i class="bi bi-x"></i>
+                </button>
+            `;
+            
+            toast.onclick = (e) => {
+                if (!e.target.closest('button')) {
+                    window.location.href = "{{ route('messages.index') }}";
+                }
+            };
+
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        };
+
+        const userId = {{ auth()->id() }};
+        
+        const initEchoGlobal = () => {
+            // Priority: existing Echo instance
+            let EchoInstance = window.Echo;
+            
+            // Check if window.Echo is the constructor or the instance
+            const isInstance = EchoInstance && typeof EchoInstance.private === 'function';
+            const Constructor = window.Echo || window.LaravelEcho;
+
+            if (!isInstance && Constructor) {
+                try {
+                    console.log('Antigravity: Initializing real-time engine...');
+                    EchoInstance = new Constructor({
+                        broadcaster: 'reverb',
+                        key: '{{ env('REVERB_APP_KEY') }}',
+                        wsHost: '{{ env('REVERB_HOST', 'localhost') }}',
+                        wsPort: {{ env('REVERB_PORT', 8080) }},
+                        wssPort: {{ env('REVERB_PORT', 8080) }},
+                        forceTLS: false,
+                        enabledTransports: ['ws', 'wss'],
+                    });
+                    window.Echo = EchoInstance;
+                } catch (e) {
+                    console.error('Antigravity: Echo initialization failed', e);
+                }
+            }
+
+            if (EchoInstance && typeof EchoInstance.private === 'function') {
+                // Prevent duplicate listeners
+                if (window.echoListenersAttached) {
+                    console.log('Antigravity: Global Listener already attached.');
+                    return;
+                }
+
+                console.log('Antigravity: Global Listener Attached for User ' + userId);
+                window.echoListenersAttached = true;
+                window.__processedMessageIds = window.__processedMessageIds || new Set();
+                
+                EchoInstance.private('App.Models.User.' + userId)
+                    .listen('.message.sent', (e) => {
+                        console.log('Global Notification:', e);
+                        
+                        if (window.__processedMessageIds.has(e.id)) {
+                            console.log('Antigravity: Skipping already processed message:', e.id);
+                            return;
+                        }
+
+                        if (e.sender && parseInt(e.sender.id) === parseInt(userId)) {
+                            return;
+                        }
+
+                        window.__processedMessageIds.add(e.id);
+
+                        const badgeContainer = document.querySelector('a[href="{{ route('messages.index') }}"]');
+                        if (badgeContainer) {
+                            let badge = badgeContainer.querySelector('.bg-red-500');
+                            if (!badge) {
+                                const span = document.createElement('span');
+                                span.className = 'bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full collapsed-text';
+                                span.innerText = '1';
+                                badgeContainer.appendChild(span);
+                            } else {
+                                const badge_val = parseInt(badge.innerText) || 0;
+                                badge.innerText = badge_val + 1;
+                            }
+                        }
+
+                        const senderName = e.sender ? e.sender.name : 'System';
+                        const avatar = e.sender ? e.sender.avatar_url : '{{ asset('images/default-avatar.svg') }}';
+                        window.showNotification(senderName, e.message || 'Sent an attachment', avatar);
+                    });
+            } else {
+                console.warn('Antigravity: Echo not ready. Retrying...');
+                setTimeout(initEchoGlobal, 1000);
+            }
+        };
+
+        // Delay slightly to allow main app.js to load first if possible
+        setTimeout(initEchoGlobal, 500);
+    });
+  </script>
+  @endauth
+  @stack ('scripts')
 </body>
 </html>

@@ -130,7 +130,7 @@
             <div class="mb-3 text-start">
                 <label for="email" class="form-label fw-semibold">Email</label>
                 <input type="email" id="email" name="email" value="{{ old('email') }}" required autofocus class="form-control" placeholder="you@example.com">
-                @error('email')
+                @error ('email')
                     <div class="text-danger small mt-1">{{ $message }}</div>
                 @enderror
             </div>

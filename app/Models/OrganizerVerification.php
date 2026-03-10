@@ -11,22 +11,32 @@ class OrganizerVerification extends Model
 
     protected $fillable = [
         'user_id',
-        'applicant_name', // ADD THIS LINE
+        'applicant_name',
         'organization_name',
         'organization_type',
         'identification_number',
         'identification_document_path',
+        'selfie_path', // For face matching
         'phone',
         'address',
         'status',
         'rejection_reason',
         'approved_at',
-        'rejected_at'
+        'rejected_at',
+        // ID Analyzer fields
+        'document_type',
+        'verification_score',
+        'face_match_score',
+        'issuing_country',
+        'verification_data',
+        'verified_at'
     ];
 
     protected $casts = [
         'approved_at' => 'datetime',
         'rejected_at' => 'datetime',
+        'verified_at' => 'datetime',
+        'verification_data' => 'array', // Cast JSON to array
     ];
 
     public function user()

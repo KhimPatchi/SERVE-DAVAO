@@ -1,8 +1,8 @@
-@extends('layouts.sidebar.sidebar')
+﻿@extends ('layouts.sidebar.sidebar')
 
-@section('title', 'User Management')
+@section ('title', 'User Management')
 
-@section('content')
+@section ('content')
 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
     <div class="px-4 py-6 sm:px-0">
         <!-- Page Header -->
@@ -19,7 +19,7 @@
         </header>
 
         <!-- System Alerts -->
-        @if(session('success'))
+        @if (session('success'))
             <div class="mb-6 p-4 rounded-lg bg-green-50 border border-green-200" role="alert">
                 <div class="flex items-center">
                     <i class="bi bi-check-circle-fill text-green-500 mr-2"></i>
@@ -28,7 +28,7 @@
             </div>
         @endif
 
-        @if(session('error'))
+        @if (session('error'))
             <div class="mb-6 p-4 rounded-lg bg-red-50 border border-red-200" role="alert">
                 <div class="flex items-center">
                     <i class="bi bi-exclamation-triangle-fill text-red-500 mr-2"></i>
@@ -125,13 +125,13 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($users as $user)
+                        @forelse ($users as $user)
                             <tr class="hover:bg-gray-50 transition-colors duration-150">
                                 <!-- User Information -->
                                 <td class="px-6 py-4">
                                     <div class="flex items-center space-x-3">
                                         <div class="flex-shrink-0">
-                                            @if($user->avatar)
+                                            @if ($user->avatar)
                                                 <img src="{{ asset($user->avatar) }}" 
                                                      alt="{{ $user->name }}" 
                                                      class="w-10 h-10 rounded-lg object-cover border border-gray-200">
@@ -144,25 +144,19 @@
                                         <div class="min-w-0 flex-1">
                                             <div class="flex items-center space-x-2">
                                                 <p class="text-sm font-semibold text-gray-900 truncate">{{ $user->name }}</p>
-                                                @if(!$user->email_verified_at)
+                                                @if (!$user->email_verified_at)
                                                     <i class="bi bi-exclamation-triangle text-orange-500 text-xs" title="Email unverified"></i>
                                                 @endif
                                             </div>
                                             <p class="text-sm text-gray-500 truncate">{{ $user->email }}</p>
-                                            <p class="text-xs text-gray-400">ID: {{ $user->id }} • Joined {{ $user->created_at->format('M Y') }}</p>
+                                            <p class="text-xs text-gray-400">ID: {{ $user->id }} â€¢ Joined {{ $user->created_at->format('M Y') }}</p>
                                         </div>
                                     </div>
                                 </td>
 
                                 <!-- Account Type -->
                                 <td class="px-6 py-4">
-                                    @if($user->isAdmin())
-                                        <div class="flex items-center space-x-2 text-sm">
-                                            <div class="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                            <span class="font-medium text-gray-900">Administrator</span>
-                                        </div>
-                                        <div class="text-xs text-gray-500 mt-1">Full system access</div>
-                                    @elseif($user->isVerifiedOrganizer())
+                                    @if ($user->isVerifiedOrganizer())
                                         <div class="flex items-center space-x-2 text-sm">
                                             <div class="w-2 h-2 bg-green-500 rounded-full"></div>
                                             <span class="font-medium text-gray-900">Verified Organizer</span>
@@ -183,7 +177,7 @@
                                         <!-- Email Verification -->
                                         <div class="flex items-center justify-between">
                                             <span class="text-sm font-medium text-gray-700">Email:</span>
-                                            @if($user->email_verified_at)
+                                            @if ($user->email_verified_at)
                                                 <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-200">
                                                     <i class="bi bi-check-lg mr-1"></i>
                                                     Verified
@@ -197,15 +191,15 @@
                                         </div>
 
                                         <!-- Organizer Verification - Only show if not verified -->
-                                        @if(!$user->isVerifiedOrganizer())
+                                        @if (!$user->isVerifiedOrganizer())
                                             <div class="flex items-center justify-between">
                                                 <span class="text-sm font-medium text-gray-700">Organizer:</span>
-                                                @if($user->hasPendingVerification())
+                                                @if ($user->hasPendingVerification())
                                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
                                                         <i class="bi bi-clock-history mr-1.5"></i>
                                                         Processing
                                                     </span>
-                                                @elseif($user->hasRejectedVerification())
+                                                @elseif ($user->hasRejectedVerification())
                                                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
                                                         <i class="bi bi-x-circle mr-1.5"></i>
                                                         Rejected
@@ -223,7 +217,7 @@
                                         <div class="flex items-center justify-between">
                                             <span class="text-sm font-medium text-gray-700">Last Active:</span>
                                             <span class="text-xs text-gray-500">
-                                                @if($user->last_login_at)
+                                                @if ($user->last_login_at)
                                                     {{ $user->last_login_at->diffForHumans() }}
                                                 @else
                                                     Never logged in
@@ -236,11 +230,7 @@
                                 <!-- Actions - Clean -->
                                 <td class="px-6 py-4">
                                     <div class="flex justify-center">
-                                        @if($user->isAdmin())
-                                            <span class="inline-block px-3 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full border border-purple-200">
-                                                System Admin
-                                            </span>
-                                        @elseif($user->hasPendingVerification())
+                                        @if ($user->hasPendingVerification())
                                             <a href="{{ route('admin.organizer-verifications') }}" 
                                                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
                                                 <i class="bi bi-clipboard-check mr-2"></i>
@@ -269,7 +259,7 @@
             </div>
 
             <!-- Pagination -->
-            @if($users->hasPages())
+            @if ($users->hasPages())
                 <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div class="text-sm text-gray-700">

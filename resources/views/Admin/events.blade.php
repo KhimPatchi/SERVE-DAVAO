@@ -1,8 +1,8 @@
-@extends('layouts.sidebar.sidebar')
+@extends ('layouts.sidebar.sidebar')
 
-@section('title', 'Event Management')
+@section ('title', 'Event Management')
 
-@section('content')
+@section ('content')
 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
     <div class="px-4 py-6 sm:px-0">
         <!-- Page Header -->
@@ -12,7 +12,7 @@
         </header>
 
         <!-- System Alerts -->
-        @if(session('success'))
+        @if (session('success'))
             <div class="mb-6 p-4 rounded-md bg-green-50 border border-green-200" role="alert">
                 <div class="flex">
                     <div class="flex-shrink-0">
@@ -72,7 +72,7 @@
                                 <td class="px-6 py-4">
                                     <div class="text-sm font-medium text-gray-900">{{ $event->title }}</div>
                                     <div class="text-sm text-gray-500">{{ Str::limit($event->description, 50) }}</div>
-                                    @if($needsCompletion)
+                                    @if ($needsCompletion)
                                         <div class="text-xs text-orange-600 mt-1 flex items-center">
                                             <i class="bi bi-exclamation-triangle mr-1"></i>Past event - mark as completed
                                         </div>
@@ -84,7 +84,7 @@
                                 <td class="px-6 py-4 text-sm text-gray-900">
                                     <div>{{ $event->date->format('M j, Y g:i A') }}</div>
                                     <div class="text-xs {{ $event->date < now() ? 'text-red-500' : 'text-green-500' }}">
-                                        @if($event->date < now())
+                                        @if ($event->date < now())
                                             <i class="bi bi-clock-history mr-1"></i>Past event
                                         @else
                                             <i class="bi bi-clock mr-1"></i>{{ $event->date->diffForHumans() }}
@@ -99,14 +99,14 @@
                                         <i class="bi {{ $config['icon'] }} mr-1"></i>
                                         {{ $config['text'] }}
                                     </span>
-                                    @if($needsCompletion)
+                                    @if ($needsCompletion)
                                         <div class="text-xs text-orange-500 mt-1">
                                             (needs update)
                                         </div>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-sm font-medium">
-                                    @if($event->status === 'pending')
+                                    @if ($event->status === 'pending')
                                         <div class="flex space-x-3">
                                             <form action="{{ route('admin.events.approve', $event) }}" method="POST">
                                                 @csrf
@@ -121,7 +121,7 @@
                                                 </button>
                                             </form>
                                         </div>
-                                    @elseif($needsCompletion)
+                                    @elseif ($needsCompletion)
                                         <form action="{{ route('admin.events.complete', $event) }}" method="POST" class="inline">
                                             @csrf
                                             <button type="submit" class="text-blue-600 hover:text-blue-900 transition-colors flex items-center text-sm">
@@ -145,7 +145,7 @@
                 </table>
             </div>
 
-            @if($events->hasPages())
+            @if ($events->hasPages())
                 <div class="px-6 py-4 border-t border-gray-200">
                     {{ $events->links() }}
                 </div>

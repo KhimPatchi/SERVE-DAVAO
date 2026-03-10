@@ -1,8 +1,8 @@
-@extends('layouts.sidebar.sidebar')
+﻿@extends ('layouts.sidebar.sidebar')
 
-@section('title', 'Organizer Verification Management')
+@section ('title', 'Organizer Verification Management')
 
-@section('content')
+@section ('content')
 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
     <div class="px-4 py-6 sm:px-0">
         <!-- Page Header -->
@@ -12,7 +12,7 @@
         </header>
 
         <!-- System Alerts -->
-        @if(session('success'))
+        @if (session('success'))
             <div class="mb-6 p-4 rounded-md bg-green-50 border border-green-200" role="alert" aria-live="polite">
                 <div class="flex">
                     <div class="flex-shrink-0">
@@ -28,7 +28,7 @@
             </div>
         @endif
 
-        @if(session('error'))
+        @if (session('error'))
             <div class="mb-6 p-4 rounded-md bg-red-50 border border-red-200" role="alert" aria-live="assertive">
                 <div class="flex">
                     <div class="flex-shrink-0">
@@ -78,7 +78,7 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse($applications as $verification)
+                            @forelse ($applications as $verification)
                                 @php
                                     $user = $verification->user;
                                     $organizedEvents = $user->organizedEvents ?? collect();
@@ -90,7 +90,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
                                             <div class="flex-shrink-0">
-                                                @if($user->avatar)
+                                                @if ($user->avatar)
                                                     <img src="{{ asset($user->avatar) }}" 
                                                          alt="{{ $user->name }}'s profile picture" 
                                                          class="w-10 h-10 rounded-full object-cover">
@@ -126,11 +126,11 @@
                                                 <i class="bi bi-person-gear mr-1"></i>
                                                 Verification Pending
                                             </span>
-                                            @if($pendingEventsCount > 0)
+                                            @if ($pendingEventsCount > 0)
                                                 <div class="text-xs text-gray-600">
                                                     <span class="font-medium">{{ $pendingEventsCount }}</span> event(s) awaiting approval
                                                 </div>
-                                                @if($latestEvent)
+                                                @if ($latestEvent)
                                                     <div class="text-xs text-gray-500 truncate max-w-xs" title="{{ $latestEvent->title }}">
                                                         Latest: {{ Str::limit($latestEvent->title, 35) }}
                                                     </div>
@@ -191,7 +191,7 @@
                 </div>
 
                 <!-- Pagination -->
-                @if($applications->hasPages())
+                @if ($applications->hasPages())
                     <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
                         <nav class="flex items-center justify-between" aria-label="Pagination">
                             <div class="text-sm text-gray-700">
@@ -215,7 +215,7 @@
 </div>
 
 <!-- Action Modals -->
-@foreach($applications as $verification)
+@foreach ($applications as $verification)
     @php $user = $verification->user; @endphp
     
     <!-- Approval Confirmation Modal -->
@@ -433,7 +433,7 @@ function trapFocus(modal) {
 
 // Cleanup function for modal event listeners
 function cleanupModalEvents() {
-    @foreach($applications as $verification)
+    @foreach ($applications as $verification)
         @php $user = $verification->user; @endphp
         const approveModal{{ $user->id }} = document.getElementById('approveModal{{ $user->id }}');
         const rejectModal{{ $user->id }} = document.getElementById('rejectModal{{ $user->id }}');
@@ -451,7 +451,7 @@ function cleanupModalEvents() {
 document.addEventListener('DOMContentLoaded', function() {
     // Close modals when clicking on backdrop
     window.addEventListener('click', function(event) {
-        @foreach($applications as $verification)
+        @foreach ($applications as $verification)
             @php $user = $verification->user; @endphp
             if (event.target.id === 'approveModal{{ $user->id }}') {
                 closeApproveModal({{ $user->id }});
@@ -465,7 +465,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close modals with Escape key
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
-            @foreach($applications as $verification)
+            @foreach ($applications as $verification)
                 @php $user = $verification->user; @endphp
                 closeApproveModal({{ $user->id }});
                 closeRejectModal({{ $user->id }});

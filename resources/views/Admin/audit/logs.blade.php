@@ -1,8 +1,8 @@
-@extends('layouts.sidebar.sidebar')
+﻿@extends ('layouts.sidebar.sidebar')
 
-@section('title', 'Audit Logs - ServeDavao')
+@section ('title', 'Audit Logs - ServeDavao')
 
-@section('content')
+@section ('content')
 <div class="min-h-screen bg-gray-50 p-6">
     <!-- Header -->
     <div class="mb-8">
@@ -104,7 +104,7 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse($logs as $log)
+                    @forelse ($logs as $log)
                     @php
                         // Get admin user with avatar
                         $adminUser = $log->user;
@@ -162,23 +162,23 @@
 
                         <!-- Action -->
                         <td class="px-6 py-4 whitespace-nowrap">
-                            @if($log->action === 'organizer_approved')
+                            @if ($log->action === 'organizer_approved')
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                     <i class="bi bi-person-check mr-1"></i>Approved
                                 </span>
-                            @elseif($log->action === 'organizer_rejected')
+                            @elseif ($log->action === 'organizer_rejected')
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">   
                                     <i class="bi bi-person-x mr-1"></i>Rejected
                                 </span>
-                            @elseif($log->action === 'user_role_updated')
+                            @elseif ($log->action === 'user_role_updated')
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"> 
                                     <i class="bi bi-arrow-repeat mr-1"></i>Role Change
                                 </span>
-                            @elseif($log->action === 'event_approved')
+                            @elseif ($log->action === 'event_approved')
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                     <i class="bi bi-check-circle mr-1"></i>Event Approved
                                 </span>
-                            @elseif($log->action === 'event_rejected')
+                            @elseif ($log->action === 'event_rejected')
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">   
                                     <i class="bi bi-x-circle mr-1"></i>Event Rejected
                                 </span>
@@ -191,9 +191,9 @@
 
                         <!-- Administrator with Avatar -->
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            @if($adminUser)
+                            @if ($adminUser)
                                 <div class="flex items-center">
-                                    @if(isset($adminHasValidAvatar) && $adminHasValidAvatar)
+                                    @if (isset($adminHasValidAvatar) && $adminHasValidAvatar)
                                         <img src="{{ $adminAvatarUrl }}" alt="{{ $adminUser->name }}"
                                              class="w-8 h-8 rounded-full border-2 border-gray-200 object-cover mr-3">
                                     @else
@@ -213,9 +213,9 @@
 
                         <!-- Target User with Avatar -->
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            @if($targetUser)
+                            @if ($targetUser)
                                 <div class="flex items-center">
-                                    @if(isset($targetHasValidAvatar) && $targetHasValidAvatar)
+                                    @if (isset($targetHasValidAvatar) && $targetHasValidAvatar)
                                         <img src="{{ $targetAvatarUrl }}" alt="{{ $targetUser->name }}"
                                              class="w-8 h-8 rounded-full border-2 border-gray-200 object-cover mr-3">
                                     @else
@@ -228,7 +228,7 @@
                                         <p class="text-xs text-gray-500">{{ $targetUser->email }}</p>
                                     </div>
                                 </div>
-                            @elseif($log->metadata && isset($log->metadata['user_name']))
+                            @elseif ($log->metadata && isset($log->metadata['user_name']))
                                 <div>
                                     <p class="font-medium">{{ $log->metadata['user_name'] }}</p>
                                     <p class="text-xs text-gray-500">{{ $log->metadata['user_email'] ?? 'No email' }}</p>
@@ -240,12 +240,12 @@
 
                         <!-- Contact Information -->
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            @if($log->metadata && isset($log->metadata['phone']))
+                            @if ($log->metadata && isset($log->metadata['phone']))
                                 <div class="flex items-center gap-2">
                                     <i class="bi bi-telephone text-gray-400"></i>
                                     <span class="font-mono text-xs">{{ $log->metadata['phone'] }}</span>
                                 </div>
-                            @elseif($log->metadata && isset($log->metadata['user_phone']))
+                            @elseif ($log->metadata && isset($log->metadata['user_phone']))
                                 <div class="flex items-center gap-2">
                                     <i class="bi bi-telephone text-gray-400"></i>
                                     <span class="font-mono text-xs">{{ $log->metadata['user_phone'] }}</span>
@@ -257,12 +257,12 @@
 
                         <!-- Organization -->
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            @if($log->metadata && isset($log->metadata['organization_name']))
+                            @if ($log->metadata && isset($log->metadata['organization_name']))
                                 <div class="font-medium">{{ $log->metadata['organization_name'] }}</div>
-                                @if(isset($log->metadata['organization_type']))
+                                @if (isset($log->metadata['organization_type']))
                                     <div class="text-xs text-gray-500 capitalize">{{ str_replace('_', ' ', $log->metadata['organization_type']) }}</div>
                                 @endif
-                            @elseif($log->metadata && isset($log->metadata['event_title']))
+                            @elseif ($log->metadata && isset($log->metadata['event_title']))
                                 <div class="font-medium">{{ $log->metadata['event_title'] }}</div>
                                 <div class="text-xs text-gray-500">Event</div>
                             @else
@@ -281,7 +281,7 @@
                             <div class="flex flex-col items-center justify-center py-8">
                                 <i class="bi bi-journal-x text-4xl text-gray-300 mb-2"></i>
                                 <p class="text-gray-500">No audit logs found.</p>
-                                @if(request()->hasAny(['search', 'action', 'date']))
+                                @if (request()->hasAny(['search', 'action', 'date']))
                                     <p class="text-sm text-gray-400 mt-1">Try adjusting your filters</p>
                                 @endif
                             </div>
