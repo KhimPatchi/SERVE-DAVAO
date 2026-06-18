@@ -1,4 +1,4 @@
-﻿@extends ('layouts.sidebar.sidebar')
+@extends ('layouts.sidebar.sidebar')
 
 @section ('title', 'Volunteer Preferences - ServeDavao')
 
@@ -31,7 +31,7 @@
     </div>
 
     <!-- Success Message -->
-    @if (session('success'))
+    @if(session('success'))
         <div class="max-w-4xl mx-auto mb-8">
             <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-xl shadow-sm flex items-center justify-between animate-fade-in-down">
                 <div class="flex items-center">
@@ -64,7 +64,7 @@
                 <!-- Dynamic Tag Cloud -->
                 <div class="mb-4">
                     <div id="tag-cloud" class="flex flex-wrap gap-2">
-                        @foreach ($popularTags as $tag)
+                        @foreach($popularTags as $tag)
                             <button type="button"
                                 class="tag-button px-4 py-2 rounded-full border-2 border-gray-200 bg-white hover:border-purple-500 hover:bg-purple-50 transition-all duration-200 text-sm font-medium text-gray-700 hover:text-purple-700 relative group"
                                 data-tag="{{ $tag['name'] }}"
@@ -89,13 +89,13 @@
                     <p class="mt-2 text-xs text-gray-500">Click tags above or type your own, separated by commas</p>
                 </div>
 
-                @if ($suggestedPreferences->isNotEmpty())
+                @if($suggestedPreferences->isNotEmpty())
                     <div class="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
                         <p class="text-sm font-bold text-blue-900 mb-2">
                             <i class="bi bi-lightbulb-fill mr-1"></i> Suggested based on your activity:
                         </p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach ($suggestedPreferences as $suggestion)
+                            @foreach($suggestedPreferences as $suggestion)
                                 <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
                                     {{ $suggestion }}
                                 </span>
@@ -226,7 +226,7 @@
                 <div id="coord-badge" class="{{ $user->latitude ? '' : 'hidden' }} flex items-center gap-2 text-xs text-purple-700 font-medium">
                     <i class="bi bi-geo-alt-fill text-purple-500"></i>
                     <span id="coord-text">
-                        @if ($user->latitude)
+                        @if($user->latitude)
                             Stored Location: {{ number_format($user->latitude, 5) }}, {{ number_format($user->longitude, 5) }}
                         @endif
                     </span>
@@ -361,7 +361,7 @@
     const TOKEN = '{{ config("services.mapbox.token") }}';
     if (!TOKEN || TOKEN === 'pk.your_mapbox_public_token_here') {
         document.getElementById('user-map').innerHTML =
-            '<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:1rem;color:#9ca3af;font-size:.85rem;">âš ï¸ Set MAPBOX_PUBLIC_TOKEN in .env for nearby detection.</div>';
+            '<div style="display:flex;align-items:center;justify-content:center;height:100%;padding:1rem;color:#9ca3af;font-size:.85rem;">⚠️ Set MAPBOX_PUBLIC_TOKEN in .env for nearby detection.</div>';
         return;
     }
 

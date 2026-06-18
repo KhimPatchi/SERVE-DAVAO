@@ -14,3 +14,8 @@ Broadcast::channel('conversation.{conversationId}', function ($user, $conversati
 Broadcast::channel('user.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
+
+// Presence channel for system-wide online status tracking
+Broadcast::channel('online-users', function ($user) {
+    return ['id' => $user->id, 'name' => $user->name];
+});

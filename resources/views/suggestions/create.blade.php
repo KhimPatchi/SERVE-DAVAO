@@ -15,18 +15,18 @@
     </div>
 
     {{-- Success / Error Messages --}}
-    @if (session('success'))
+    @if(session('success'))
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-5 py-4 flex items-center gap-3">
             <i class="bi bi-check-circle-fill text-emerald-500 text-lg"></i>
             <span class="font-medium">{{ session('success') }}</span>
         </div>
     @endif
 
-    @if ($errors->any())
+    @if($errors->any())
         <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-5 py-4">
             <p class="font-semibold mb-2">Please fix the following:</p>
             <ul class="list-disc list-inside space-y-1 text-sm">
-                @foreach ($errors->all() as $error)
+                @foreach($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
             </ul>
@@ -39,7 +39,7 @@
             @csrf
 
             {{-- Pass the event context if coming from dashboard prompt --}}
-            @if (request('event_id'))
+            @if(request('event_id'))
                 <input type="hidden" name="suggested_after_event_id" value="{{ request('event_id') }}">
             @endif
 
@@ -88,7 +88,7 @@
                         class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all"
                     >
                         <option value="">Select a category...</option>
-                        @foreach (['Environment', 'Education', 'Health', 'Community', 'Sports', 'Arts & Culture', 'Animal Welfare', 'Disaster Relief', 'Other'] as $cat)
+                        @foreach(['Environment', 'Education', 'Health', 'Community', 'Sports', 'Arts & Culture', 'Animal Welfare', 'Disaster Relief', 'Other'] as $cat)
                             <option value="{{ $cat }}" {{ old('category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
                         @endforeach
                     </select>

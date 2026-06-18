@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Verify;
 
 use App\Http\Controllers\Controller;
+use App\Services\ContentBasedFilteringService;
 use App\Services\PreferenceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,10 +12,12 @@ use Illuminate\Validation\Rule;
 class ProfileController extends Controller
 {
     protected $preferenceService;
+    protected ContentBasedFilteringService $cbfService;
 
-    public function __construct(PreferenceService $preferenceService)
+    public function __construct(PreferenceService $preferenceService, ContentBasedFilteringService $cbfService)
     {
         $this->preferenceService = $preferenceService;
+        $this->cbfService = $cbfService;
     }
 
     /**
@@ -98,6 +101,10 @@ class ProfileController extends Controller
         ]);
 
         auth()->user()->update($validated);
+
+        // Clear the cached IDF dictionary so the next recommendation run
+        // immediately reflects the newly saved preferences.
+        $this->cbfService->clearIdfCache();
 
         return redirect()->back()->with('success', 'Your preferences have been updated! 🎯');
     }

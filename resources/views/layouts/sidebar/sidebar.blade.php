@@ -357,7 +357,7 @@
               <i class="bi bi-clock-fill text-lg"></i>
               <span class="text-sm font-medium collapsed-text">Recent Participation</span>
             </a>
-            @if (auth()->user()->isVerifiedOrganizer())
+            @if(auth()->user()->isVerifiedOrganizer())
               <a href="{{ route('suggestions.index') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
                 <i class="bi bi-lightbulb-fill text-lg"></i>
                 <span class="text-sm font-medium collapsed-text">Event Suggestions</span>
@@ -373,7 +373,7 @@
                 <span class="text-sm font-medium collapsed-text">Messages</span>
               </div>
               @php $unreadCount = auth()->user()->getTotalUnreadMessagesCount(); @endphp
-              @if ($unreadCount > 0)
+              @if($unreadCount > 0)
                 <span class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full collapsed-text">
                   {{ $unreadCount }}
                 </span>
@@ -381,40 +381,36 @@
             </a>
             
             <!-- Organizer Verification Links -->
-            @if (!Auth::user()->isVerifiedOrganizer() && !Auth::user()->hasPendingVerification())
+            @if(!Auth::user()->isVerifiedOrganizer() && !Auth::user()->hasPendingVerification())
             <a href="{{ route('organizer.verification.create') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
                 <i class="bi bi-patch-check text-lg"></i>
                 <span class="text-sm font-medium collapsed-text">Get Verified</span>
             </a>
             @endif
 
-            @if (Auth::user()->hasPendingVerification())
+            @if(Auth::user()->hasPendingVerification())
             <a href="{{ route('organizer.verification.status') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
                 <i class="bi bi-hourglass-split text-lg"></i>
                 <span class="text-sm font-medium collapsed-text">Verification Pending</span>
             </a>
             @endif
 
-            @if (Auth::user()->isVerifiedOrganizer())
+            @if(Auth::user()->isVerifiedOrganizer())
             <a href="{{ route('volunteers.organized-events') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
                 <i class="bi bi-person-badge text-lg"></i>
                 <span class="text-sm font-medium collapsed-text">Organize Events</span>
             </a>
             @endif
 
-            <!-- Profile Link - Black Color Scheme with specific profile color -->
-            <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300">
-                <i class="bi bi-person text-lg profile-icon"></i>
-                <span class="text-sm font-medium collapsed-text">Profile</span>
-            </a>
+
         @endauth
       </nav>
 
       <!-- Enhanced Footer Section -->
       <div class="sidebar-footer mt-auto px-3 py-4 hidden md:block">
         <div class="space-y-3">
-          <!-- User Info (visible when expanded) - FIXED AVATAR DISPLAY -->
-          <div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50 opacity-0 transition-opacity duration-300 collapsed-text">
+          <!-- User Info (visible when expanded) - clickable link to profile -->
+          <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-50 opacity-0 transition-opacity duration-300 collapsed-text hover:bg-gray-100 transition-colors duration-200 group">
             <!-- FIXED AVATAR DISPLAY - Using same logic as events show page -->
             @php
                 $user = Auth::user();
@@ -455,7 +451,7 @@
                 }
             @endphp
 
-            @if ($hasValidAvatar)
+            @if($hasValidAvatar)
                 <!-- Show actual avatar image with error handling -->
                 <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" 
                      class="w-8 h-8 rounded-full border-2 border-gray-200 object-cover"
@@ -475,9 +471,9 @@
             @endif
 
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-gray-900 truncate">{{ $user->name ?? 'User' }}</p>
+                <p class="text-sm font-medium text-gray-900 truncate group-hover:text-black transition-colors duration-200">{{ $user->name ?? 'User' }}</p>
                 <p class="text-xs text-gray-500 truncate">{{ $user->email ?? '' }}</p>
-                @if ($user && $user->provider)
+                @if($user && $user->provider)
                     <p class="text-xs text-gray-400 capitalize">
                         {{ $user->provider }} account
                     </p>
@@ -485,7 +481,7 @@
                     <!-- Regular account indicator -->
                 @endif
             </div>
-          </div>
+          </a>
           
           <!-- Enhanced Logout button - Black Theme -->
           <form id="logout-form" action="{{ route('logout') }}" method="POST">
@@ -708,11 +704,26 @@
         };
 
         const userId = {{ auth()->id() }};
-        
+        let echoRetryCount = 0;
+        const maxEchoRetries = 5;
+
         const initEchoGlobal = () => {
+            // Guard: stop after max retries to avoid infinite spam
+            if (echoRetryCount >= maxEchoRetries) {
+                console.warn('Antigravity: Real-time engine unavailable (Reverb not running). Notifications disabled.');
+                return;
+            }
+
+            // Guard: Pusher must be loaded first
+            if (typeof Pusher === 'undefined') {
+                echoRetryCount++;
+                setTimeout(initEchoGlobal, 1000);
+                return;
+            }
+
             // Priority: existing Echo instance
             let EchoInstance = window.Echo;
-            
+
             // Check if window.Echo is the constructor or the instance
             const isInstance = EchoInstance && typeof EchoInstance.private === 'function';
             const Constructor = window.Echo || window.LaravelEcho;
@@ -723,15 +734,19 @@
                     EchoInstance = new Constructor({
                         broadcaster: 'reverb',
                         key: '{{ env('REVERB_APP_KEY') }}',
-                        wsHost: '{{ env('REVERB_HOST', 'localhost') }}',
+                        wsHost: window.location.hostname,
                         wsPort: {{ env('REVERB_PORT', 8080) }},
                         wssPort: {{ env('REVERB_PORT', 8080) }},
                         forceTLS: false,
+                        disableStats: true,
                         enabledTransports: ['ws', 'wss'],
                     });
                     window.Echo = EchoInstance;
                 } catch (e) {
-                    console.error('Antigravity: Echo initialization failed', e);
+                    console.warn('Antigravity: Echo initialization failed', e.message);
+                    echoRetryCount++;
+                    setTimeout(initEchoGlobal, 1000);
+                    return;
                 }
             }
 
@@ -745,11 +760,11 @@
                 console.log('Antigravity: Global Listener Attached for User ' + userId);
                 window.echoListenersAttached = true;
                 window.__processedMessageIds = window.__processedMessageIds || new Set();
-                
+
                 EchoInstance.private('App.Models.User.' + userId)
                     .listen('.message.sent', (e) => {
                         console.log('Global Notification:', e);
-                        
+
                         if (window.__processedMessageIds.has(e.id)) {
                             console.log('Antigravity: Skipping already processed message:', e.id);
                             return;
@@ -779,8 +794,27 @@
                         const avatar = e.sender ? e.sender.avatar_url : '{{ asset('images/default-avatar.svg') }}';
                         window.showNotification(senderName, e.message || 'Sent an attachment', avatar);
                     });
+
+                // Join presence channel to track online status system-wide
+                window.onlineUsers = window.onlineUsers || [];
+                EchoInstance.join('online-users')
+                    .here((users) => {
+                        window.onlineUsers = users.map(u => parseInt(u.id));
+                        window.dispatchEvent(new CustomEvent('online-users-updated', { detail: window.onlineUsers }));
+                    })
+                    .joining((user) => {
+                        if (!window.onlineUsers.includes(parseInt(user.id))) {
+                            window.onlineUsers.push(parseInt(user.id));
+                        }
+                        window.dispatchEvent(new CustomEvent('online-users-updated', { detail: window.onlineUsers }));
+                    })
+                    .leaving((user) => {
+                        window.onlineUsers = window.onlineUsers.filter(id => id !== parseInt(user.id));
+                        window.dispatchEvent(new CustomEvent('online-users-updated', { detail: window.onlineUsers }));
+                    });
             } else {
-                console.warn('Antigravity: Echo not ready. Retrying...');
+                echoRetryCount++;
+                console.warn('Antigravity: Echo not ready. Retrying (' + echoRetryCount + '/' + maxEchoRetries + ')...');
                 setTimeout(initEchoGlobal, 1000);
             }
         };

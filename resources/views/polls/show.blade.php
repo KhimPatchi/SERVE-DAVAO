@@ -1,4 +1,4 @@
-﻿@extends ('layouts.sidebar.sidebar')
+@extends ('layouts.sidebar.sidebar')
 
 @section ('title', $poll->title . ' | ServeDavao')
 
@@ -23,18 +23,18 @@
             <div class="flex items-center gap-2 flex-wrap">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border
                     {{ $isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-500 border-gray-200' }}">
-                    {{ $isActive ? 'ðŸŸ¢ Active' : 'ðŸ”´ Closed' }}
+                    {{ $isActive ? '🟢 Active' : '🔴 Closed' }}
                 </span>
-                @if ($poll->closes_at)
+                @if($poll->closes_at)
                     <span class="text-xs text-amber-600 font-medium">
                         <i class="bi bi-clock"></i>
                         {{ $poll->closes_at->isPast() ? 'Ended' : 'Closes ' . $poll->closes_at->diffForHumans() }}
                     </span>
                 @endif
-                <span class="text-xs text-gray-400">by {{ $poll->organizer->name ?? 'Organizer' }} Â· {{ $poll->created_at->diffForHumans() }}</span>
+                <span class="text-xs text-gray-400">by {{ $poll->organizer->name ?? 'Organizer' }} · {{ $poll->created_at->diffForHumans() }}</span>
             </div>
             <h1 class="text-2xl font-bold text-gray-900 leading-snug">{{ $poll->title }}</h1>
-            @if ($poll->description)
+            @if($poll->description)
                 <p class="text-gray-500 text-sm leading-relaxed">{{ $poll->description }}</p>
             @endif
             <p class="text-sm font-semibold text-gray-500 pt-1">
@@ -46,13 +46,13 @@
 
     {{-- Voting Area --}}
     @auth
-        @if ($isActive && !$hasVoted)
+        @if($isActive && !$hasVoted)
             {{-- Cast vote --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-7 space-y-4">
                 <h2 class="font-bold text-gray-900 text-lg">Cast Your Vote</h2>
                 <p class="text-sm text-gray-500">Select one option. You can change your vote anytime while the poll is active.</p>
                 <div id="vote-options" class="space-y-3">
-                    @foreach ($poll->options as $option)
+                    @foreach($poll->options as $option)
                     <button type="button"
                             onclick="castVote({{ $poll->id }}, {{ $option->id }}, this)"
                             class="vote-option w-full text-left flex items-center gap-4 px-5 py-4 rounded-xl border-2 border-gray-100 bg-gray-50
@@ -69,7 +69,7 @@
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-7 space-y-5">
                 <div class="flex items-center justify-between">
                     <h2 class="font-bold text-gray-900 text-lg">Results</h2>
-                    @if ($hasVoted && $isActive)
+                    @if($hasVoted && $isActive)
                         <button onclick="showChangeVote()" id="change-vote-btn"
                                 class="text-xs text-emerald-600 font-semibold hover:text-emerald-800 transition-colors underline underline-offset-2">
                             Change my vote
@@ -78,17 +78,17 @@
                 </div>
 
                 {{-- Change-vote panel (hidden by default) --}}
-                @if ($hasVoted && $isActive)
+                @if($hasVoted && $isActive)
                 <div id="change-vote-panel" class="hidden space-y-3 bg-emerald-50 rounded-xl p-4 border border-emerald-100">
                     <p class="text-sm font-semibold text-emerald-800">Choose a different option:</p>
-                    @foreach ($poll->options as $option)
+                    @foreach($poll->options as $option)
                     <button type="button"
                             onclick="castVote({{ $poll->id }}, {{ $option->id }}, this)"
                             class="vote-option w-full text-left flex items-center gap-4 px-4 py-3 rounded-xl border-2 transition-all duration-200
                                    {{ $userVote->poll_option_id == $option->id
                                        ? 'border-emerald-500 bg-white'
                                        : 'border-gray-100 bg-white hover:border-emerald-300 hover:bg-emerald-50' }}">
-                        @if ($userVote->poll_option_id == $option->id)
+                        @if($userVote->poll_option_id == $option->id)
                             <i class="bi bi-check-circle-fill text-emerald-600 flex-shrink-0"></i>
                         @else
                             <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex-shrink-0"></div>
@@ -101,7 +101,7 @@
 
                 {{-- Results bars --}}
                 <div id="results-container" class="space-y-3">
-                    @foreach ($poll->options->sortByDesc('votes') as $option)
+                    @foreach($poll->options->sortByDesc('votes') as $option)
                     @php
                         $pct = $option->percentage($totalVotes);
                         $isMyVote = $hasVoted && $userVote->poll_option_id == $option->id;
@@ -110,10 +110,10 @@
                     <div class="option-result" data-option-id="{{ $option->id }}">
                         <div class="flex items-center justify-between mb-1.5">
                             <div class="flex items-center gap-2">
-                                @if ($isMyVote)
+                                @if($isMyVote)
                                     <i class="bi bi-check-circle-fill text-emerald-600 text-sm"></i>
                                 @endif
-                                @if ($isLeader)
+                                @if($isLeader)
                                     <i class="bi bi-trophy-fill text-amber-400 text-sm"></i>
                                 @endif
                                 <span class="text-sm font-semibold text-gray-800">{{ $option->label }}</span>
@@ -135,12 +135,12 @@
         @endif
 
         {{-- Organizer controls --}}
-        @if (auth()->user()->isVerifiedOrganizer() && $poll->user_id === auth()->id())
+        @if(auth()->user()->isVerifiedOrganizer() && $poll->user_id === auth()->id())
         <div class="flex justify-end">
             <button onclick="togglePollStatus({{ $poll->id }}, '{{ $isActive ? 'closed' : 'active' }}', this)"
                     class="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl border transition-all
                            {{ $isActive ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50' }}">
-                {{ $isActive ? 'ðŸ”´ Close This Poll' : 'ðŸŸ¢ Reopen This Poll' }}
+                {{ $isActive ? '🔴 Close This Poll' : '🟢 Reopen This Poll' }}
             </button>
         </div>
         @endif

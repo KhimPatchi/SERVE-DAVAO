@@ -12,21 +12,21 @@
             <p class="text-gray-500 mt-1 font-medium">Volunteers suggest ideas — organizers post polls to decide!</p>
         </div>
         @auth
-            @if (auth()->user()->isVerifiedOrganizer())
+            @if(auth()->user()->isVerifiedOrganizer())
                 {{-- Manual post button removed as requested --}}
             @endif
         @endauth
     </div>
 
     {{-- Flash Messages --}}
-    @if (session('success'))
+    @if(session('success'))
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-5 py-4 flex items-center gap-3">
             <i class="bi bi-check-circle-fill text-emerald-500 text-lg"></i>
             <span class="font-medium">{{ session('success') }}</span>
         </div>
     @endif
 
-    @if (session('error'))
+    @if(session('error'))
         <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-5 py-4 flex items-center gap-3">
             <i class="bi bi-exclamation-circle-fill text-red-400 text-lg"></i>
             <span class="font-medium">{{ session('error') }}</span>
@@ -55,18 +55,18 @@
         </select>
 
         {{-- Category --}}
-        @if ($categories->isNotEmpty())
+        @if($categories->isNotEmpty())
             <select name="category" onchange="this.form.submit()"
                     class="px-4 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all">
                 <option value="">All Categories</option>
-                @foreach ($categories as $cat)
+                @foreach($categories as $cat)
                     <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
                 @endforeach
             </select>
         @endif
 
         {{-- Clear --}}
-        @if (request()->anyFilled(['sort','status','category']))
+        @if(request()->anyFilled(['sort','status','category']))
             <a href="{{ route('suggestions.index') }}"
                class="px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition-all">
                 Clear Filters
@@ -75,9 +75,9 @@
     </form>
 
     {{-- Suggestions Grid --}}
-    @if ($suggestions->isNotEmpty())
+    @if($suggestions->isNotEmpty())
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            @foreach ($suggestions as $suggestion)
+            @foreach($suggestions as $suggestion)
             @php
                 $statusColors = [
                     'pending'     => 'bg-amber-50 text-amber-700 border-amber-200',
@@ -95,7 +95,7 @@
                     <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border {{ $statusColor }} capitalize">
                         {{ $suggestion->status }}
                     </span>
-                    @if ($suggestion->category)
+                    @if($suggestion->category)
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
                             {{ $suggestion->category }}
                         </span>
@@ -110,7 +110,7 @@
                     <p class="text-sm text-gray-500 mt-2 line-clamp-3 leading-relaxed">
                         {{ $suggestion->description }}
                     </p>
-                    @if ($suggestion->location)
+                    @if($suggestion->location)
                         <p class="text-xs text-gray-400 mt-2 flex items-center gap-1">
                             <i class="bi bi-geo-alt"></i> {{ $suggestion->location }}
                         </p>
@@ -118,7 +118,7 @@
                 </div>
 
                 {{-- Organizer Notes (if reviewed/implemented) --}}
-                @if ($suggestion->organizer_notes)
+                @if($suggestion->organizer_notes)
                     <div class="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-xs text-blue-800">
                         <span class="font-semibold">Organizer note:</span> {{ $suggestion->organizer_notes }}
                     </div>
@@ -157,12 +157,12 @@
 
                 {{-- Organizer Status Update (Verified Organizers Only) --}}
                 @auth
-                    @if (auth()->user()->isVerifiedOrganizer())
+                    @if(auth()->user()->isVerifiedOrganizer())
                         <div class="pt-2 border-t border-gray-50">
                             <select onchange="updateStatus({{ $suggestion->id }}, this.value, this)"
                                     class="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all">
                                 <option value="">Organizer: Update Status...</option>
-                                @foreach (['pending','reviewed','implemented','rejected'] as $s)
+                                @foreach(['pending','reviewed','implemented','rejected'] as $s)
                                     <option value="{{ $s }}" {{ $suggestion->status === $s ? 'selected' : '' }}>
                                         {{ ucfirst($s) }}
                                     </option>
@@ -191,7 +191,7 @@
                 Volunteers suggest event ideas here. Verified organizers can then turn popular ideas into official polls!
             </p>
             @auth
-                @if (auth()->user()->isVerifiedOrganizer())
+                @if(auth()->user()->isVerifiedOrganizer())
                     {{-- Empty state button removed --}}
                 @endif
             @endauth

@@ -3,51 +3,28 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
 use Illuminate\View\View;
-
-use App\Rules\Recaptcha;
 
 class RegisteredUserController extends Controller
 {
     /**
-     * Display the registration view.
+     * Display the Google-only login/registration page.
+     * Manual registration via form is no longer supported.
      */
     public function create(): View
     {
-        return view('auth.login', ['showRegister' => true]);
+        return view('auth.login');
     }
 
     /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
+     * Manual registration via form is disabled.
+     * All registration happens through Google OAuth.
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'g-recaptcha-response' => ['required', new Recaptcha],
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-
-        event(new Registered($user));
-
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route('login')
+            ->with('error', 'Registration is done automatically via Google Sign-In. Please use the button below.');
     }
 }

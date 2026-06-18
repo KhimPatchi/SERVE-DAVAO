@@ -76,10 +76,11 @@ class ContentBasedFilteringService
             $eventFeatures = $this->buildEventFeatures($event);
             $similarity    = $this->calculateTfIdfCosineSimilarity($volunteerFeatures, $eventFeatures, $idfDict);
 
-            // Hard gate: require meaningful keyword overlap — generic shared words
-            // (like "program") are stripped by the tokenizer stop list, so a
-            // score above 0.08 means at least one specific topic word overlaps.
-            if ($similarity <= 0.08) {
+            // Hard gate: require at least some keyword overlap.
+            // Generic words are already stripped by the tokenizer stop list.
+            // Lowered from 0.08 → 0.02 so short preference lists (e.g. a single
+            // tag like "teaching") can still produce a match.
+            if ($similarity <= 0.02) {
                 return null;
             }
 
@@ -109,7 +110,7 @@ class ContentBasedFilteringService
             ];
         })
         ->filter(fn($r) => $r !== null)           // Remove events with zero similarity
-        ->filter(fn($r) => $r['match_score'] >= config('match.threshold', 0.70)) // Use config threshold
+        ->filter(fn($r) => $r['match_score'] >= config('match.threshold', 0.60)) // Use config threshold
         ->sortByDesc('match_score')
         ->take($limit)
         ->values();
@@ -234,7 +235,19 @@ class ContentBasedFilteringService
         // 1. Day Check
         $totalCriteria++;
         $dayMatch = false;
-        if (str_contains($availText, 'weekend')) {
+
+        // Detect whether the availability string expresses any day preference at all.
+        $dayKeywords = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday',
+                        'saturday', 'sunday', 'weekend', 'weekday', 'any', 'flexible'];
+        $hasDayInfo  = false;
+        foreach ($dayKeywords as $kw) {
+            if (str_contains($availText, $kw)) { $hasDayInfo = true; break; }
+        }
+
+        if (!$hasDayInfo) {
+            // User only provided a time range (e.g. "5:00AM-12:00PM") — treat as any day.
+            $dayMatch = true;
+        } elseif (str_contains($availText, 'weekend')) {
             if ($eventStart->isWeekend()) $dayMatch = true;
         } elseif (str_contains($availText, 'weekday')) {
             if ($eventStart->isWeekday()) $dayMatch = true;
@@ -357,16 +370,33 @@ class ContentBasedFilteringService
     {
         $features = [];
         
-        // Use only soft constraint fields for similarity
+        // Volunteer preferences (comma-separated tags selected from the preference page)
         if (!empty($user->preferences)) {
             $features[] = $user->preferences;
         }
         
+        // Free-text interests field
         if (!empty($user->interests)) {
             $features[] = $user->interests;
         }
         
+        // Experience level — adds searchable words like "intermediate" / "advanced"
+        // which events may reference in their skills_preferred field.
+        if (!empty($user->experience_level)) {
+            $features[] = $user->experience_level;
+        }
+        
         return implode(' ', $features);
+    }
+
+    /**
+     * Clear the cached IDF dictionary.
+     * Call this whenever events or volunteer preferences change so that the
+     * next recommendation run recalculates term weights from scratch.
+     */
+    public function clearIdfCache(): void
+    {
+        Cache::forget('tfidf_idf_dictionary');
     }
     
     /**

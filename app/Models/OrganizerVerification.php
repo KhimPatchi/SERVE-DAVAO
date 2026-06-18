@@ -29,7 +29,8 @@ class OrganizerVerification extends Model
         'face_match_score',
         'issuing_country',
         'verification_data',
-        'verified_at'
+        'verified_at',
+        'liveness_score',
     ];
 
     protected $casts = [

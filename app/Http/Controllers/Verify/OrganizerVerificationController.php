@@ -44,7 +44,7 @@ class OrganizerVerificationController extends Controller
         return view('organizer.verification');
     }
 
-    // Store verification request with ID Analyzer integration
+    // Store verification request with ID Analyzer + live selfie integration
     public function store(Request $request)
     {
         // Check if user already has pending verification
@@ -60,86 +60,92 @@ class OrganizerVerificationController extends Controller
         }
 
         $validated = $request->validate([
-            'organization_name' => 'required|string|max:255',
-            'organization_type' => 'required|string|in:non_profit,school,community,business,individual,other',
-            'identification_number' => 'required|string|max:50|regex:/^[A-Za-z0-9\-]+$/',
-            'identification_document' => 'required|file|mimes:jpg,jpeg,png|max:10240', // 10MB max for high quality
-            'selfie' => 'required|file|mimes:jpg,jpeg,png|max:5120', // 5MB max, required for face match
-            'phone' => 'required|string|max:20|regex:/^[\d+\-\s()]+$/',
-            'address' => 'required|string|max:500',
+            'organization_name'       => 'required|string|max:255',
+            'organization_type'       => 'required|string|in:non_profit,school,community,business,individual,other',
+            'identification_number'   => 'required|string|max:50|regex:/^[A-Za-z0-9\-]+$/',
+            'identification_document' => 'required|file|mimes:jpg,jpeg,png|max:10240', // 10MB max
+            'selfie_data'             => 'required|string',  // base64 PNG from live camera
+            'phone'                   => 'required|string|max:20|regex:/^[\d+\-\s()]+$/',
+            'address'                 => 'required|string|max:500',
         ], [
-            'identification_number.regex' => 'The identification number can only contain letters, numbers, and hyphens.',
-            'phone.regex' => 'The phone number can only contain numbers, plus sign, hyphens, spaces, and parentheses.',
+            'identification_number.regex'   => 'The identification number can only contain letters, numbers, and hyphens.',
+            'phone.regex'                   => 'The phone number can only contain numbers, plus sign, hyphens, spaces, and parentheses.',
             'identification_document.required' => 'Please upload a clear photo of your government-issued ID.',
             'identification_document.mimes' => 'The ID document must be a JPG or PNG image.',
-            'identification_document.max' => 'The ID document must not exceed 10MB.',
-            'selfie.mimes' => 'The selfie must be a JPG or PNG image.',
-            'selfie.max' => 'The selfie must not exceed 5MB.',
+            'identification_document.max'   => 'The ID document must not exceed 10MB.',
+            'selfie_data.required'          => 'A live selfie is required. Please use your camera to take a photo.',
         ]);
 
         try {
             $idDocument = $request->file('identification_document');
-            $selfie = $request->hasFile('selfie') ? $request->file('selfie') : null;
 
-            // Step 1: Verify document with ID Analyzer API
-            Log::info('Starting ID verification for user: ' . Auth::id());
+            // ── Step 1: Convert base64 live selfie → UploadedFile ──────────────
+            $selfieBase64 = $request->input('selfie_data');
+            $selfie = $this->idAnalyzerService->createUploadedFileFromBase64($selfieBase64);
+
+            // ── Step 2: Verify document + live selfie with ID Analyzer API ──────
+            Log::info('Starting live-selfie ID verification for user: ' . Auth::id());
             $verificationResult = $this->idAnalyzerService->verifyDocument($idDocument, $selfie, (string)Auth::id());
-            
+
             Log::info('ID Analyzer result', ['result' => $verificationResult]);
 
-            // Step 2: Store documents permanently
+            // ── Step 3: Store documents permanently ──────────────────────────────
             $documentPath = $this->idAnalyzerService->storeVerificationDocument($idDocument, Auth::id());
-            $selfiePath = $selfie ? $this->idAnalyzerService->storeVerificationSelfie($selfie, Auth::id()) : null;
+            $selfiePath   = $this->idAnalyzerService->storeVerificationSelfie($selfie, Auth::id());
 
-            // Step 3: Determine verification status
-            $isVerified = $verificationResult['verified'] ?? false;
-            $status = $isVerified ? 'approved' : 'rejected';
-            $approvedAt = $isVerified ? now() : null;
-            $rejectedAt = $isVerified ? null : now();
-            $rejectionReason = !$isVerified ? $this->idAnalyzerService->getVerificationStatusMessage($verificationResult) : null;
+            // Clean up the temp selfie file used for API call
+            $selfie->getRealPath() && @unlink($selfie->getRealPath());
 
-            // Step 4: Create verification record
+            // ── Step 4: Determine verification status ─────────────────────────
+            $isVerified      = $verificationResult['verified'] ?? false;
+            $status          = $isVerified ? 'approved' : 'rejected';
+            $approvedAt      = $isVerified ? now() : null;
+            $rejectedAt      = $isVerified ? null : now();
+            $rejectionReason = !$isVerified
+                ? $this->idAnalyzerService->getVerificationStatusMessage($verificationResult)
+                : null;
+
+            // ── Step 5: Create verification record ────────────────────────────
             $verification = OrganizerVerification::create([
-                'user_id' => Auth::id(),
-                'applicant_name' => Auth::user()->name,
-                'organization_name' => $validated['organization_name'],
-                'organization_type' => $validated['organization_type'],
-                'identification_number' => $validated['identification_number'],
-                'identification_document_path' => $documentPath,
-                'selfie_path' => $selfiePath,
-                'phone' => $validated['phone'],
-                'address' => $validated['address'],
-                'status' => $status,
-                'rejection_reason' => $rejectionReason,
-                'approved_at' => $approvedAt,
-                'rejected_at' => $rejectedAt,
+                'user_id'                       => Auth::id(),
+                'applicant_name'                => Auth::user()->name,
+                'organization_name'             => $validated['organization_name'],
+                'organization_type'             => $validated['organization_type'],
+                'identification_number'         => $validated['identification_number'],
+                'identification_document_path'  => $documentPath,
+                'selfie_path'                   => $selfiePath,
+                'phone'                         => $validated['phone'],
+                'address'                       => $validated['address'],
+                'status'                        => $status,
+                'rejection_reason'              => $rejectionReason,
+                'approved_at'                   => $approvedAt,
+                'rejected_at'                   => $rejectedAt,
                 // ID Analyzer metadata
-                'document_type' => $verificationResult['document_type'] ?? null,
-                'verification_score' => $verificationResult['confidence_score'] ?? null,
-                'face_match_score' => $verificationResult['face_match_score'] ?? null,
-                'issuing_country' => $verificationResult['issuing_country'] ?? null,
-                'verification_data' => $verificationResult,
-                'verified_at' => $isVerified ? now() : null,
+                'document_type'                 => $verificationResult['document_type'] ?? null,
+                'verification_score'            => $verificationResult['confidence_score'] ?? null,
+                'face_match_score'              => $verificationResult['face_match_score'] ?? null,
+                'liveness_score'                => $verificationResult['liveness_score'] ?? null,
+                'issuing_country'               => $verificationResult['issuing_country'] ?? null,
+                'verification_data'             => $verificationResult,
+                'verified_at'                   => $isVerified ? now() : null,
             ]);
 
-            // Step 5: Redirect based on result
+            // ── Step 6: Redirect based on result ───────────────────────────────
             if ($isVerified) {
                 return redirect()->route('organizer.verification.status')
-                                 ->with('success', '🎉 Your ID has been verified! You can now create events.');
+                                 ->with('success', '🎉 Your identity has been verified! You can now create events.');
             } else {
                 return redirect()->route('organizer.verification.status')
-                                 ->with('error', 'ID verification failed. ' . $rejectionReason . ' Please try again with a clearer photo.');
+                                 ->with('error', $rejectionReason . ' Please try again.');
             }
 
         } catch (\Exception $e) {
-            // Log the error
             Log::error('Verification submission failed', [
                 'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error'   => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
             ]);
-            
-            // Return with error message
+
             return redirect()->back()
                              ->with('error', 'Failed to process verification. Please ensure your ID photo is clear and try again.')
                              ->withInput();

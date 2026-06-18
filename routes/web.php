@@ -13,7 +13,6 @@ use App\Http\Controllers\Verify\OrganizerVerificationController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\SuggestionController;
 use App\Http\Controllers\ContactController;
-use App\Http\Controllers\Auth\LoginController;
 
 // Landing Page
 Route::get('/', function() {
@@ -27,12 +26,18 @@ Route::get('/', function() {
     return view('landing', compact('events'));
 })->name('landing');
 
+Route::get('/api/chatbot/current-events', [EventController::class, 'getCurrentEventsForChatbot']);
+
+// Legal Pages (public)
+Route::get('/terms', fn() => view('terms'))->name('terms');
+Route::get('/privacy', fn() => view('privacy'))->name('privacy');
+
 // Google OAuth Routes
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.login');
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback'])->name('google.callback');
 
 // Protected routes (auth required) - ALL PROTECTED ROUTES GO HERE
-Route::middleware(['auth', 'verified', 'prevent-back-history'])->group(function () { // ← ADD 'prevent-back-history' HERE
+Route::middleware(['auth', 'verified', 'prevent-back-history'])->group(function () {
     // Dashboard - PROTECTED
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
@@ -56,7 +61,7 @@ Route::middleware(['auth', 'verified', 'prevent-back-history'])->group(function 
     Route::get('/user/{user}/volunteer-stats', [UserController::class, 'getUserVolunteerStats'])->name('user.volunteer-stats.admin');
     
     // Organizer Verification Routes (automated - no admin approval needed)
-    Route::prefix('organizer')->name('organizer.')->group(function () {
+    Route::group(['prefix' => 'organizer', 'as' => 'organizer.'], function () {
         Route::get('/verification', [OrganizerVerificationController::class, 'create'])->name('verification.create');
         Route::post('/verification', [OrganizerVerificationController::class, 'store'])->name('verification.store');
         Route::get('/verification/status', [OrganizerVerificationController::class, 'status'])->name('verification.status');
@@ -112,7 +117,7 @@ Route::middleware(['auth', 'verified', 'prevent-back-history'])->group(function 
     Route::get('/events/{event}/ticket', [EventVolunteerController::class, 'ticket'])->name('events.ticket');
 
     // ─── QR Attendance (Organizer) ───────────────────────────────────────────
-    Route::prefix('organizer')->name('organizer.')->group(function () {
+    Route::group(['prefix' => 'organizer', 'as' => 'organizer.'], function () {
         // Scanner page — organizer views live check-in list and camera
         Route::get('/events/{event}/scan', [\App\Http\Controllers\Attendance\AttendanceController::class, 'scanView'])
             ->name('attendance.scan');
@@ -130,13 +135,14 @@ Route::middleware(['auth', 'verified', 'prevent-back-history'])->group(function 
         ->middleware('signed');
     
     // MESSAGING ROUTES - PROTECTED
-    Route::prefix('messages')->name('messages.')->group(function () {
+    Route::group(['prefix' => 'messages', 'as' => 'messages.'], function () {
         Route::get('/', [\App\Http\Controllers\ConversationController::class, 'index'])->name('index');
         Route::get('/start/{user}', [\App\Http\Controllers\ConversationController::class, 'startDirect'])->name('start-direct');
         Route::get('/event/{event}', [\App\Http\Controllers\ConversationController::class, 'startEventGroup'])->name('start-event');
         Route::get('/search', [\App\Http\Controllers\ConversationController::class, 'search'])->name('search');
         Route::get('/{conversation}', [\App\Http\Controllers\ConversationController::class, 'show'])->name('show');
         Route::post('/{conversation}/mark-read', [\App\Http\Controllers\ConversationController::class, 'markAsRead'])->name('mark-read');
+        Route::get('/{conversation}/all-messages', [\App\Http\Controllers\ConversationController::class, 'getAllMessages'])->name('all-messages');
         
         // Message operations
         Route::post('/{conversation}/messages', [\App\Http\Controllers\MessageController::class, 'store'])->name('send');
@@ -180,9 +186,6 @@ Route::get('/test-simple-contact', function() {
     }
 });
 
-// Custom login routes that use our custom LoginController
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
 
 
 // KEEP THESE - They're safe and won't conflict:

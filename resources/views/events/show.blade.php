@@ -1,4 +1,4 @@
-﻿@extends ('layouts.sidebar.sidebar')
+@extends ('layouts.sidebar.sidebar')
 
 @push ('head')
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
@@ -128,11 +128,11 @@ function handleBackNavigation() {
                         {{ $event->current_status === 'active' ? 'Active' : ($event->current_status === 'completed' ? 'Completed' : ucfirst($event->current_status)) }}
                     </span>
 
-                    @if (auth()->check() && isset($recommendations))
+                    @if(auth()->check() && isset($recommendations))
                         @php
                             $match = $recommendations->firstWhere('event.id', $event->id);
                         @endphp
-                        @if ($match && $match['match_percentage'] > 0)
+                        @if($match && $match['match_percentage'] > 0)
                             <!-- Premium Match Badge -->
                             <div class="glass-match-badge px-4 py-2 rounded-full text-white text-sm font-black shadow-lg border-2 border-white/30 flex items-center gap-2">
                                 <i class="bi bi-stars"></i>
@@ -193,7 +193,7 @@ function handleBackNavigation() {
                         </div>
 
                         <!-- Enhanced Registered Volunteers Section -->
-                        @if ($event->current_volunteers > 0)
+                        @if($event->current_volunteers > 0)
                         <div class="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 feature-card">
                             <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-3">
                                 <div class="w-2 h-6 bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full"></div>
@@ -212,7 +212,7 @@ function handleBackNavigation() {
                                     ];
                                 @endphp
 
-                                @foreach ($volunteersList as $vRecord)
+                                @foreach($volunteersList as $vRecord)
                                 @php
                                     $vUser = $vRecord->volunteer;
                                     $vAvatarUrl = null;
@@ -224,7 +224,7 @@ function handleBackNavigation() {
                                 @endphp
                                 <div class="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-200 hover:bg-emerald-50 hover:border-emerald-200 transition-all duration-300">
                                     <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center border-2 border-emerald-200 shadow-sm overflow-hidden flex-shrink-0">
-                                        @if ($vAvatarUrl)
+                                        @if($vAvatarUrl)
                                             <img src="{{ $vAvatarUrl }}" class="w-full h-full object-cover">
                                         @else
                                             <span class="text-white font-bold text-sm">{{ $vInitial }}</span>
@@ -232,7 +232,7 @@ function handleBackNavigation() {
                                     </div>
                                     <div class="flex-1 min-w-0">
                                         <p class="font-semibold text-gray-900 text-sm truncate">{{ $vUser->name ?? 'Volunteer' }}</p>
-                                        @if (isset($statusBadge[$vRecord->status]))
+                                        @if(isset($statusBadge[$vRecord->status]))
                                         @php [$vBClass, $vBIcon, $vBText] = $statusBadge[$vRecord->status]; @endphp
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $vBClass }} mt-0.5">
                                             <i class="bi {{ $vBIcon }}"></i> {{ $vBText }}
@@ -258,7 +258,7 @@ function handleBackNavigation() {
 
                         <!-- Enhanced Flash Messages -->
                         <div class="space-y-4">
-                            @if (session('success'))
+                            @if(session('success'))
                                 <div class="flex items-center gap-4 p-6 rounded-2xl bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 shadow-sm feature-card">
                                     <div class="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center">
                                         <i class="bi bi-check-lg text-white text-lg"></i>
@@ -267,7 +267,7 @@ function handleBackNavigation() {
                                 </div>
                             @endif
 
-                            @if (session('error'))
+                            @if(session('error'))
                                 <div class="flex items-center gap-4 p-6 rounded-2xl bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 shadow-sm feature-card">
                                     <div class="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">
                                         <i class="bi bi-x-lg text-white text-lg"></i>
@@ -289,8 +289,8 @@ function handleBackNavigation() {
                                     $canJoinEvent = $event->canBeJoined(auth()->id());
                                 @endphp
 
-                                @if ($event->isActive())
-                                    @if ($isRegistered)
+                                @if($event->isActive())
+                                    @if($isRegistered)
                                         <!-- Enhanced Registered State -->
                                         <div class="flex flex-col sm:flex-row gap-6 items-center justify-between p-8 rounded-2xl bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 feature-card">
                                             <div class="flex items-center gap-4">
@@ -303,14 +303,14 @@ function handleBackNavigation() {
                                                 </div>
                                             </div>
                                             <div class="flex flex-col sm:flex-row gap-3">
-                                                @if ($isRegistered || $isOrganizer)
+                                                @if($isRegistered || $isOrganizer)
                                                     <a href="{{ route('messages.start-event', $event) }}" 
                                                        class="flex items-center gap-3 px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all duration-300 font-semibold shadow-sm hover:shadow-md hover:scale-105">
                                                         <i class="bi bi-chat-dots-fill"></i>
                                                         Event Group Chat
                                                     </a>
                                                 @endif
-                                                @if ($event->canBeLeft(auth()->id()))
+                                                @if($event->canBeLeft(auth()->id()))
                                                 <form id="leave-form" action="{{ route('events.leave', $event) }}" method="POST">
                                                     @csrf
                                                     @method('DELETE')
@@ -324,7 +324,7 @@ function handleBackNavigation() {
                                                 @endif
                                             </div>
                                         </div>
-                                    @elseif ($canJoinEvent)
+                                    @elseif($canJoinEvent)
                                         <!-- Enhanced Join Button -->
                                         <form id="join-form" action="{{ route('events.join', $event) }}" method="POST">
                                             @csrf
@@ -335,7 +335,7 @@ function handleBackNavigation() {
                                                 Join as Volunteer
                                             </button>
                                         </form>
-                                    @elseif ($hasEventStarted || $hasEventEnded)
+                                    @elseif($hasEventStarted || $hasEventEnded)
                                         <!-- Enhanced Event Status -->
                                         <div class="text-center p-8 rounded-2xl bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 feature-card">
                                             <div class="w-16 h-16 rounded-full bg-orange-500 flex items-center justify-center mx-auto mb-4">
@@ -347,13 +347,13 @@ function handleBackNavigation() {
                                             <p class="text-orange-700 text-lg">
                                                 {{ $hasEventEnded ? 'This event has already taken place' : 'This event is currently in progress' }}
                                             </p>
-                                            @if ($hasEventStarted && !$hasEventEnded)
+                                            @if($hasEventStarted && !$hasEventEnded)
                                                 <p class="text-orange-600 text-sm mt-2">
                                                     Started: {{ $event->date->setTimezone(config('app.timezone'))->format('M d, Y \\a\\t g:i A') }}
                                                 </p>
                                             @endif
                                         </div>
-                                    @elseif ($isOrganizer)
+                                    @elseif($isOrganizer)
                                         <!-- Enhanced Organizer View -->
                                         <div class="text-center p-8 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 feature-card">
                                             <div class="w-16 h-16 rounded-full bg-blue-500 flex items-center justify-center mx-auto mb-4">
@@ -362,7 +362,7 @@ function handleBackNavigation() {
                                             <h4 class="text-2xl font-bold text-blue-900 mb-3">You're the Organizer</h4>
                                             <p class="text-blue-700 text-lg">You created this event</p>
                                         </div>
-                                    @elseif ($event->isFull())
+                                    @elseif($event->isFull())
                                         <!-- Enhanced Event Full State -->
                                         <div class="text-center p-8 rounded-2xl bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 feature-card">
                                             <div class="w-16 h-16 rounded-full bg-gray-400 flex items-center justify-center mx-auto mb-4">
@@ -439,7 +439,7 @@ function handleBackNavigation() {
                                     $hasValidAvatar = $avatarUrl && filter_var($avatarUrl, FILTER_VALIDATE_URL);
                                 @endphp
                                 
-                                @if ($hasValidAvatar)
+                                @if($hasValidAvatar)
                                     <img src="{{ $avatarUrl }}" alt="{{ $organizer->name }}" 
                                          class="w-16 h-16 rounded-full border-2 border-emerald-200 shadow-sm object-cover"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -459,7 +459,7 @@ function handleBackNavigation() {
                                     <p class="font-bold text-gray-900 text-lg truncate">{{ $organizer->name ?? 'Community Organizer' }}</p>      
                                     <p class="text-gray-600 text-sm mb-3">Event Host</p>
                                     @auth
-                                        @if (auth()->id() !== $organizer->id)
+                                        @if(auth()->id() !== $organizer->id)
                                             <a href="{{ route('messages.start-direct', $organizer->id) }}" 
                                                class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md">
                                                 <i class="bi bi-chat-fill"></i>
@@ -481,7 +481,7 @@ function handleBackNavigation() {
                                     <i class="bi bi-geo-alt-fill text-emerald-500"></i>
                                     Event Location
                                 </span>
-                                @if ($event->latitude && $event->longitude)
+                                @if($event->latitude && $event->longitude)
                                 <a href="https://www.google.com/maps/search/?api=1&query={{ $event->latitude }},{{ $event->longitude }}" 
                                    target="_blank" 
                                    class="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 transition-colors uppercase tracking-widest flex items-center gap-1">
@@ -529,7 +529,7 @@ function handleBackNavigation() {
                                     </span>
                                     <span class="text-emerald-600 font-bold text-lg">{{ $event->required_volunteers - $event->current_volunteers }}</span>
                                 </div>
-                                @if ($event->skills_required)
+                                @if($event->skills_required)
                                 <div class="p-4 rounded-xl bg-gray-50 border border-gray-200">
                                     <span class="text-gray-600 font-medium block mb-2 flex items-center gap-2">
                                         <i class="bi bi-tools text-emerald-500"></i>
@@ -598,7 +598,7 @@ function handleBackNavigation() {
     });
 </script>
 
-<!-- â”€â”€â”€â”€â”€ Join / Leave Confirmation Modal â”€â”€â”€â”€â”€ -->
+<!-- ───── Join / Leave Confirmation Modal ───── -->
 <div id="confirm-modal"
      class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden"
      onclick="if(event.target===this) closeConfirmModal()">

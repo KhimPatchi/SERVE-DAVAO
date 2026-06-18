@@ -1,4 +1,4 @@
-﻿@extends ('layouts.sidebar.sidebar')
+@extends ('layouts.sidebar.sidebar')
 @section ('content')
 
 @php
@@ -106,15 +106,15 @@
   <!-- Active Events Grid -->
   <div id="currentEventsSection" 
        class="events-section transition-all duration-300 {{ !$showHistoryByDefault ? 'opacity-100' : 'hidden opacity-0' }}">
-    @if ($currentEvents->count() > 0)
+    @if($currentEvents->count() > 0)
         
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          @foreach ($currentEvents as $event)
+          @foreach($currentEvents as $event)
             <div class="bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all group">
               
               <!-- Event Image -->
               <div class="relative h-48 overflow-hidden bg-gray-100 rounded-t-lg">
-                @if ($event->image)
+                @if($event->image)
                     <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                 @else
                     <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50">
@@ -149,14 +149,14 @@
                 </div>
 
                 <!-- Skills -->
-                @if ($event->skills_required)
+                @if($event->skills_required)
                 <div class="flex flex-wrap gap-2 mb-5">
-                  @foreach (array_slice(explode(',', $event->skills_required), 0, 3) as $skill)
+                  @foreach(array_slice(explode(',', $event->skills_required), 0, 3) as $skill)
                   <span class="px-2.5 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
                     {{ trim($skill) }}
                   </span>
                   @endforeach
-                  @if (count(explode(',', $event->skills_required)) > 3)
+                  @if(count(explode(',', $event->skills_required)) > 3)
                   <span class="px-2.5 py-1 bg-gray-100 text-gray-500 rounded text-xs font-medium">
                     +{{ count(explode(',', $event->skills_required)) - 3 }}
                   </span>
@@ -182,7 +182,7 @@
                      class="flex-1 text-center py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors text-sm">
                     Manage
                   </a>
-                  {{-- Scan Volunteers button â€” only for events that have started --}}
+                  {{-- Scan Volunteers button — only for events that have started --}}
                   <a href="{{ route('organizer.attendance.scan', $event) }}"
                      class="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors text-sm"
                      title="Open QR scanner to check in volunteers">
@@ -206,14 +206,14 @@
           <i class="bi bi-calendar-plus text-2xl text-gray-400"></i>
         </div>
         <h3 class="text-lg font-semibold text-gray-900 mb-2">
-          @if (request('search'))
+          @if(request('search'))
             No events found
           @else
             No active events
           @endif
         </h3>
         <p class="text-gray-500 mb-6 max-w-md mx-auto">
-          @if (request('search'))
+          @if(request('search'))
             Try adjusting your search terms
           @else
             Create your first event to start organizing volunteers
@@ -231,7 +231,7 @@
   <!-- History Table -->
   <div id="eventHistorySection" 
        class="events-section transition-all duration-300 {{ $showHistoryByDefault ? 'opacity-100' : 'hidden opacity-0' }}">
-    @if ($pastEvents->count() > 0)
+    @if($pastEvents->count() > 0)
         
         <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div class="overflow-x-auto">
@@ -245,7 +245,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
-                @foreach ($pastEvents as $event)
+                @foreach($pastEvents as $event)
                 <tr class="hover:bg-gray-50 transition-colors">
                   <td class="px-6 py-4">
                     <div class="font-semibold text-gray-900 mb-1">{{ $event->title }}</div>

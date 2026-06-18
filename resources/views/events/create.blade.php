@@ -28,7 +28,7 @@
 
     <!-- Error/Success Trapping -->
     <div class="max-w-5xl mx-auto mb-8">
-        @if (session('error'))
+        @if(session('error'))
             <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm flex items-center justify-between animate-fade-in-down">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
@@ -44,7 +44,7 @@
             </div>
         @endif
 
-        @if (session('success'))
+        @if(session('success'))
             <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-xl shadow-sm flex items-center justify-between animate-fade-in-down">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">

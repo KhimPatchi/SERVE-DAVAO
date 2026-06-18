@@ -1,4 +1,4 @@
-﻿@extends ('layouts.sidebar.sidebar')
+@extends ('layouts.sidebar.sidebar')
 
 @section ('content')
 <div class="min-h-screen bg-gray-50/60 p-6" id="my-events" x-data="{ activeTab: 'upcoming', showLeaveModal: false, leavingEventId: null, leavingEventTitle: '' }">
@@ -26,7 +26,7 @@
                            placeholder="Search your events..." 
                            class="w-full pl-11 pr-4 py-3 rounded-2xl border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm">
                     <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
-                    @if (request('search'))
+                    @if(request('search'))
                         <a href="{{ route('volunteers.my-events') }}" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                             <i class="bi bi-x-circle-fill"></i>
                         </a>
@@ -60,7 +60,7 @@
             <!-- Tab Content: Upcoming -->
             <div x-show="activeTab === 'upcoming'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
                 
-                @if ($events->total() > 0)
+                @if($events->total() > 0)
                 <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
                     <div class="md:col-span-2 rounded-3xl bg-white p-8 shadow-sm ring-1 ring-gray-100 border-l-8 border-green-500">
                         <div class="flex items-center gap-6">
@@ -94,10 +94,10 @@
                 </div>
                 @endif
 
-            @if ($events->count() > 0)
+            @if($events->count() > 0)
                 <!-- Events Grid -->
                 <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    @foreach ($events as $event)
+                    @foreach($events as $event)
                                @php
 // SIMPLIFIED: Use the model's computed properties
 $isOngoing   = $event->is_ongoing;
@@ -166,7 +166,7 @@ if ($isOngoing) {
                             <div class="flex items-center text-sm text-gray-600">
                                 <i class="bi bi-calendar-event mr-3 text-lg text-blue-500"></i>
                                 <span class="font-medium">{{ $event->date->format('M j, Y') }}</span>
-                                <span class="mx-2 text-gray-400">â€¢</span>
+                                <span class="mx-2 text-gray-400">•</span>
                                 <span class="text-gray-500">{{ $event->date->format('g:i A') }}</span>
                             </div>
                             <div class="flex items-center justify-between">
@@ -177,11 +177,11 @@ if ($isOngoing) {
                                 <div class="flex items-center text-sm text-gray-500">
                                     <i class="bi bi-clock mr-1"></i>
                                     <span>
-                                        @if ($status['text'] === 'Ongoing')
+                                        @if($status['text'] === 'Ongoing')
                                             happening now
-                                        @elseif ($isUpcoming && $isToday)
+                                        @elseif($isUpcoming && $isToday)
                                             today at {{ $event->date->format('g:i A') }}
-                                        @elseif ($isUpcoming)
+                                        @elseif($isUpcoming)
                                             in {{ $event->date->diffForHumans(now(), true) }}
                                         @else
                                             {{ $event->date->diffForHumans() }}
@@ -195,18 +195,18 @@ if ($isOngoing) {
                         <div class="mb-4">
                             <div class="mb-2 flex items-center justify-between text-xs">
                                 <span class="text-gray-600">
-                                    @if ($status['text'] === 'Ongoing')
+                                    @if($status['text'] === 'Ongoing')
                                         Event in progress
-                                    @elseif ($isUpcoming)
+                                    @elseif($isUpcoming)
                                         Time until event
-                                    @elseif ($isCompleted)
+                                    @elseif($isCompleted)
                                         Event completed
                                     @else
                                         Happening today
                                     @endif
                                 </span>
                                 <span class="font-semibold text-gray-900">
-                                    @if ($isUpcoming)
+                                    @if($isUpcoming)
                                         {{ round($timeProgress) }}%
                                     @else
                                         100%
@@ -214,9 +214,9 @@ if ($isOngoing) {
                                 </span>
                             </div>
                             <div class="h-2 rounded-full bg-gray-200">
-                                @if ($isUpcoming)
+                                @if($isUpcoming)
                                     <div class="h-full rounded-full bg-blue-500 transition-all duration-1000" style="width: {{ $timeProgress }}%"></div>
-                                @elseif ($isCompleted)
+                                @elseif($isCompleted)
                                     <div class="h-full rounded-full bg-purple-500" style="width: 100%"></div>
                                 @else
                                     <div class="h-full rounded-full bg-green-500 animate-pulse" style="width: 100%"></div>
@@ -234,8 +234,8 @@ if ($isOngoing) {
                             </div>
                             
                             <div class="flex items-center gap-2">
-                                {{-- View Ticket (QR) â€” shown only for upcoming/ongoing events --}}
-                                @if ($isUpcoming || $isOngoing)
+                                {{-- View Ticket (QR) — shown only for upcoming/ongoing events --}}
+                                @if($isUpcoming || $isOngoing)
                                 <button type="button"
                                         @click="showLeaveModal = true; leavingEventId = {{ $event->id }}; leavingEventTitle = '{{ addslashes($event->title) }}'"
                                         class="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition-all hover:bg-red-100"
@@ -265,7 +265,7 @@ if ($isOngoing) {
                 </div>
 
                 <!-- Pagination -->
-                @if ($events->hasPages())
+                @if($events->hasPages())
                 <div class="mt-8">
                     {{ $events->links() }}
                 </div>
@@ -307,7 +307,7 @@ if ($isOngoing) {
                     </div>
                 </div>
 
-                @if (isset($attendedEvents) && $attendedEvents->count() > 0)
+                @if(isset($attendedEvents) && $attendedEvents->count() > 0)
                     <div class="bg-white rounded-3xl shadow-sm ring-1 ring-gray-100 overflow-hidden">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm">
@@ -322,7 +322,7 @@ if ($isOngoing) {
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
-                                    @foreach ($attendedEvents as $history)
+                                    @foreach($attendedEvents as $history)
                                     <tr class="hover:bg-blue-50/10 transition-colors group">
                                         <td class="px-8 py-5">
                                             <div class="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{{ $history->title }}</div>
@@ -417,9 +417,9 @@ if ($isOngoing) {
     transition-duration: 200ms;
 }
 </style>
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+{{-- ══════════════════════════════════════════════════════════════════════════
      CANCEL REGISTRATION MODAL
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+═══════════════════════════════════════════════════════════════════════════ --}}
 <div x-show="showLeaveModal" 
      class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm"
      x-transition:enter="transition ease-out duration-300"
@@ -459,10 +459,10 @@ if ($isOngoing) {
 <style>
 [x-cloak] { display: none !important; }
 </style>
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+{{-- ══════════════════════════════════════════════════════════════════════════
      QR TICKET MODAL
-     Opened by openTicketModal(eventId); â€” populated via fetch to /events/{id}/ticket
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+     Opened by openTicketModal(eventId); — populated via fetch to /events/{id}/ticket
+═══════════════════════════════════════════════════════════════════════════ --}}
 <div id="qrTicketModal"
      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden px-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
@@ -470,7 +470,7 @@ if ($isOngoing) {
     {{-- Header --}}
     <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
       <div>
-        <h3 class="font-bold text-gray-900 text-lg" id="ticketEventName">Loadingâ€¦</h3>
+        <h3 class="font-bold text-gray-900 text-lg" id="ticketEventName">Loading…</h3>
         <p class="text-xs text-gray-500" id="ticketEventDate"></p>
       </div>
       <button onclick="closeTicketModal()" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors">
@@ -500,15 +500,15 @@ if ($isOngoing) {
     {{-- Footer note --}}
     <div class="bg-gray-50 px-6 py-3 text-center text-xs text-gray-400">
       <i class="bi bi-shield-check text-emerald-500 mr-1"></i>
-      Secure Â· Signed Â· Time-limited
+      Secure · Signed · Time-limited
     </div>
   </div>
 </div>
 
-{{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+{{-- ══════════════════════════════════════════════════════════════════════════
      POST-EVENT NOTIFICATION MODAL
      Shown via Reverb/Echo when the organizer fires VolunteerCompletedEvent
-â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+═══════════════════════════════════════════════════════════════════════════ --}}
 <div id="completionModal"
      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden px-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
@@ -544,7 +544,7 @@ if ($isOngoing) {
 (function () {
   'use strict';
 
-  // â”€â”€ QR Ticket Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── QR Ticket Modal ──────────────────────────────────────────────────────
   window.openTicketModal = async function (eventId) {
     const modal      = document.getElementById('qrTicketModal');
     const loader     = document.getElementById('ticketLoader');
@@ -591,7 +591,7 @@ if ($isOngoing) {
     if (e.target === this) closeTicketModal();
   });
 
-  // â”€â”€ Reverb / Echo Listener â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Reverb / Echo Listener ───────────────────────────────────────────────
   // Listens for VolunteerCompletedEvent fired when the organizer ends an event.
   if (typeof window.Echo !== 'undefined') {
     const userId = {{ auth()->id() }};

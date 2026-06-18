@@ -20,7 +20,7 @@ return [
     | Minimum total score required to display a recommendation.
     | Currently 0.70 (70%) matches.
     */
-    'threshold' => env('MATCH_THRESHOLD', 0.70),
+    'threshold' => env('MATCH_THRESHOLD', 0.60),
 
     /*
     |--------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-﻿@extends ('layouts.sidebar.sidebar')
+@extends ('layouts.sidebar.sidebar')
 
 @section ('title', 'Volunteer Opportunities - ServeDavao')
 
@@ -81,7 +81,7 @@
     </section>
 
     <!-- Recommended Events Section -->
-    @if (Auth::check() && $recommendedEvents->isNotEmpty())
+    @if(Auth::check() && $recommendedEvents->isNotEmpty())
     <section class="mb-12">
         <div class="flex items-center justify-between mb-8">
             <div class="flex items-center gap-4">
@@ -98,7 +98,7 @@
         </div>
 
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-            @foreach ($recommendedEvents as $event)
+            @foreach($recommendedEvents as $event)
             @php
                 $volunteersNeeded = max(0, $event->required_volunteers - $event->current_volunteers);
                 $progress    = $event->required_volunteers > 0 ? round(($event->current_volunteers / $event->required_volunteers) * 100) : 0;
@@ -115,7 +115,7 @@
 
                 {{-- Image / Gradient Header --}}
                 <div class="relative h-24 overflow-hidden">
-                    @if (isset($event->match_percentage) && $event->match_percentage > 0)
+                    @if(isset($event->match_percentage) && $event->match_percentage > 0)
                         <div class="absolute top-3 left-3 z-10">
                             <div class="glass-match-badge px-3 py-1.5 text-white text-[10px] font-black rounded-xl shadow-lg flex items-center gap-1.5">
                                 <i class="bi bi-stars"></i>
@@ -124,7 +124,7 @@
                         </div>
                     @endif
 
-                    @if ($event->image)
+                    @if($event->image)
                         <img src="{{ asset('storage/' . $event->image) }}"
                              alt="{{ $event->title }}"
                              class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
@@ -136,15 +136,15 @@
 
                     {{-- Status badge --}}
                     <div class="absolute top-3 right-3">
-                        @if ($isOrganizer)
+                        @if($isOrganizer)
                             <span class="rounded-full bg-blue-600/90 backdrop-blur-sm px-3 py-1 text-[10px] font-bold text-white uppercase">Organizer</span>
-                        @elseif ($isRegistered)
+                        @elseif($isRegistered)
                             <span class="rounded-full bg-emerald-600/90 backdrop-blur-sm px-3 py-1 text-[10px] font-bold text-white uppercase">Joined</span>
-                        @elseif ($isFull)
+                        @elseif($isFull)
                             <span class="rounded-full bg-red-500/90 backdrop-blur-sm px-3 py-1 text-[10px] font-bold text-white uppercase">Full</span>
-                        @elseif ($isUrgent)
+                        @elseif($isUrgent)
                             <span class="rounded-full bg-orange-500/90 backdrop-blur-sm px-3 py-1 text-[10px] font-bold text-white uppercase">Urgent</span>
-                        @elseif ($hasEnded)
+                        @elseif($hasEnded)
                             <span class="rounded-full bg-gray-500/90 backdrop-blur-sm px-3 py-1 text-[10px] font-bold text-white uppercase">Closed</span>
                         @else
                             <span class="rounded-full bg-emerald-600/90 backdrop-blur-sm px-3 py-1 text-[10px] font-bold text-white uppercase">Open</span>
@@ -193,7 +193,7 @@
                            class="flex-1 rounded-xl bg-gray-900 px-4 py-3 text-center text-xs font-black text-white hover:bg-emerald-600 transition-all shadow-sm hover:shadow-emerald-200">
                             View Details
                         </a>
-                        @if (!$isRegistered && !$isOrganizer && !$hasEnded && !$isFull)
+                        @if(!$isRegistered && !$isOrganizer && !$hasEnded && !$isFull)
                         <form action="{{ route('events.join', $event) }}" method="POST" class="contents">
                             @csrf
                             <button type="submit"
@@ -202,7 +202,7 @@
                                 <i class="bi bi-person-plus text-lg group-hover/btn:scale-110 transition-transform"></i>
                             </button>
                         </form>
-                        @elseif ($isRegistered)
+                        @elseif($isRegistered)
                             <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100" title="Already Joined">
                                 <i class="bi bi-check-lg text-lg"></i>
                             </div>
@@ -224,9 +224,9 @@
         </div>
         
         <main>
-        @if ($events->count() > 0)
+        @if($events->count() > 0)
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-                @foreach ($events as $event)
+                @foreach($events as $event)
                 @php
                     $volunteersNeeded = max(0, $event->required_volunteers - $event->current_volunteers);
                     $progress = $event->required_volunteers > 0 ? round(($event->current_volunteers / $event->required_volunteers) * 100) : 0;
@@ -241,7 +241,7 @@
                 
                 <article class="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                     <div class="relative h-24 overflow-hidden">
-                        @if ($event->image)
+                        @if($event->image)
                             <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->title }}" class="h-full w-full object-cover">
                         @else
                             <div class="flex h-full w-full items-center justify-center bg-gray-50">
@@ -250,9 +250,9 @@
                         @endif
 
                         <div class="absolute top-4 right-4">
-                            @if ($isOrganizer)
+                            @if($isOrganizer)
                                 <span class="rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-600 uppercase border border-blue-100">Organized</span>
-                            @elseif ($isRegistered)
+                            @elseif($isRegistered)
                                 <span class="rounded-lg bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-600 uppercase border border-emerald-100">Joined</span>
                             @endif
                         </div>
@@ -298,7 +298,7 @@
                 @endforeach
             </div>
 
-            @if ($events->hasPages())
+            @if($events->hasPages())
             <div class="mt-12">
                 <div class="flex flex-col sm:flex-row items-center justify-between rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
                     <div class="text-xs font-bold text-gray-500 mb-4 sm:mb-0 uppercase tracking-widest">

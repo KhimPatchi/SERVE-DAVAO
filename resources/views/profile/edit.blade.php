@@ -1,4 +1,4 @@
-﻿@extends ('layouts.sidebar.sidebar')
+@extends ('layouts.sidebar.sidebar')
 
 @section ('title', 'Edit Profile')
 
@@ -39,7 +39,7 @@
             }
           @endphp
           
-          @if ($avatarSrc)
+          @if($avatarSrc)
             <img src="{{ $avatarSrc }}" 
                  alt="{{ Auth::user()->name }}" 
                  class="w-14 h-14 rounded-lg object-cover"
@@ -66,7 +66,7 @@
   </div>
 
   <!-- Messages -->
-  @if (session('success'))
+  @if(session('success'))
     <div class="mb-8 bg-white border border-gray-300 text-gray-800 px-6 py-4 rounded-lg flex items-center gap-4 shadow-sm" role="alert">
       <div class="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
         <i class="bi bi-check-circle-fill text-gray-700 text-lg"></i>
@@ -81,7 +81,7 @@
     </div>
   @endif
 
-  @if ($errors->any())
+  @if($errors->any())
     <div class="mb-8 bg-white border border-red-300 text-red-800 px-6 py-4 rounded-lg shadow-sm" role="alert">
       <div class="flex items-center gap-4">
         <div class="flex-shrink-0 w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
@@ -90,7 +90,7 @@
         <div class="flex-1">
           <strong class="font-semibold">Please check your input:</strong>
           <ul class="mt-2 space-y-1 text-sm">
-            @foreach ($errors->all() as $error)
+            @foreach($errors->all() as $error)
               <li class="flex items-center gap-2">
                 <i class="bi bi-dot"></i>
                 {{ $error }}
@@ -280,7 +280,7 @@
                 <div id="coord-badge" class="{{ $user->latitude ? '' : 'hidden' }} flex items-center gap-2 text-xs text-purple-700 font-semibold bg-purple-50 px-3 py-2 rounded-lg inline-flex">
                     <i class="bi bi-geo-alt-fill text-purple-500"></i>
                     <span id="coord-text">
-                        @if ($user->latitude)
+                        @if($user->latitude)
                             Stored Location: {{ number_format($user->latitude, 5) }}, {{ number_format($user->longitude, 5) }}
                         @endif
                     </span>
@@ -320,7 +320,7 @@
                     Preferred Activities
                   </label>
                 </div>
-                <!-- Single input that is directly submitted â€” no hidden field needed -->
+                <!-- Single input that is directly submitted — no hidden field needed -->
                 <div class="relative">
                   <input type="text"
                          id="preferences"
@@ -334,124 +334,150 @@
                   Separate multiple activities with commas. This is used to match you with relevant events.
                 </p>
               </div>
-
               <!-- Experience & Availability Row -->
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Match Priority Card - NEW -->
-                <div class="col-span-full bg-white rounded-lg border border-gray-200 p-5 mb-6">
-                  <div class="flex items-center gap-2 mb-4">
-                    <i class="bi bi-sliders text-gray-700"></i>
-                    <label class="text-base font-medium text-gray-900">
-                      Recommendation Priority
-                    </label>
-                    <span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold uppercase">Smart Match</span>
-                  </div>
-                  <p class="text-xs text-gray-500 mb-5">Choose what matters most to you. We'll adjust our recommendations accordingly.</p>
-                  
-                  {{-- Hidden Input for Priority --}}
-                  <input type="hidden" name="primary_priority" id="primary_priority_input" value="{{ old('primary_priority', $user->primary_priority) ?? 'availability' }}">
-                  
-                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <!-- Schedule Card -->
-                    <div id="card-availability" 
-                         onclick="selectPriority('availability')"
-                         class="priority-card h-full p-5 border-2 rounded-2xl bg-white shadow-sm transition-all duration-300 cursor-pointer relative flex flex-col items-center text-center {{ (old('primary_priority', $user->primary_priority) == 'availability' || !$user->primary_priority) ? 'border-blue-500 bg-blue-50 ring-4 ring-blue-100/50' : 'border-gray-100 hover:border-blue-200' }}">
-                        <div class="check-badge absolute top-3 right-3 {{ (old('primary_priority', $user->primary_priority) == 'availability' || !$user->primary_priority) ? '' : 'hidden' }}">
-                          <i class="bi bi-check-circle-fill text-blue-600 text-lg"></i>
-                        </div>
-                        <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-colors {{ (old('primary_priority', $user->primary_priority) == 'availability' || !$user->primary_priority) ? 'bg-blue-200 text-blue-600' : 'bg-gray-50 text-gray-400' }}">
-                          <i class="bi bi-calendar-event text-2xl"></i>
-                        </div>
-                        <h4 class="text-sm font-bold text-gray-900 mb-1">Schedule</h4>
-                        <p class="text-[11px] text-gray-500 leading-tight">Focuses on events that fit your available time slots.</p>
-                    </div>
 
-                    <!-- Interests Card -->
-                    <div id="card-interests" 
-                         onclick="selectPriority('interests')"
-                         class="priority-card h-full p-5 border-2 rounded-2xl bg-white shadow-sm transition-all duration-300 cursor-pointer relative flex flex-col items-center text-center {{ old('primary_priority', $user->primary_priority) == 'interests' ? 'border-emerald-500 bg-emerald-50 ring-4 ring-emerald-100/50' : 'border-gray-100 hover:border-emerald-200' }}">
-                        <div class="check-badge absolute top-3 right-3 {{ old('primary_priority', $user->primary_priority) == 'interests' ? '' : 'hidden' }}">
-                          <i class="bi bi-check-circle-fill text-emerald-600 text-lg"></i>
-                        </div>
-                        <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-colors {{ old('primary_priority', $user->primary_priority) == 'interests' ? 'bg-emerald-200 text-emerald-600' : 'bg-gray-50 text-gray-400' }}">
-                          <i class="bi bi-heart-fill text-2xl"></i>
-                        </div>
-                        <h4 class="text-sm font-bold text-gray-900 mb-1">Interests</h4>
-                        <p class="text-[11px] text-gray-500 leading-tight">Prioritizes causes and activities you care about most.</p>
+                <!-- Match Priority Card -->
+                <div class="col-span-full bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-2">
+                  <!-- Card Header -->
+                  <div class="px-7 pt-6 pb-5 border-b border-gray-100">
+                    <div class="flex items-center gap-2">
+                      <i class="bi bi-sliders text-blue-500"></i>
+                      <label class="text-sm font-bold text-gray-900">Recommendation Priority</label>
+                      <span class="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">Smart Match</span>
                     </div>
+                    <p class="text-xs text-gray-400 mt-1.5 leading-relaxed">Choose what matters most to you. We'll adjust our recommendations accordingly.</p>
+                  </div>
 
-                    <!-- Location Card -->
-                    <div id="card-location" 
-                         onclick="selectPriority('location')"
-                         class="priority-card h-full p-5 border-2 rounded-2xl bg-white shadow-sm transition-all duration-300 cursor-pointer relative flex flex-col items-center text-center {{ old('primary_priority', $user->primary_priority) == 'location' ? 'border-orange-500 bg-orange-50 ring-4 ring-orange-100/50' : 'border-gray-100 hover:border-orange-200' }}">
-                        <div class="check-badge absolute top-3 right-3 {{ old('primary_priority', $user->primary_priority) == 'location' ? '' : 'hidden' }}">
-                          <i class="bi bi-check-circle-fill text-orange-600 text-lg"></i>
-                        </div>
-                        <div class="icon-box w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-colors {{ old('primary_priority', $user->primary_priority) == 'location' ? 'bg-orange-200 text-orange-600' : 'bg-gray-50 text-gray-400' }}">
-                          <i class="bi bi-geo-alt-fill text-2xl"></i>
-                        </div>
-                        <h4 class="text-sm font-bold text-gray-900 mb-1">Location</h4>
-                        <p class="text-[11px] text-gray-500 leading-tight">Shows events closest to your current location first.</p>
+                  <!-- Priority Cards Grid -->
+                  <div class="px-7 py-6">
+                    {{-- Hidden Input for Priority --}}
+                    <input type="hidden" name="primary_priority" id="primary_priority_input" value="{{ old('primary_priority', $user->primary_priority) ?? 'availability' }}">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <!-- Schedule Card -->
+                      <div id="card-availability"
+                           onclick="selectPriority('availability')"
+                           class="priority-card h-full p-6 border-2 rounded-2xl bg-white shadow-sm transition-all duration-300 cursor-pointer relative flex flex-col items-center text-center {{ (old('primary_priority', $user->primary_priority) == 'availability' || !$user->primary_priority) ? 'border-blue-500 bg-blue-50 ring-4 ring-blue-100/50' : 'border-gray-100 hover:border-blue-200 hover:bg-blue-50/30' }}">
+
+                          <div class="icon-box w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-colors {{ (old('primary_priority', $user->primary_priority) == 'availability' || !$user->primary_priority) ? 'bg-blue-200 text-blue-600' : 'bg-gray-100 text-gray-400' }}">
+                            <i class="bi bi-calendar-event text-2xl"></i>
+                          </div>
+                          <h4 class="text-sm font-bold text-gray-900 mb-1.5">Schedule</h4>
+                          <p class="text-[11px] text-gray-500 leading-relaxed">Focuses on events that fit your available time slots.</p>
+                          <div class="selected-indicator mt-3 {{ (old('primary_priority', $user->primary_priority) == 'availability' || !$user->primary_priority) ? '' : 'hidden' }}">
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 bg-blue-100 px-2.5 py-0.5 rounded-full">
+                              <i class="bi bi-check2"></i> Selected
+                            </span>
+                          </div>
+                      </div>
+
+                      <!-- Interests Card -->
+                      <div id="card-interests"
+                           onclick="selectPriority('interests')"
+                           class="priority-card h-full p-6 border-2 rounded-2xl bg-white shadow-sm transition-all duration-300 cursor-pointer relative flex flex-col items-center text-center {{ old('primary_priority', $user->primary_priority) == 'interests' ? 'border-emerald-500 bg-emerald-50 ring-4 ring-emerald-100/50' : 'border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/30' }}">
+
+                          <div class="icon-box w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-colors {{ old('primary_priority', $user->primary_priority) == 'interests' ? 'bg-emerald-200 text-emerald-600' : 'bg-gray-100 text-gray-400' }}">
+                            <i class="bi bi-heart-fill text-2xl"></i>
+                          </div>
+                          <h4 class="text-sm font-bold text-gray-900 mb-1.5">Interests</h4>
+                          <p class="text-[11px] text-gray-500 leading-relaxed">Prioritizes causes and activities you care about most.</p>
+                          <div class="selected-indicator mt-3 {{ old('primary_priority', $user->primary_priority) == 'interests' ? '' : 'hidden' }}">
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                              <i class="bi bi-check2"></i> Selected
+                            </span>
+                          </div>
+                      </div>
+
+                      <!-- Location Card -->
+                      <div id="card-location"
+                           onclick="selectPriority('location')"
+                           class="priority-card h-full p-6 border-2 rounded-2xl bg-white shadow-sm transition-all duration-300 cursor-pointer relative flex flex-col items-center text-center {{ old('primary_priority', $user->primary_priority) == 'location' ? 'border-orange-500 bg-orange-50 ring-4 ring-orange-100/50' : 'border-gray-100 hover:border-orange-200 hover:bg-orange-50/30' }}">
+
+                          <div class="icon-box w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-colors {{ old('primary_priority', $user->primary_priority) == 'location' ? 'bg-orange-200 text-orange-600' : 'bg-gray-100 text-gray-400' }}">
+                            <i class="bi bi-geo-alt-fill text-2xl"></i>
+                          </div>
+                          <h4 class="text-sm font-bold text-gray-900 mb-1.5">Location</h4>
+                          <p class="text-[11px] text-gray-500 leading-relaxed">Shows events closest to your current location first.</p>
+                          <div class="selected-indicator mt-3 {{ old('primary_priority', $user->primary_priority) == 'location' ? '' : 'hidden' }}">
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-orange-600 bg-orange-100 px-2.5 py-0.5 rounded-full">
+                              <i class="bi bi-check2"></i> Selected
+                            </span>
+                          </div>
+                      </div>
                     </div>
                   </div>
+                </div>
 
                 <!-- Experience Level Card -->
-                <div class="col-span-full lg:col-span-1 bg-white rounded-lg border border-gray-200 p-5">
-                  <div class="flex items-center gap-2 mb-4">
-                    <i class="bi bi-trophy-fill text-gray-700"></i>
-                    <label class="text-base font-medium text-gray-900">Experience Level</label>
+                <div class="col-span-full lg:col-span-1 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <!-- Card Header -->
+                  <div class="px-6 pt-6 pb-4 border-b border-gray-100">
+                    <div class="flex items-center gap-2">
+                      <i class="bi bi-bar-chart-fill text-purple-500"></i>
+                      <label class="text-sm font-bold text-gray-900">Experience Level</label>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1.5">Select the level that best matches your background.</p>
                   </div>
-                  <div class="grid grid-cols-3 gap-3">
-                    <label class="relative cursor-pointer group">
-                      <input type="radio" name="experience_level" value="beginner" class="peer sr-only" {{ old('experience_level', $user->experience_level) == 'beginner' ? 'checked' : '' }}>
-                      <div class="h-full p-4 border-2 border-gray-100 rounded-xl peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all text-center hover:border-purple-200 shadow-sm">
-                        <i class="bi bi-seedling text-2xl text-gray-400 group-hover:text-purple-400 peer-checked:text-purple-600 block mb-2"></i>
-                        <p class="text-xs font-bold text-gray-900">Beginner</p>
-                      </div>
-                    </label>
-                    <label class="relative cursor-pointer group">
-                      <input type="radio" name="experience_level" value="intermediate" class="peer sr-only" {{ old('experience_level', $user->experience_level) == 'intermediate' ? 'checked' : '' }}>
-                      <div class="h-full p-4 border-2 border-gray-100 rounded-xl peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all text-center hover:border-purple-200 shadow-sm">
-                        <i class="bi bi-graph-up-arrow text-2xl text-gray-400 group-hover:text-purple-400 peer-checked:text-purple-600 block mb-2"></i>
-                        <p class="text-xs font-bold text-gray-900">Intermediate</p>
-                      </div>
-                    </label>
-                    <label class="relative cursor-pointer group">
-                      <input type="radio" name="experience_level" value="advanced" class="peer sr-only" {{ old('experience_level', $user->experience_level) == 'advanced' ? 'checked' : '' }}>
-                      <div class="h-full p-4 border-2 border-gray-100 rounded-xl peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all text-center hover:border-purple-200 shadow-sm">
-                        <i class="bi bi-trophy-fill text-2xl text-gray-400 group-hover:text-purple-400 peer-checked:text-purple-600 block mb-2"></i>
-                        <p class="text-xs font-bold text-gray-900">Advanced</p>
-                      </div>
-                    </label>
+                  <!-- Options -->
+                  <div class="px-6 py-5">
+                    <div class="grid grid-cols-3 gap-3">
+                      <label class="relative cursor-pointer group">
+                        <input type="radio" name="experience_level" value="beginner" class="peer sr-only" {{ old('experience_level', $user->experience_level) == 'beginner' ? 'checked' : '' }}>
+                        <div class="h-full px-3 py-4 border-2 border-gray-100 rounded-xl peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all text-center hover:border-purple-200 shadow-sm">
+                          <i class="bi bi-seedling text-2xl text-gray-400 group-hover:text-purple-400 peer-checked:text-purple-600 block mb-2.5"></i>
+                          <p class="text-xs font-bold text-gray-800">Beginner</p>
+                        </div>
+                      </label>
+                      <label class="relative cursor-pointer group">
+                        <input type="radio" name="experience_level" value="intermediate" class="peer sr-only" {{ old('experience_level', $user->experience_level) == 'intermediate' ? 'checked' : '' }}>
+                        <div class="h-full px-3 py-4 border-2 border-gray-100 rounded-xl peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all text-center hover:border-purple-200 shadow-sm">
+                          <i class="bi bi-graph-up-arrow text-2xl text-gray-400 group-hover:text-purple-400 peer-checked:text-purple-600 block mb-2.5"></i>
+                          <p class="text-xs font-bold text-gray-800">Intermediate</p>
+                        </div>
+                      </label>
+                      <label class="relative cursor-pointer group">
+                        <input type="radio" name="experience_level" value="advanced" class="peer sr-only" {{ old('experience_level', $user->experience_level) == 'advanced' ? 'checked' : '' }}>
+                        <div class="h-full px-3 py-4 border-2 border-gray-100 rounded-xl peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-all text-center hover:border-purple-200 shadow-sm">
+                          <i class="bi bi-trophy-fill text-2xl text-gray-400 group-hover:text-purple-400 peer-checked:text-purple-600 block mb-2.5"></i>
+                          <p class="text-xs font-bold text-gray-800">Advanced</p>
+                        </div>
+                      </label>
+                    </div>
                   </div>
                 </div>
 
                 <!-- Availability Card -->
-                <div class="bg-white rounded-lg border border-gray-200 p-5">
-                  <div class="flex items-center gap-2 mb-4">
-                    <i class="bi bi-calendar-check-fill text-gray-700"></i>
-                    <label for="availability" class="text-base font-medium text-gray-900">Time & Days Available</label>
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                  <!-- Card Header -->
+                  <div class="px-6 pt-6 pb-4 border-b border-gray-100">
+                    <div class="flex items-center gap-2">
+                      <i class="bi bi-clock-fill text-emerald-500"></i>
+                      <label for="availability" class="text-sm font-bold text-gray-900">Time &amp; Days Available</label>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1.5">Tell us when you're free to volunteer.</p>
                   </div>
-                  <div class="relative mb-3">
-                    <i class="bi bi-clock-fill absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text"
-                           name="availability" 
-                           id="availability"
-                           placeholder="e.g., 8:00 AM - 12:00 PM, Weekends"
-                           value="{{ old('availability', $user->availability) }}"
-                           class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder:text-gray-400">
+                   <!-- Input Area -->
+                   <div class="px-6 py-5">
+                     <div class="relative mb-3">
+                       <input type="text"
+                              name="availability"
+                              id="availability"
+                              placeholder="e.g., 8:00 AM - 12:00 PM, Weekends"
+                              value="{{ old('availability', $user->availability) }}"
+                              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-gray-400 bg-gray-50/50">
+                     </div>
+
+                    <!-- Live AI Match Preview -->
+                    <div id="availability-feedback" class="mb-3 empty:hidden space-y-2">
+                      <!-- Dynamic badges and warnings appear here -->
+                    </div>
+
+                    <p class="text-xs text-gray-400 flex items-center gap-1.5 leading-relaxed mt-2">
+                      <i class="bi bi-info-circle flex-shrink-0"></i>
+                      Type your specific available times and days (e.g. 8:00 AM - 12:00 PM).
+                    </p>
                   </div>
-
-                  <!-- Live AI Match Preview -->
-                  <div id="availability-feedback" class="mb-3 empty:hidden space-y-2">
-                    <!-- Dynamic badges and warnings appear here -->
-                  </div>
-
-
-                  <p class="mt-3 text-xs text-gray-500 flex items-center gap-1 leading-relaxed">
-                    <i class="bi bi-info-circle"></i>
-                    Type your specific available times and days (e.g. 8:00 AM - 12:00 PM).
-                  </p>
                 </div>
               </div>
             </div>
@@ -484,7 +510,7 @@
         <!-- Security Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <!-- Password Update Card -->
-        @if (!$user->google_id)
+        @if(!$user->google_id)
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
           <div class="border-b border-gray-200 px-6 py-5 bg-gray-50">
             <h2 class="text-xl font-semibold text-gray-900 flex items-center gap-3">
@@ -565,7 +591,7 @@
                     <span class="text-xs text-gray-500">Account security</span>
                   </div>
                 </div>
-                @if ($user->hasVerifiedEmail())
+                @if($user->hasVerifiedEmail())
                   <span class="bg-green-50 text-green-700 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1">
                     <i class="bi bi-check-circle-fill"></i>
                     Verified
@@ -593,7 +619,7 @@
                 </span>
               </div>
 
-              @if ($user->isVerifiedOrganizer())
+              @if($user->isVerifiedOrganizer())
                 <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                   <div class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
@@ -797,31 +823,32 @@
   function selectPriority(val) {
       const input = document.getElementById('primary_priority_input');
       if (!input) return;
-      
+
       input.value = val;
-      
-      // Update visual states manually
+
       const cards = ['availability', 'interests', 'location'];
       const themes = {
-          'availability': { border: 'border-blue-500', bg: 'bg-blue-50', ring: 'ring-blue-100/50', icon: 'bg-blue-200', text: 'text-blue-600' },
-          'interests': { border: 'border-emerald-500', bg: 'bg-emerald-50', ring: 'ring-emerald-100/50', icon: 'bg-emerald-200', text: 'text-emerald-600' },
-          'location': { border: 'border-orange-500', bg: 'bg-orange-50', ring: 'ring-orange-100/50', icon: 'bg-orange-200', text: 'text-orange-600' }
+          'availability': { border: 'border-blue-500', bg: 'bg-blue-50', ring: 'ring-blue-100/50', icon: 'bg-blue-200', text: 'text-blue-600', pill: 'text-blue-600 bg-blue-100' },
+          'interests':    { border: 'border-emerald-500', bg: 'bg-emerald-50', ring: 'ring-emerald-100/50', icon: 'bg-emerald-200', text: 'text-emerald-600', pill: 'text-emerald-600 bg-emerald-100' },
+          'location':     { border: 'border-orange-500', bg: 'bg-orange-50', ring: 'ring-orange-100/50', icon: 'bg-orange-200', text: 'text-orange-600', pill: 'text-orange-600 bg-orange-100' }
       };
 
       cards.forEach(c => {
-          const el = document.getElementById('card-' + c);
-          const badge = el.querySelector('.check-badge');
-          const iconBox = el.querySelector('.icon-box');
-          const theme = themes[c];
+          const el        = document.getElementById('card-' + c);
+          const iconBox   = el.querySelector('.icon-box');
+          const indicator = el.querySelector('.selected-indicator');
+          const pill      = indicator ? indicator.querySelector('span') : null;
+          const theme     = themes[c];
 
           if (c === val) {
-              el.className = `priority-card h-full p-5 border-2 rounded-2xl shadow-sm transition-all duration-300 cursor-pointer relative flex flex-col items-center text-center ${theme.border} ${theme.bg} ring-4 ${theme.ring}`;
-              badge.classList.remove('hidden');
-              iconBox.className = `icon-box w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-colors ${theme.icon} ${theme.text}`;
+              el.className = `priority-card h-full p-6 border-2 rounded-2xl shadow-sm transition-all duration-300 cursor-pointer relative flex flex-col items-center text-center ${theme.border} ${theme.bg} ring-4 ${theme.ring}`;
+              iconBox.className = `icon-box w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-colors ${theme.icon} ${theme.text}`;
+              if (indicator) indicator.classList.remove('hidden');
+              if (pill) pill.className = `inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded-full ${theme.pill}`;
           } else {
-              el.className = `priority-card h-full p-5 border-2 rounded-2xl bg-white shadow-sm transition-all duration-300 cursor-pointer relative flex flex-col items-center text-center border-gray-100 hover:border-gray-200`;
-              badge.classList.add('hidden');
-              iconBox.className = `icon-box w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-colors bg-gray-50 text-gray-400`;
+              el.className = `priority-card h-full p-6 border-2 rounded-2xl bg-white shadow-sm transition-all duration-300 cursor-pointer relative flex flex-col items-center text-center border-gray-100`;
+              iconBox.className = `icon-box w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-colors bg-gray-100 text-gray-400`;
+              if (indicator) indicator.classList.add('hidden');
           }
       });
   }

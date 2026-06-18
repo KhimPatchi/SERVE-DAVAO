@@ -1,4 +1,4 @@
-﻿@extends ('layouts.sidebar.sidebar')
+@extends ('layouts.sidebar.sidebar')
 
 @section ('title', 'Dashboard | ServeDavao')
 
@@ -9,7 +9,7 @@
     <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
             <h1 class="text-3xl font-bold text-gray-900 tracking-tight">
-                Welcome back, {{ explode(' ', trim(auth()->user()->name))[0] }}! ðŸ‘‹
+                Welcome back, {{ explode(' ', trim(auth()->user()->name))[0] }}! 👋
             </h1>
             <p class="text-gray-500 mt-1 flex items-center gap-2 font-medium">
                 <i class="bi bi-calendar3"></i>
@@ -18,12 +18,12 @@
         </div>
         
         <div class="flex items-center gap-3">
-             @if (auth()->user()->isVerifiedOrganizer())
+             @if(auth()->user()->isVerifiedOrganizer())
                 <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-100 shadow-sm transition-transform hover:scale-105">
                     <i class="bi bi-patch-check-fill"></i>
                     Verified Organizer
                 </span>
-            @elseif (auth()->user()->hasPendingVerification())
+            @elseif(auth()->user()->hasPendingVerification())
                  <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 text-amber-700 font-semibold border border-amber-100 shadow-sm transition-transform hover:scale-105">
                     <i class="bi bi-hourglass-split"></i>
                     Verification Pending
@@ -38,7 +38,7 @@
     </header>
 
     {{-- Post-Event Suggestion Prompt --}}
-    @if (isset($pendingSuggestionEvents) && $pendingSuggestionEvents->isNotEmpty())
+    @if(isset($pendingSuggestionEvents) && $pendingSuggestionEvents->isNotEmpty())
         @php $promptEvent = $pendingSuggestionEvents->first(); @endphp
         <div id="suggestion-banner"
              class="flex items-start gap-4 bg-amber-50 border border-amber-200 rounded-2xl px-6 py-5 shadow-sm relative animate-fade-in">
@@ -46,7 +46,7 @@
                 <i class="bi bi-lightbulb-fill text-xl"></i>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="font-bold text-amber-900 text-sm">You attended <span class="text-amber-700">{{ $promptEvent->title }}</span> â€” thank you! ðŸ™Œ</p>
+                <p class="font-bold text-amber-900 text-sm">You attended <span class="text-amber-700">{{ $promptEvent->title }}</span> — thank you! 🙌</p>
                 <p class="text-amber-700 text-sm mt-0.5">What kind of event should we organize next? Share your idea with us!</p>
                 <a href="{{ route('suggestions.create', ['event_id' => $promptEvent->id]) }}"
                    class="inline-flex items-center gap-2 mt-3 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-5 py-2 rounded-xl transition-all shadow hover:-translate-y-0.5 hover:shadow-amber-200">
@@ -115,9 +115,9 @@
                 <div>
                     <p class="text-emerald-100 text-xs font-bold uppercase tracking-wider">Current Level</p>
                      <h3 class="text-2xl font-bold mt-2 tracking-tight">
-                        @if ($totalHours >= 50) Champion
-                        @elseif ($totalHours >= 20) Leader
-                        @elseif ($totalHours >= 5) Supporter
+                        @if($totalHours >= 50) Champion
+                        @elseif($totalHours >= 20) Leader
+                        @elseif($totalHours >= 5) Supporter
                         @else Beginner
                         @endif
                     </h3>
@@ -142,7 +142,7 @@
         <div class="lg:col-span-2 space-y-8">
             
             {{-- AI Recommended Section (For Volunteers) --}}
-            @if (!auth()->user()->isVerifiedOrganizer() && isset($recommendations) && count($recommendations) > 0)
+            @if(!auth()->user()->isVerifiedOrganizer() && isset($recommendations) && count($recommendations) > 0)
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
@@ -155,7 +155,7 @@
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        @foreach ($recommendations as $rec)
+                        @foreach($recommendations as $rec)
                             @php $recEvent = $rec['event']; @endphp
                             <div class="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-xl hover:border-emerald-200 transition-all duration-300 group relative overflow-hidden">
                                 <!-- Premium Match Badge -->
@@ -200,7 +200,7 @@
             </div>
 
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
-                @if (count($events) > 0)
+                @if(count($events) > 0)
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -212,7 +212,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
-                                @foreach ($events as $event)
+                                @foreach($events as $event)
                                 <tr class="hover:bg-gray-50/50 transition-colors group">
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-4">
@@ -266,7 +266,7 @@
             <h2 class="text-xl font-bold text-gray-900 tracking-tight">Quick Actions</h2>
             
             <div class="grid grid-cols-1 gap-4">
-                 @if (auth()->user()->canCreateEvents())
+                 @if(auth()->user()->canCreateEvents())
                     <a href="{{ route('events.create') }}" class="flex items-center p-4 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-200 hover:-translate-y-1 transition-all duration-300 group w-full text-left">
                         <div class="p-3 bg-white/20 rounded-xl mr-4 group-hover:scale-110 transition-transform">
                             <i class="bi bi-plus-lg text-xl"></i>
@@ -276,7 +276,7 @@
                             <p class="text-emerald-100 text-xs opacity-90 font-medium">Host a new activity</p>
                         </div>
                     </a>
-                @elseif (!auth()->user()->isVerifiedOrganizer() && !auth()->user()->hasPendingVerification())
+                @elseif(!auth()->user()->isVerifiedOrganizer() && !auth()->user()->hasPendingVerification())
                      <a href="{{ route('organizer.verification.create') }}" class="flex items-center p-4 bg-gray-900 text-white rounded-2xl hover:bg-black hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group w-full text-left">
                         <div class="p-3 bg-white/20 rounded-xl mr-4 group-hover:scale-110 transition-transform">
                             <i class="bi bi-patch-check text-xl"></i>

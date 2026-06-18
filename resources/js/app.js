@@ -8,36 +8,6 @@ Alpine.start();
 
 // Landing Page & General UI Logic
 
-function showLoading(event = null) {
-    if (event) {
-        const href = event.currentTarget.getAttribute('href');
-
-        // ALLOW smooth scrolling to sections without loading
-        if (href && href.startsWith('#')) {
-            return; // Don't show loading for section links
-        }
-
-        // For external links or page navigation, show loading
-        if (href && (href.startsWith('/') || href.startsWith('http'))) {
-            // Only prevent default if we're actually hijacking the nav
-            // But usually we just let it happen in background unless it's a SPA transition
-        } else {
-            return; // Don't show loading for other cases
-        }
-    }
-
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    if (loadingOverlay) {
-        loadingOverlay.style.display = 'flex';
-    }
-}
-
-function hideLoading() {
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    if (loadingOverlay) {
-        loadingOverlay.style.display = 'none';
-    }
-}
 
 // Contact form handling
 function initContactForm() {
@@ -182,18 +152,4 @@ document.addEventListener('DOMContentLoaded', function () {
     initHoverEffects();
     initContactForm();
 
-    const loadingTriggers = document.querySelectorAll(
-        'a[href*="/login"], a[href*="/register"], a[href*="/events"], a.bg-emerald-600'
-    );
-
-    loadingTriggers.forEach(el => {
-        el.addEventListener('click', showLoading);
-    });
-
-    // Hide loading on back button cache restore
-    window.addEventListener('pageshow', function (event) {
-        if (event.persisted) {
-            hideLoading();
-        }
-    });
 });

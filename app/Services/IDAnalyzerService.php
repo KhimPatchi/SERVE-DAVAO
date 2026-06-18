@@ -25,7 +25,7 @@ class IDAnalyzerService
         $this->acceptedDocuments = explode(',', config('services.idanalyzer.accepted_documents', 'passport,driverlicense,nationalid'));
         $this->confidenceThreshold = config('services.idanalyzer.confidence_threshold', 0.7);
         $this->profileId = config('services.idanalyzer.profile_id');
-        
+
         // Set API endpoint based on region
         $this->baseUrl = $this->getRegionalApiEndpoint($this->region);
     }
@@ -43,10 +43,11 @@ class IDAnalyzerService
     }
 
     /**
-     * Verify an ID document
-     * 
-     * @param UploadedFile $idDocument The uploaded ID document
-     * @param UploadedFile|null $selfie Optional selfie for face matching
+     * Verify an ID document with an optional live selfie for face matching + liveness.
+     *
+     * @param UploadedFile $idDocument  The uploaded ID document
+     * @param UploadedFile|null $selfie The captured live selfie (from camera)
+     * @param string|null $clientRef    Optional client reference (e.g. user ID)
      * @return array Verification result
      */
     public function verifyDocument(UploadedFile $idDocument, ?UploadedFile $selfie = null, ?string $clientRef = null): array
@@ -81,11 +82,44 @@ class IDAnalyzerService
             ]);
 
             return [
-                'success' => false,
-                'error' => $e->getMessage(),
-                'verified' => false
+                'success'  => false,
+                'error'    => $e->getMessage(),
+                'verified' => false,
             ];
         }
+    }
+
+    /**
+     * Convert a base64-encoded image string into a temp UploadedFile instance.
+     * Used to pass a live selfie (captured from browser camera) to verifyDocument().
+     *
+     * @param string $base64String  The raw base64 string (may include "data:image/png;base64," prefix)
+     * @return UploadedFile
+     */
+    public function createUploadedFileFromBase64(string $base64String): UploadedFile
+    {
+        // Strip data URI prefix if present (e.g. "data:image/png;base64,")
+        if (str_contains($base64String, ',')) {
+            $base64String = substr($base64String, strpos($base64String, ',') + 1);
+        }
+
+        $imageData = base64_decode($base64String);
+
+        if ($imageData === false) {
+            throw new \InvalidArgumentException('Invalid base64 selfie data received.');
+        }
+
+        // Write to a temp file
+        $tmpPath = sys_get_temp_dir() . '/live_selfie_' . uniqid() . '.png';
+        file_put_contents($tmpPath, $imageData);
+
+        return new UploadedFile(
+            path: $tmpPath,
+            originalName: 'live_selfie.png',
+            mimeType: 'image/png',
+            error: UPLOAD_ERR_OK,
+            test: true // bypass is_uploaded_file() check
+        );
     }
 
     /**
@@ -93,7 +127,7 @@ class IDAnalyzerService
      */
     private function validateFile(UploadedFile $file, string $type = 'document'): void
     {
-        $allowedMimes = $type === 'selfie' 
+        $allowedMimes = $type === 'selfie'
             ? ['image/jpeg', 'image/jpg', 'image/png']
             : ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
 
@@ -134,28 +168,28 @@ class IDAnalyzerService
     {
         $multipart = [
             [
-                'name' => 'apikey',
+                'name'     => 'apikey',
                 'contents' => $this->apiKey
             ],
             [
-                'name' => 'file',
+                'name'     => 'file',
                 'contents' => fopen($documentPath, 'r'),
                 'filename' => basename($documentPath)
             ],
             [
-                'name' => 'accuracy',
+                'name'     => 'accuracy',
                 'contents' => '2' // High accuracy mode
             ],
             [
-                'name' => 'type',
+                'name'     => 'type',
                 'contents' => implode(',', $this->acceptedDocuments)
-            ]
+            ],
         ];
 
         // Add optional profile ID
         if ($this->profileId) {
             $multipart[] = [
-                'name' => 'profile',
+                'name'     => 'profile',
                 'contents' => $this->profileId
             ];
         }
@@ -163,40 +197,34 @@ class IDAnalyzerService
         // Add optional client reference
         if ($clientRef) {
             $multipart[] = [
-                'name' => 'client_ref',
+                'name'     => 'client_ref',
                 'contents' => $clientRef
             ];
         }
 
         // FORCE SAVE: Add parameters to ensure transaction is saved
-        $multipart[] = [
-            'name' => 'vault_save',
-            'contents' => '1'
-        ];
-        $multipart[] = [
-            'name' => 'save_data',
-            'contents' => '1'
-        ];
+        $multipart[] = ['name' => 'vault_save', 'contents' => '1'];
+        $multipart[] = ['name' => 'save_data',  'contents' => '1'];
 
-        // DEBUG: Log the request payload
-        Log::info('ID Analyzer Request Payload:', array_map(function($item) {
+        // DEBUG: Log the request payload (omit file content)
+        Log::info('ID Analyzer Request Payload:', array_map(function ($item) {
             return [
-                'name' => $item['name'],
-                'contents' => $item['name'] === 'file' || $item['name'] === 'face' ? 'FILE_RESOURCE' : $item['contents']
+                'name'     => $item['name'],
+                'contents' => in_array($item['name'], ['file', 'face']) ? 'FILE_RESOURCE' : $item['contents']
             ];
         }, $multipart));
 
-        // Add face verification if enabled and selfie provided
-        if ($this->verifyFace && $selfiePath) {
+        // Add live selfie for face matching + liveness detection
+        if ($selfiePath) {
             $multipart[] = [
-                'name' => 'face',
+                'name'     => 'face',
                 'contents' => fopen($selfiePath, 'r'),
                 'filename' => basename($selfiePath)
             ];
-            $multipart[] = [
-                'name' => 'biometric',
-                'contents' => '1'
-            ];
+            // biometric: 1  => enables face match between ID photo and selfie
+            // liveness: 1   => enables anti-spoofing liveness detection on the selfie
+            $multipart[] = ['name' => 'biometric', 'contents' => '1'];
+            $multipart[] = ['name' => 'liveness',  'contents' => '1'];
         }
 
         $response = Http::timeout(90)
@@ -221,51 +249,57 @@ class IDAnalyzerService
         // Check if the API returned an error
         if (isset($response['error'])) {
             return [
-                'success' => false,
-                'verified' => false,
-                'error' => $response['error']['message'] ?? 'Unknown API error',
-                'error_code' => $response['error']['code'] ?? null
+                'success'    => false,
+                'verified'   => false,
+                'error'      => $response['error']['message'] ?? 'Unknown API error',
+                'error_code' => $response['error']['code'] ?? null,
             ];
         }
 
         // Extract verification data
-        $result = $response['result'] ?? [];
+        $result         = $response['result'] ?? [];
         $authentication = $result['authentication'] ?? [];
-        $faceMatch = $response['face'] ?? [];
-        
-        // Calculate scores
-        $documentScore = $authentication['score'] ?? 0;
-        $faceScore = !empty($faceMatch) ? ($faceMatch['confidence'] ?? 0) : null;
-        
-        // Convert to float for reliable comparison
-        $faceScoreFloat = $faceScore !== null ? (float)$faceScore : null;
+        $faceMatch      = $response['face'] ?? [];
+
+        // Calculate document score
+        $documentScore      = $authentication['score'] ?? 0;
         $documentScoreFloat = (float)($documentScore / 100);
 
-        // Overall verification decision
-        // 1. Document is "read" successfully if documentType is present
-        // 2. Document is "authentic" if score >= threshold OR score is 0 (check not supported)
+        // Calculate face match score
+        $faceScore      = !empty($faceMatch) ? ($faceMatch['confidence'] ?? null) : null;
+        $faceScoreFloat = $faceScore !== null ? (float)$faceScore : null;
+
+        // Calculate liveness score
+        // IDAnalyzer returns face.liveness as a float 0-1
+        $livenessScore  = isset($faceMatch['liveness']) ? (float)$faceMatch['liveness'] : null;
+        $livenessPassed = $livenessScore !== null ? ($livenessScore >= 0.6) : true; // true if not checked
+
+        // Document is "authenticated" if documentType present + score >= threshold (or score = 0 = unsupported check)
         $documentVerified = !empty($result['documentType']) && ($documentScore === 0 || $documentScoreFloat >= $this->confidenceThreshold);
-        
-        // 3. Face is verified if face match >= threshold (if face verification enabled)
+
+        // Face is verified if face match >= threshold
         $faceVerified = $faceScoreFloat === null ? true : ($faceScoreFloat >= $this->confidenceThreshold);
-        
-        $verified = $documentVerified && $faceVerified;
+
+        // Overall: all three conditions must pass
+        $verified = $documentVerified && $faceVerified && $livenessPassed;
 
         return [
-            'success' => true,
-            'verified' => $verified,
-            'document_type' => $result['documentType'] ?? null,
-            'document_number' => $result['documentNumber'] ?? null,
-            'full_name' => trim(($result['firstName'] ?? '') . ' ' . ($result['lastName'] ?? '')),
-            'date_of_birth' => $result['dob'] ?? null,
-            'expiry_date' => $result['expiry'] ?? null,
-            'issuing_country' => $result['country'] ?? null,
-            'confidence_score' => $documentScore / 100,
-            'face_match_score' => $faceScore,
+            'success'           => true,
+            'verified'          => $verified,
+            'document_type'     => $result['documentType'] ?? null,
+            'document_number'   => $result['documentNumber'] ?? null,
+            'full_name'         => trim(($result['firstName'] ?? '') . ' ' . ($result['lastName'] ?? '')),
+            'date_of_birth'     => $result['dob'] ?? null,
+            'expiry_date'       => $result['expiry'] ?? null,
+            'issuing_country'   => $result['country'] ?? null,
+            'confidence_score'  => $documentScore / 100,
+            'face_match_score'  => $faceScore,
+            'liveness_score'    => $livenessScore,
+            'liveness_passed'   => $livenessPassed,
             'authentication_score' => $documentScore,
-            'warnings' => $authentication['warnings'] ?? [],
-            'extracted_data' => $result,
-            'timestamp' => now()->toIso8601String()
+            'warnings'          => $authentication['warnings'] ?? [],
+            'extracted_data'    => $result,
+            'timestamp'         => now()->toIso8601String(),
         ];
     }
 
@@ -290,7 +324,7 @@ class IDAnalyzerService
     }
 
     /**
-     * Get human-readable verification status
+     * Get human-readable verification status message
      */
     public function getVerificationStatusMessage(array $result): string
     {
@@ -303,28 +337,36 @@ class IDAnalyzerService
         }
 
         $reasons = [];
-        
-        $documentScore = $result['authentication_score'] ?? 0;
-        $documentScoreFloat = (float)($documentScore / 100);
-        $faceScore = $result['face_match_score'] ?? null;
-        $faceScoreFloat = $faceScore !== null ? (float)$faceScore : null;
 
-        if (empty($result['document_type'])) {
-            $reasons[] = 'Document could not be read clearly';
-        } elseif ($documentScore > 0 && $documentScoreFloat < $this->confidenceThreshold) {
-            $reasons[] = 'Document authenticity could not be confirmed';
+        $documentScore      = $result['authentication_score'] ?? 0;
+        $documentScoreFloat = (float)($documentScore / 100);
+        $faceScore          = $result['face_match_score'] ?? null;
+        $faceScoreFloat     = $faceScore !== null ? (float)$faceScore : null;
+        $livenessScore      = $result['liveness_score'] ?? null;
+
+        // Liveness failure — checked first (most important for security)
+        if ($livenessScore !== null && $livenessScore < 0.6) {
+            $reasons[] = 'Live selfie did not pass liveness check (possible spoofing detected). Please take a fresh selfie directly from your camera';
         }
 
+        // Face mismatch
         if ($faceScoreFloat !== null && $faceScoreFloat < $this->confidenceThreshold) {
-            $reasons[] = 'Face does not match the document';
+            $reasons[] = 'Your face does not match the photo on your ID document';
+        }
+
+        // Document unreadable
+        if (empty($result['document_type'])) {
+            $reasons[] = 'ID document could not be read — please ensure the photo is clear, well-lit, and not cropped';
+        } elseif ($documentScore > 0 && $documentScoreFloat < $this->confidenceThreshold) {
+            $reasons[] = 'ID document authenticity could not be confirmed';
         }
 
         if (empty($reasons) && !empty($result['warnings'])) {
-            $reasons[] = 'Document quality issues detected (glare or blur)';
+            $reasons[] = 'Document quality issues detected (glare, blur, or obstruction)';
         }
 
-        return !empty($reasons) 
-            ? 'Verification failed: ' . implode(', ', $reasons)
-            : 'Verification failed: Please ensure your ID and selfie are clear';
+        return !empty($reasons)
+            ? 'Verification failed: ' . implode('. ', $reasons)
+            : 'Verification failed: Please ensure your ID and selfie are clear and try again';
     }
 }

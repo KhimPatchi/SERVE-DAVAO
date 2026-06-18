@@ -1,4 +1,4 @@
-﻿@extends ('layouts.sidebar.sidebar')
+@extends ('layouts.sidebar.sidebar')
 
 @section ('title', 'Create Poll | ServeDavao')
 
@@ -9,15 +9,15 @@
         <a href="{{ route('polls.index') }}" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 font-medium mb-4 transition-colors">
             <i class="bi bi-arrow-left"></i> Back to Polls
         </a>
-        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Create a Poll ðŸ—³ï¸</h1>
-        <p class="text-gray-500 mt-1 font-medium">Give volunteers a question with options â€” let them decide what's next!</p>
+        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Create a Poll 🗳️</h1>
+        <p class="text-gray-500 mt-1 font-medium">Give volunteers a question with options — let them decide what's next!</p>
     </div>
 
-    @if ($errors->any())
+    @if($errors->any())
         <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-5 py-4">
             <p class="font-semibold mb-2">Please fix the following:</p>
             <ul class="list-disc list-inside space-y-1 text-sm">
-                @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+                @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
             </ul>
         </div>
     @endif
@@ -55,7 +55,7 @@
 
                 <div id="options-container" class="space-y-3">
                     @php $oldOptions = old('options', ['', '']); @endphp
-                    @foreach ($oldOptions as $i => $val)
+                    @foreach($oldOptions as $i => $val)
                     <div class="option-row flex items-center gap-3">
                         <div class="flex-shrink-0 w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center option-number">
                             {{ $i + 1 }}
@@ -64,7 +64,7 @@
                             placeholder="Option {{ $i + 1 }}"
                             {{ $i < 2 ? 'required' : '' }}
                             class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition-all text-sm">
-                        @if ($i >= 2)
+                        @if($i >= 2)
                         <button type="button" onclick="removeOption(this)"
                                 class="text-gray-300 hover:text-red-400 transition-colors p-1">
                             <i class="bi bi-x-circle-fill text-lg"></i>

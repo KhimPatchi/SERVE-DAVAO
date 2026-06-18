@@ -169,4 +169,26 @@ class ConversationController extends Controller
 
         return response()->json($results);
     }
+
+    /**
+     * Get all messages in the conversation (AJAX endpoint for date scrolling)
+     */
+    public function getAllMessages(Conversation $conversation)
+    {
+        $user = auth()->user();
+
+        if (!$conversation->isParticipant($user)) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $messages = $conversation->messages()
+            ->with('sender')
+            ->orderBy('created_at', 'asc') // chronological order
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'messages' => $messages
+        ]);
+    }
 }

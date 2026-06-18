@@ -297,6 +297,38 @@ class EventController extends Controller
     }
 
     /**
+     * Get the top 5 ongoing events ranked by number of registered participants.
+     * Only active/current events are included.
+     */
+    public function getCurrentEventsForChatbot()
+    {
+        $now = \Carbon\Carbon::now(config('app.timezone'));
+        
+        $ongoingEvents = Event::where('status', 'active')
+            ->get()
+            ->filter(function ($event) {
+                return $event->isOngoing();
+            })
+            ->sortByDesc('current_volunteers')
+            ->take(5)
+            ->values()
+            ->map(function ($event) {
+                return [
+                    'id' => $event->id,
+                    'title' => $event->title,
+                    'current_volunteers' => $event->current_volunteers,
+                    'required_volunteers' => $event->required_volunteers,
+                    'location' => $event->location,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'events' => $ongoingEvents
+        ]);
+    }
+
+    /**
      * Store the previous URL in session for back navigation
      * This helps the back button work correctly
      */

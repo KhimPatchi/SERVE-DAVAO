@@ -1,4 +1,4 @@
-﻿@extends ('layouts.sidebar.sidebar')
+@extends ('layouts.sidebar.sidebar')
 
 @section ('content')
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100/50 p-8" id="attendance-scan">
@@ -30,7 +30,7 @@
 
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
 
-    {{-- â”€â”€ Left: QR Scanner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+    {{-- ── Left: QR Scanner ─────────────────────────────────────────────── --}}
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
 
       {{-- Card Header --}}
@@ -64,9 +64,9 @@
           <span id="scanStatusText"></span>
         </div>
 
-        {{-- â”€â”€ Camera Panel â”€â”€ --}}
+        {{-- ── Camera Panel ── --}}
         <div id="panelCamera">
-          {{-- Viewfinder wrapper â€” CSS centers html5-qrcode's injected video --}}
+          {{-- Viewfinder wrapper — CSS centers html5-qrcode's injected video --}}
           <div id="qr-reader" class="qr-viewfinder w-full rounded-xl overflow-hidden bg-black"></div>
           <div class="mt-4 flex gap-3">
             <button id="startScanBtn"
@@ -80,7 +80,7 @@
           </div>
         </div>
 
-        {{-- â”€â”€ Upload Panel â”€â”€ --}}
+        {{-- ── Upload Panel ── --}}
         <div id="panelUpload" class="hidden">
           {{-- Drop zone --}}
           <label for="qrImageInput"
@@ -91,7 +91,7 @@
             </div>
             <div class="text-center">
               <p class="text-sm font-semibold text-gray-700">Click or drag a QR image here</p>
-              <p class="text-xs text-gray-400 mt-0.5">PNG, JPG, WebP â€” screenshot from volunteer's phone</p>
+              <p class="text-xs text-gray-400 mt-0.5">PNG, JPG, WebP — screenshot from volunteer's phone</p>
             </div>
             <input type="file" id="qrImageInput" accept="image/*" class="hidden">
           </label>
@@ -120,7 +120,7 @@
       </div>
     </div>
 
-    {{-- â”€â”€ Right: Attendance Board â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+    {{-- ── Right: Attendance Board ────────────────────────────────────────── --}}
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
 
       {{-- Board Header --}}
@@ -165,7 +165,7 @@
           <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
           <input id="volunteerSearch"
                  type="text"
-                 placeholder="Search volunteersâ€¦"
+                 placeholder="Search volunteers…"
                  class="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-transparent transition-all">
         </div>
       </div>
@@ -174,7 +174,7 @@
       <div class="divide-y divide-gray-50 overflow-y-auto flex-1" style="max-height: 400px" id="attendanceList">
 
         {{-- Attended rows --}}
-        @foreach ($attended as $ev)
+        @foreach($attended as $ev)
         @php
           $colors = ['from-emerald-400 to-teal-500','from-blue-400 to-indigo-500','from-purple-400 to-pink-500','from-orange-400 to-red-500','from-cyan-400 to-blue-500'];
           $color  = $colors[crc32($ev->volunteer->name) % count($colors)];
@@ -183,7 +183,7 @@
              data-volunteer-id="{{ $ev->volunteer->id }}"
              data-name="{{ strtolower($ev->volunteer->name) }}">
           {{-- Avatar --}}
-          @if ($ev->volunteer->avatar || $ev->volunteer->google_avatar)
+          @if($ev->volunteer->avatar || $ev->volunteer->google_avatar)
           <img src="{{ $ev->volunteer->avatar_url }}" class="w-10 h-10 rounded-full object-cover shrink-0 shadow-sm">
           @else
           <div class="w-10 h-10 rounded-full bg-gradient-to-br {{ $color }} flex items-center justify-center text-white text-sm font-black shrink-0 shadow-sm">
@@ -200,7 +200,7 @@
             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">
               <i class="bi bi-check2-circle"></i> Attended
             </span>
-            @if ($ev->check_in_time)
+            @if($ev->check_in_time)
             <div class="text-[10px] text-gray-400 mt-0.5 font-medium">{{ $ev->check_in_time->setTimezone(config('app.timezone'))->format('h:i A') }}</div>
             @endif
           </div>
@@ -208,7 +208,7 @@
         @endforeach
 
         {{-- Pending rows --}}
-        @foreach ($registered as $ev)
+        @foreach($registered as $ev)
         @php
           $colors = ['from-emerald-400 to-teal-500','from-blue-400 to-indigo-500','from-purple-400 to-pink-500','from-orange-400 to-red-500','from-cyan-400 to-blue-500'];
           $color  = $colors[crc32($ev->volunteer->name) % count($colors)];
@@ -217,7 +217,7 @@
              data-volunteer-id="{{ $ev->volunteer->id }}"
              data-name="{{ strtolower($ev->volunteer->name) }}">
           {{-- Avatar (greyscale tint if pending) --}}
-          @if ($ev->volunteer->avatar || $ev->volunteer->google_avatar)
+          @if($ev->volunteer->avatar || $ev->volunteer->google_avatar)
           <img src="{{ $ev->volunteer->avatar_url }}" class="w-10 h-10 rounded-full object-cover shrink-0 grayscale-[0.4]">
           @else
           <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-white text-sm font-black shrink-0">
@@ -234,7 +234,7 @@
         @endforeach
 
         {{-- Empty state --}}
-        @if ($attended->isEmpty() && $registered->isEmpty())
+        @if($attended->isEmpty() && $registered->isEmpty())
         <div class="flex flex-col items-center justify-center py-16 text-gray-300" id="emptyState">
           <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mb-4">
             <i class="bi bi-people text-3xl text-gray-300"></i>
@@ -281,7 +281,7 @@
   <span id="toastMsg"></span>
 </div>
 
-{{-- â”€â”€ Scoped CSS fixes for html5-qrcode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+{{-- ── Scoped CSS fixes for html5-qrcode ─────────────────────────────────── --}}
 <style>
 /* Force the injected video to fill the wrapper and stay centered */
 .qr-viewfinder { position: relative; min-height: 300px; }
@@ -316,18 +316,18 @@
 (function () {
   'use strict';
 
-  // â”€â”€ Config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Config ───────────────────────────────────────────────────────────────
   const END_EVENT_URL = '{{ route("organizer.attendance.end", $event) }}';
   const CSRF = document.querySelector('meta[name=csrf-token]')?.content;
 
-  // â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── State ────────────────────────────────────────────────────────────────
   let scanner     = null;
   let scanning    = false;
   let lastScanned = null;
   let lastScannedAt = 0;
   let activeTab   = 'camera';
 
-  // â”€â”€ DOM refs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── DOM refs ─────────────────────────────────────────────────────────────
   const tabCamera      = document.getElementById('tabCamera');
   const tabUpload      = document.getElementById('tabUpload');
   const panelCamera    = document.getElementById('panelCamera');
@@ -352,7 +352,7 @@
   const toastMsg       = document.getElementById('toastMsg');
   const toastIcon      = document.getElementById('toastIcon');
 
-  // â”€â”€ Tab switching â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Tab switching ─────────────────────────────────────────────────────────
   async function switchTab(tab) {
     if (tab === activeTab) return;
     activeTab = tab;
@@ -388,7 +388,7 @@
   tabCamera.addEventListener('click', () => switchTab('camera'));
   tabUpload.addEventListener('click', () => switchTab('upload'));
 
-  // â”€â”€ Volunteer search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Volunteer search ────────────────────────────────────────────────
   const searchInput = document.getElementById('volunteerSearch');
   if (searchInput) {
     searchInput.addEventListener('input', function () {
@@ -400,7 +400,7 @@
     });
   }
 
-  // â”€â”€ Toast helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Toast helper ──────────────────────────────────────────────────────────
   function showToast(message, type = 'success') {
     const colors = { success:'bg-emerald-600', error:'bg-red-600', warning:'bg-amber-600', info:'bg-blue-600' };
     const icons  = { success:'bi-check-circle-fill', error:'bi-x-circle-fill', warning:'bi-exclamation-triangle-fill', info:'bi-info-circle-fill' };
@@ -415,7 +415,7 @@
     }, 4000);
   }
 
-  // â”€â”€ Status banner helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Status banner helper ──────────────────────────────────────────────────
   function setStatus(text, type = 'info') {
     const map = {
       info    : ['bg-blue-50 text-blue-700',      'bi-info-circle-fill'],
@@ -430,7 +430,7 @@
     statusEl.classList.remove('hidden');
   }
 
-  // â”€â”€ Attendance list update â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Attendance list update ────────────────────────────────────────────────
   // Avatar gradient colours (must match Blade list above)
   const AVATAR_COLORS = [
     'linear-gradient(135deg,#34d399,#14b8a6)',
@@ -493,19 +493,19 @@
     updateProgress();
   }
 
-  // â”€â”€ Core check-in fetch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Core check-in fetch ───────────────────────────────────────────────────
   async function processCheckin(decodedText) {
-    // Debounce â€” ignore same code within 5 s
+    // Debounce — ignore same code within 5 s
     if (decodedText === lastScanned && Date.now() - lastScannedAt < 5000) return;
     lastScanned   = decodedText;
     lastScannedAt = Date.now();
 
     if (!decodedText.includes('/organizer/events/') || !decodedText.includes('/checkin/')) {
-      setStatus('Invalid QR â€” not a SERVE-DAVAO ticket.', 'error');
+      setStatus('Invalid QR — not a SERVE-DAVAO ticket.', 'error');
       return;
     }
 
-    setStatus('Processing check-inâ€¦', 'scanning');
+    setStatus('Processing check-in…', 'scanning');
     try {
       const res  = await fetch(decodedText, {
         headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
@@ -520,12 +520,12 @@
         showToast(data.message, 'error');
       }
     } catch {
-      setStatus('Network error â€” please try again.', 'error');
-      showToast('Network error â€” please try again.', 'error');
+      setStatus('Network error — please try again.', 'error');
+      showToast('Network error — please try again.', 'error');
     }
   }
 
-  // â”€â”€ Camera scanner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Camera scanner ────────────────────────────────────────────────────────
   startBtn.addEventListener('click', async () => {
     if (scanning) return;
 
@@ -543,7 +543,7 @@
       scanning = true;
       startBtn.classList.add('hidden');
       stopBtn.classList.remove('hidden');
-      setStatus("Camera active â€” point at the volunteer's QR ticket.", 'scanning');
+      setStatus("Camera active — point at the volunteer's QR ticket.", 'scanning');
     } catch {
       showToast('Camera access denied or unavailable.', 'error');
     }
@@ -559,7 +559,7 @@
     statusEl.classList.add('hidden');
   });
 
-  // â”€â”€ Image upload scanner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Image upload scanner ──────────────────────────────────────────────────
   qrImageInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -583,8 +583,8 @@
     if (!file) return;
 
     uploadScanBtn.disabled    = true;
-    uploadScanBtn.textContent = 'Scanningâ€¦';
-    setStatus('Reading QR code from imageâ€¦', 'scanning');
+    uploadScanBtn.textContent = 'Scanning…';
+    setStatus('Reading QR code from image…', 'scanning');
 
     try {
       // Use a temporary off-screen element so it doesn't hijack the camera div
@@ -611,13 +611,13 @@
     }
   });
 
-  // â”€â”€ End Event â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── End Event ─────────────────────────────────────────────────────────────
   endEventBtn.addEventListener('click', () => endModal.classList.remove('hidden'));
   cancelEnd.addEventListener('click',   () => endModal.classList.add('hidden'));
 
   confirmEnd.addEventListener('click', async () => {
     confirmEnd.disabled     = true;
-    confirmEnd.textContent  = 'Endingâ€¦';
+    confirmEnd.textContent  = 'Ending…';
     try {
       const res  = await fetch(END_EVENT_URL, {
         method  : 'POST',
@@ -639,7 +639,7 @@
         showToast(data.message, 'error');
       }
     } catch {
-      showToast('Failed to end event â€” please try again.', 'error');
+      showToast('Failed to end event — please try again.', 'error');
     } finally {
       confirmEnd.disabled    = false;
       confirmEnd.textContent = 'Yes, End Event';

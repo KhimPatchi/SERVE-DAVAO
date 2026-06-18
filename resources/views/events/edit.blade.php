@@ -37,7 +37,7 @@
 
     <!-- Error/Success Trapping -->
     <div class="max-w-5xl mx-auto mb-8">
-        @if (session('error'))
+        @if(session('error'))
             <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm flex items-center justify-between animate-fade-in-down">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
@@ -53,7 +53,7 @@
             </div>
         @endif
 
-        @if (session('success'))
+        @if(session('success'))
             <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-xl shadow-sm flex items-center justify-between animate-fade-in-down">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
@@ -126,7 +126,7 @@
                                     <div id="current-image-container" class="{{ $event->image ? '' : 'hidden' }} mb-4">
                                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 pl-1">Current Image</p>
                                         <div class="relative rounded-3xl overflow-hidden border border-gray-200 shadow-sm group">
-                                            @if ($event->image)
+                                            @if($event->image)
                                                 <img src="{{ asset('storage/' . $event->image) }}" class="w-full h-48 object-cover opacity-90 group-hover:opacity-100 transition-opacity">
                                             @endif
                                             <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all"></div>
@@ -232,7 +232,7 @@
                                         <div id="coord-badge" class="{{ $event->latitude ? '' : 'hidden' }} flex items-center gap-2 text-xs text-blue-700 font-medium">
                                             <i class="bi bi-geo-alt-fill text-blue-500"></i>
                                             <span id="coord-text">
-                                                @if ($event->latitude)
+                                                @if($event->latitude)
                                                     Pinned: {{ number_format($event->latitude, 5) }}, {{ number_format($event->longitude, 5) }}
                                                 @endif
                                             </span>

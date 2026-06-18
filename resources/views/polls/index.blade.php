@@ -1,4 +1,4 @@
-﻿@extends ('layouts.sidebar.sidebar')
+@extends ('layouts.sidebar.sidebar')
 
 @section ('title', 'Event Polls | ServeDavao')
 
@@ -8,11 +8,11 @@
     {{-- Header --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Event Polls ðŸ—³ï¸</h1>
-            <p class="text-gray-500 mt-1 font-medium">Organizers post polls â€” volunteers vote to shape what's next!</p>
+            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Event Polls 🗳️</h1>
+            <p class="text-gray-500 mt-1 font-medium">Organizers post polls — volunteers vote to shape what's next!</p>
         </div>
         @auth
-            @if (auth()->user()->isVerifiedOrganizer())
+            @if(auth()->user()->isVerifiedOrganizer())
                 <a href="{{ route('polls.create') }}"
                    class="inline-flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-emerald-700 active:scale-95 transition-all shadow-lg hover:shadow-emerald-200 hover:-translate-y-0.5 text-sm">
                     <i class="bi bi-plus-lg"></i> Create a Poll
@@ -22,13 +22,13 @@
     </div>
 
     {{-- Flash Messages --}}
-    @if (session('success'))
+    @if(session('success'))
         <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-5 py-4 flex items-center gap-3">
             <i class="bi bi-check-circle-fill text-emerald-500 text-lg"></i>
             <span class="font-medium">{{ session('success') }}</span>
         </div>
     @endif
-    @if (session('error'))
+    @if(session('error'))
         <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-5 py-4 flex items-center gap-3">
             <i class="bi bi-exclamation-circle-fill text-red-400 text-lg"></i>
             <span class="font-medium">{{ session('error') }}</span>
@@ -36,9 +36,9 @@
     @endif
 
     {{-- Poll Cards --}}
-    @if ($polls->isNotEmpty())
+    @if($polls->isNotEmpty())
         <div class="space-y-5">
-            @foreach ($polls as $poll)
+            @foreach($polls as $poll)
             @php
                 $totalVotes = $poll->totalVotes();
                 $isActive   = $poll->isActive();
@@ -57,12 +57,12 @@
                             <div class="flex items-center gap-2 flex-wrap mb-1">
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border
                                     {{ $isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-500 border-gray-200' }}">
-                                    {{ $isActive ? 'ðŸŸ¢ Active' : 'ðŸ”´ Closed' }}
+                                    {{ $isActive ? '🟢 Active' : '🔴 Closed' }}
                                 </span>
                                 <span class="text-xs text-gray-400">
-                                    by {{ $poll->organizer->name ?? 'Organizer' }} Â· {{ $poll->created_at->diffForHumans() }}
+                                    by {{ $poll->organizer->name ?? 'Organizer' }} · {{ $poll->created_at->diffForHumans() }}
                                 </span>
-                                @if ($poll->closes_at)
+                                @if($poll->closes_at)
                                     <span class="text-xs text-amber-600 font-medium">
                                         <i class="bi bi-clock"></i>
                                         {{ $poll->closes_at->isPast() ? 'Closed' : 'Closes ' . $poll->closes_at->diffForHumans() }}
@@ -72,7 +72,7 @@
                             <h3 class="text-xl font-bold text-gray-900 group-hover:text-emerald-700 transition-colors leading-snug">
                                 {{ $poll->title }}
                             </h3>
-                            @if ($poll->description)
+                            @if($poll->description)
                                 <p class="text-sm text-gray-500 mt-1">{{ Str::limit($poll->description, 120) }}</p>
                             @endif
                         </div>
@@ -93,14 +93,14 @@
 
                     {{-- Preview of options (first 3) --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
-                        @foreach ($poll->options->take(3) as $option)
+                        @foreach($poll->options->take(3) as $option)
                         @php $pct = $option->percentage($totalVotes); @endphp
                         <div class="relative bg-gray-50 rounded-xl px-4 py-3 overflow-hidden border border-gray-100">
                             <div class="absolute inset-0 bg-emerald-100 rounded-xl transition-all duration-500"
                                  style="width: {{ $pct }}%; opacity: 0.5;"></div>
                             <div class="relative flex items-center justify-between gap-2">
                                 <span class="text-sm font-medium text-gray-800 truncate">
-                                    @if ($hasVoted && $userVote->poll_option_id == $option->id)
+                                    @if($hasVoted && $userVote->poll_option_id == $option->id)
                                         <i class="bi bi-check-circle-fill text-emerald-600 mr-1"></i>
                                     @endif
                                     {{ $option->label }}
@@ -109,7 +109,7 @@
                             </div>
                         </div>
                         @endforeach
-                        @if ($poll->options->count() > 3)
+                        @if($poll->options->count() > 3)
                             <div class="flex items-center justify-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-100 border-dashed text-sm text-gray-400 font-medium">
                                 +{{ $poll->options->count() - 3 }} more options
                             </div>
@@ -118,14 +118,14 @@
 
                     {{-- Organizer controls --}}
                     @auth
-                        @if (auth()->user()->isVerifiedOrganizer() && $poll->user_id === auth()->id())
+                        @if(auth()->user()->isVerifiedOrganizer() && $poll->user_id === auth()->id())
                             <div class="flex justify-end pt-1">
                                 <button onclick="togglePollStatus({{ $poll->id }}, '{{ $isActive ? 'closed' : 'active' }}', this)"
                                         class="text-xs font-medium px-3 py-1.5 rounded-lg border transition-all
                                                {{ $isActive
                                                    ? 'border-red-200 text-red-600 hover:bg-red-50'
                                                    : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50' }}">
-                                    {{ $isActive ? 'ðŸ”´ Close Poll' : 'ðŸŸ¢ Reopen Poll' }}
+                                    {{ $isActive ? '🔴 Close Poll' : '🟢 Reopen Poll' }}
                                 </button>
                             </div>
                         @endif
@@ -145,7 +145,7 @@
             <h3 class="text-xl font-bold text-gray-900">No polls yet!</h3>
             <p class="text-gray-500 text-sm mt-2 mb-6 max-w-sm mx-auto">Organizers create polls to let volunteers vote on what events to run next.</p>
             @auth
-                @if (auth()->user()->isVerifiedOrganizer())
+                @if(auth()->user()->isVerifiedOrganizer())
                     <a href="{{ route('polls.create') }}"
                        class="inline-flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-all shadow-lg hover:-translate-y-0.5 text-sm">
                         <i class="bi bi-plus-lg"></i> Create the First Poll
