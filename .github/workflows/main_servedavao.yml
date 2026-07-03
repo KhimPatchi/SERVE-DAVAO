@@ -68,13 +68,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: php-app
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_57DB0521E9E6466DB59E1C25715DEDCD }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_10429D65C2634049AF9BCFA7E300DDE2 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_10D37ADD914E4D94B53923747D97C0C7 }}
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
@@ -83,3 +76,4 @@ jobs:
           app-name: 'ServeDavao'
           slot-name: 'Production'
           package: .
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
