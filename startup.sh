@@ -31,8 +31,8 @@ php artisan storage:link
 # Start queue worker as background process
 nohup php artisan queue:work --sleep=3 --tries=3 --max-time=3600 > /dev/null 2>&1 &
 
-# Start Laravel Reverb WebSocket server as background process on port 8080
-nohup php artisan reverb:start --host=0.0.0.0 --port=8080 > /dev/null 2>&1 &
+# Start Laravel Reverb WebSocket server on port 8081 (8080 is used by nginx)
+nohup php artisan reverb:start --host=0.0.0.0 --port=8081 > /dev/null 2>&1 &
 
 echo "Applying custom Nginx configuration..."
 # Copy our custom Nginx config over the Azure default config
