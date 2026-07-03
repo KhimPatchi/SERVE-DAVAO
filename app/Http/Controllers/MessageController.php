@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Events\MessageSent;
+use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
 
 class MessageController extends Controller
@@ -51,15 +52,20 @@ class MessageController extends Controller
             return response()->json(['error' => 'Validation failed', 'details' => $ve->errors()], 422);
         }
 
-        // Handle Attachment
+        // Handle Attachment — upload to Cloudinary for persistent cloud storage
         $attachmentPath = null;
         $attachmentType = null;
 
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
-            $path = $file->store('attachments', 'public');
-            $attachmentPath = $path;
             $attachmentType = $file->getMimeType();
+            try {
+                $cloudinary = app(CloudinaryService::class);
+                $attachmentPath = $cloudinary->upload($file, 'attachments');
+            } catch (\Exception $e) {
+                \Log::error('Cloudinary attachment upload failed', ['error' => $e->getMessage()]);
+                return response()->json(['error' => 'File upload failed. Please try again.'], 500);
+            }
         }
 
         // Create message

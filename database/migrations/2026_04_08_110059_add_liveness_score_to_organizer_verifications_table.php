@@ -11,7 +11,7 @@ return new class extends Migration
         // Safe re-run guard
         if (!Schema::hasColumn('organizer_verifications', 'liveness_score')) {
             Schema::table('organizer_verifications', function (Blueprint $table) {
-                $table->float('liveness_score')->nullable()->after('face_match_score');
+                $table->float('liveness_score')->nullable();
             });
         }
     }

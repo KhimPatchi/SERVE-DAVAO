@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\EventVolunteer;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
+use App\Services\CloudinaryService;
 
 class EventService
 {
@@ -20,8 +21,9 @@ class EventService
     // Handle image upload if present
     $imagePath = null;
     if (isset($data['event_image']) && $data['event_image']) {
-        // Store the image in public/storage/events directory
-        $imagePath = $data['event_image']->store('events', 'public');
+        // Upload to Cloudinary for persistent cloud storage
+        $cloudinary = app(CloudinaryService::class);
+        $imagePath  = $cloudinary->upload($data['event_image'], 'events');
     }
 
     // Date and time are now already combined from the Request
@@ -61,12 +63,14 @@ public function updateEvent(Event $event, array $data): bool
 {
     // Handle image upload if a new one is provided
     if (isset($data['event_image']) && $data['event_image']) {
-        // Delete old image if it exists
+        // Delete old image from Cloudinary if it exists
         if ($event->image) {
-            Storage::disk('public')->delete($event->image);
+            $cloudinary = app(CloudinaryService::class);
+            $cloudinary->delete($event->image);
         }
-        // Store the new image
-        $data['image'] = $data['event_image']->store('events', 'public');
+        // Upload the new image to Cloudinary
+        $cloudinary      = app(CloudinaryService::class);
+        $data['image']   = $cloudinary->upload($data['event_image'], 'events');
     }
 
     // Filter out the event_image from the data array as it's not a column

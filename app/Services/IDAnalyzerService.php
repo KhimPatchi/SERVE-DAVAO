@@ -308,9 +308,14 @@ class IDAnalyzerService
      */
     public function storeVerificationDocument(UploadedFile $document, string $userId): string
     {
-        $fileName = "user_{$userId}_id_" . time() . '.' . $document->getClientOriginalExtension();
-        $path = $document->storeAs('organizer-verification/ids', $fileName, 'public');
-        return $path;
+        try {
+            $cloudinary = app(CloudinaryService::class);
+            return $cloudinary->upload($document, 'organizer-verification/ids');
+        } catch (\Exception $e) {
+            // Fallback to local storage if Cloudinary fails
+            $fileName = "user_{$userId}_id_" . time() . '.' . $document->getClientOriginalExtension();
+            return $document->storeAs('organizer-verification/ids', $fileName, 'public');
+        }
     }
 
     /**
@@ -318,9 +323,14 @@ class IDAnalyzerService
      */
     public function storeVerificationSelfie(UploadedFile $selfie, string $userId): string
     {
-        $fileName = "user_{$userId}_selfie_" . time() . '.' . $selfie->getClientOriginalExtension();
-        $path = $selfie->storeAs('organizer-verification/selfies', $fileName, 'public');
-        return $path;
+        try {
+            $cloudinary = app(CloudinaryService::class);
+            return $cloudinary->upload($selfie, 'organizer-verification/selfies');
+        } catch (\Exception $e) {
+            // Fallback to local storage if Cloudinary fails
+            $fileName = "user_{$userId}_selfie_" . time() . '.' . $selfie->getClientOriginalExtension();
+            return $selfie->storeAs('organizer-verification/selfies', $fileName, 'public');
+        }
     }
 
     /**

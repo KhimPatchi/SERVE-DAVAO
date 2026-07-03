@@ -7,6 +7,7 @@ use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Services\CloudinaryService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Str;
 
@@ -33,17 +34,16 @@ class GoogleController extends Controller
                         ->orWhere('google_id', $googleUser->getId())
                         ->first();
 
-            // Download avatar locally
+            // Upload Google avatar to Cloudinary for persistent storage
             $avatarPath = null;
             if ($googleUser->getAvatar()) {
                 try {
-                    $contents = file_get_contents($googleUser->getAvatar());
-                    $filename = 'avatars/' . Str::slug($googleUser->getName() ?? 'user') . '_' . time() . '.jpg';
-                    Storage::disk('public')->put($filename, $contents);
-                    $avatarPath = 'storage/' . $filename;
-                    \Log::info('Avatar downloaded successfully');
+                    $contents   = file_get_contents($googleUser->getAvatar());
+                    $cloudinary = app(CloudinaryService::class);
+                    $avatarPath = $cloudinary->upload($contents, 'avatars');
+                    \Log::info('Avatar uploaded to Cloudinary successfully');
                 } catch (\Exception $e) {
-                    \Log::warning('Avatar download failed, using remote URL');
+                    \Log::warning('Cloudinary avatar upload failed, using remote Google URL');
                     $avatarPath = $googleUser->getAvatar();
                 }
             }
