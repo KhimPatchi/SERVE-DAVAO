@@ -3,6 +3,18 @@
 # Navigate to project root
 cd /home/site/wwwroot
 
+# Ensure all Laravel storage directories exist with write permissions
+echo "Creating missing storage directories..."
+mkdir -p storage/app/public
+mkdir -p storage/framework/cache/data
+mkdir -p storage/framework/sessions
+mkdir -p storage/framework/views
+mkdir -p storage/logs
+mkdir -p bootstrap/cache
+
+echo "Setting permissions..."
+chmod -R 777 storage bootstrap/cache
+
 # Clear and rebuild cache (if view fails, we ignore it)
 php artisan config:clear
 php artisan route:clear
