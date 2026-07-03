@@ -23,17 +23,6 @@ jobs:
         with:
           php-version: '8.2'
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install npm dependencies
-        run: npm ci
-
-      - name: Build frontend assets
-        run: npm run build
-
       - name: Check if composer.json exists
         id: check_files
         uses: andstor/file-existence-action@v1
@@ -42,13 +31,8 @@ jobs:
 
       - name: Run composer install if composer.json exists
         if: steps.check_files.outputs.files_exists == 'true'
-        run: composer validate --no-check-publish && composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+        run: composer validate --no-check-publish && composer install --prefer-dist --no-progress
 
-      - name: Clean up node_modules and development files
-        run: |
-          rm -rf node_modules
-          rm -rf .git
-          rm -rf .github
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -72,9 +56,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_57DB0521E9E6466DB59E1C25715DEDCD }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_10429D65C2634049AF9BCFA7E300DDE2 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_10D37ADD914E4D94B53923747D97C0C7 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_11150DEB29154451959710E5B30C8143 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7E11AE02732D4FC590A2605F74A8F550 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6C183406893E4B408DB90755A73F7B85 }}
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
@@ -83,3 +67,4 @@ jobs:
           app-name: 'ServeDavao'
           slot-name: 'Production'
           package: .
+          
