@@ -733,11 +733,11 @@
                     console.log('Antigravity: Initializing real-time engine...');
                     EchoInstance = new Constructor({
                         broadcaster: 'reverb',
-                        key: '{{ env('REVERB_APP_KEY') }}',
+                        key: '{{ config('reverb.apps.0.key', env('REVERB_APP_KEY')) }}',
                         wsHost: window.location.hostname,
                         wsPort: {{ env('REVERB_PORT', 8080) }},
                         wssPort: {{ env('REVERB_PORT', 8080) }},
-                        forceTLS: false,
+                        forceTLS: window.location.protocol === 'https:',
                         disableStats: true,
                         enabledTransports: ['ws', 'wss'],
                     });
