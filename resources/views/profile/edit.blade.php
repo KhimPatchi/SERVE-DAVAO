@@ -75,7 +75,7 @@
         <strong class="font-semibold">Success!</strong>
         <p class="mt-1 text-sm">{{ session('success') }}</p>
       </div>
-      <button class="text-gray-500 hover:text-gray-700 transition-colors">
+      <button class="text-gray-500 hover:text-gray-700 transition-colors" onclick="this.parentElement.remove()">
         <i class="bi bi-x-lg"></i>
       </button>
     </div>
