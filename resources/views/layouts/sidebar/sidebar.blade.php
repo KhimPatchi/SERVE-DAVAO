@@ -317,6 +317,55 @@
         background: rgba(255, 255, 255, 0.95);
       }
     }
+
+    /* Mobile Bottom Navigation Bar Styles */
+    .mobile-bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4.5rem;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(229, 231, 235, 0.8);
+      z-index: 50;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #6b7280;
+      font-size: 0.7rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      position: relative;
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.75rem;
+    }
+
+    .mobile-nav-item i {
+      font-size: 1.25rem;
+      margin-bottom: 0.15rem;
+      transition: transform 0.2s ease;
+    }
+
+    .mobile-nav-item.active {
+      color: #000000;
+      font-weight: 600;
+    }
+
+    .mobile-nav-item.active i {
+      transform: translateY(-2px);
+      color: #000000;
+    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -500,6 +549,38 @@
       @yield ('content')
     </div>
   </div>
+
+  @auth
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="mobile-bottom-nav md:hidden">
+      <a href="{{ route('dashboard') }}" class="mobile-nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+        <i class="bi bi-house-door-fill"></i>
+        <span>Home</span>
+      </a>
+      <a href="{{ route('events.index') }}" class="mobile-nav-item {{ request()->routeIs('events.*') ? 'active' : '' }}">
+        <i class="bi bi-calendar-event"></i>
+        <span>Calendar</span>
+      </a>
+      <a href="{{ route('volunteers') }}" class="mobile-nav-item {{ request()->routeIs('volunteers') ? 'active' : '' }}">
+        <i class="bi bi-people-fill"></i>
+        <span>Events</span>
+      </a>
+      <a href="{{ route('messages.index') }}" class="mobile-nav-item {{ request()->routeIs('messages.*') ? 'active' : '' }} relative">
+        <i class="bi bi-chat-dots-fill"></i>
+        <span>Messages</span>
+        @php $unreadCount = auth()->user()->getTotalUnreadMessagesCount(); @endphp
+        @if($unreadCount > 0)
+          <span class="absolute top-1 right-2 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+            {{ $unreadCount }}
+          </span>
+        @endif
+      </a>
+      <a href="{{ route('profile.edit') }}" class="mobile-nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+        <i class="bi bi-person-fill"></i>
+        <span>Profile</span>
+      </a>
+    </nav>
+  @endauth
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
