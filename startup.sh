@@ -25,6 +25,9 @@ php artisan config:cache
 php artisan route:cache
 php artisan event:cache
 
+# Run database migrations on live database
+php artisan migrate --force
+
 # Link storage (fallback/temp)
 php artisan storage:link
 
