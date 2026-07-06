@@ -186,40 +186,6 @@ Route::get('/test-simple-contact', function() {
     }
 });
 
-
-
-Route::get('/debug-verification', function () {
-    // Basic verification config check
-    $apiKey = config('services.idanalyzer.api_key');
-    $keyStatus = empty($apiKey) ? 'MISSING' : 'FOUND (' . substr($apiKey, 0, 3) . '...' . substr($apiKey, -3) . ')';
-    $profileId = config('services.idanalyzer.profile_id');
-    
-    // Check temp folder writeability
-    $tmpDir = sys_get_temp_dir();
-    $isWritable = is_writable($tmpDir) ? 'Writable' : 'NOT Writable';
-
-    // Retrieve last 100 lines of laravel.log
-    $logPath = storage_path('logs/laravel.log');
-    $recentLogs = [];
-    if (file_exists($logPath)) {
-        $lines = file($logPath);
-        $recentLines = array_slice($lines, -100);
-        foreach ($recentLines as $line) {
-            if (stripos($line, 'verification') !== false || stripos($line, 'idanalyzer') !== false || stripos($line, 'error') !== false || stripos($line, 'exception') !== false) {
-                $recentLogs[] = trim($line);
-            }
-        }
-    }
-
-    return response()->json([
-        'key_status' => $keyStatus,
-        'profile_id' => $profileId,
-        'temp_directory' => $tmpDir,
-        'temp_writable' => $isWritable,
-        'relevant_logs' => array_slice($recentLogs, -30),
-    ]);
-});
-
 // KEEP THESE - They're safe and won't conflict:
 Route::get('/.env', function () {
     abort(404, 'Page not found');
