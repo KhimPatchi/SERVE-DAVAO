@@ -320,21 +320,27 @@
 
     /* Mobile Bottom Navigation Bar Styles */
     .mobile-bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 4.5rem;
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(229, 231, 235, 0.8);
-      z-index: 50;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 0.5rem 1rem;
-      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.03);
+      display: none; /* Hidden by default on desktop */
+    }
+
+    @media (max-width: 767px) {
+      .mobile-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4.5rem;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(229, 231, 235, 0.8);
+        z-index: 50;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.03);
+      }
     }
 
     .mobile-nav-item {
