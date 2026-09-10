@@ -114,7 +114,7 @@
             <article class="group flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
 
                 {{-- Image / Gradient Header --}}
-                <div class="relative h-24 overflow-hidden">
+                <div class="relative h-32 sm:h-36 overflow-hidden bg-gray-100">
                     @if(isset($event->match_percentage) && $event->match_percentage > 0)
                         <div class="absolute top-3 left-3 z-10">
                             <div class="glass-match-badge px-3 py-1.5 text-white text-[10px] font-black rounded-xl shadow-lg flex items-center gap-1.5">
@@ -124,10 +124,13 @@
                         </div>
                     @endif
 
+                    @if($event->image_url)
                         <img src="{{ $event->image_url }}"
                              alt="{{ $event->title }}"
                              class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
-                            <i class="bi bi-calendar-event text-5xl text-gray-200"></i>
+                    @else
+                        <div class="flex h-full w-full items-center justify-center bg-emerald-50">
+                            <i class="bi bi-calendar-event text-4xl text-emerald-300"></i>
                         </div>
                     @endif
 
@@ -237,14 +240,20 @@
                 @endphp
                 
                 <article class="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                    <div class="relative h-24 overflow-hidden">
-                            <img src="{{ $event->image_url }}" alt="{{ $event->title }}" class="h-full w-full object-cover">
+                    <div class="relative h-32 sm:h-36 overflow-hidden bg-gray-100">
+                        @if($event->image_url)
+                            <img src="{{ $event->image_url }}" alt="{{ $event->title }}" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+                        @else
+                            <div class="flex h-full w-full items-center justify-center bg-emerald-50">
+                                <i class="bi bi-calendar-event text-4xl text-emerald-300"></i>
+                            </div>
+                        @endif
 
-                        <div class="absolute top-4 right-4">
+                        <div class="absolute top-3 right-3 z-10">
                             @if($isOrganizer)
-                                <span class="rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-600 uppercase border border-blue-100">Organized</span>
+                                <span class="rounded-full bg-blue-600/90 backdrop-blur-sm px-3 py-1 text-[10px] font-bold text-white uppercase">Organized</span>
                             @elseif($isRegistered)
-                                <span class="rounded-lg bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-600 uppercase border border-emerald-100">Joined</span>
+                                <span class="rounded-full bg-emerald-600/90 backdrop-blur-sm px-3 py-1 text-[10px] font-bold text-white uppercase">Joined</span>
                             @endif
                         </div>
                     </div>
