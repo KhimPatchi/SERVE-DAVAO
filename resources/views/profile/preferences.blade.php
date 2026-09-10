@@ -209,22 +209,111 @@
             <hr class="border-gray-100 mb-10">
 
             <!-- Availability -->
-            <div>
-                <div class="flex items-center gap-3 mb-4">
+            <div x-data="availabilityPicker('{{ old('availability', $user->availability) }}')" x-init="init()">
+                <div class="flex items-center gap-3 mb-6">
                     <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-xl">
                         <i class="bi bi-calendar-check-fill"></i>
                     </div>
                     <div>
                         <h2 class="text-xl font-bold text-gray-900">When Are You Available?</h2>
-                        <p class="text-sm text-gray-500">Select your general availability (optional)</p>
+                        <p class="text-sm text-gray-500">Pick your days and time window</p>
                     </div>
                 </div>
 
-                <input type="text"
-                       name="availability" 
-                       placeholder="e.g. Weekends, Weekday Evenings, Flexible"
-                       value="{{ old('availability', $user->availability) }}"
-                       class="w-full h-12 px-4 text-base border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-200 focus:border-purple-500 placeholder:text-gray-300">
+                {{-- Hidden input that stores the composed string for the backend --}}
+                <input type="hidden" name="availability" :value="composed">
+
+                {{-- Day Toggles --}}
+                <div class="mb-6">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Days</p>
+                    <div class="flex flex-wrap gap-2">
+                        <template x-for="day in days" :key="day.short">
+                            <button type="button"
+                                    @click="toggleDay(day.short)"
+                                    :class="selectedDays.includes(day.short)
+                                        ? 'bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-100'
+                                        : 'bg-white border-gray-200 text-gray-600 hover:border-emerald-400 hover:text-emerald-600'"
+                                    class="px-4 py-2 rounded-full border-2 text-sm font-semibold transition-all duration-200 select-none">
+                                <span x-text="day.label"></span>
+                            </button>
+                        </template>
+                    </div>
+                    {{-- Quick presets --}}
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <button type="button" @click="applyPreset('weekdays')"
+                                class="text-xs px-3 py-1 rounded-full border border-dashed border-gray-300 text-gray-500 hover:border-emerald-400 hover:text-emerald-600 transition-all">
+                            ⚡ Weekdays
+                        </button>
+                        <button type="button" @click="applyPreset('weekends')"
+                                class="text-xs px-3 py-1 rounded-full border border-dashed border-gray-300 text-gray-500 hover:border-emerald-400 hover:text-emerald-600 transition-all">
+                            🌅 Weekends
+                        </button>
+                        <button type="button" @click="applyPreset('everyday')"
+                                class="text-xs px-3 py-1 rounded-full border border-dashed border-gray-300 text-gray-500 hover:border-emerald-400 hover:text-emerald-600 transition-all">
+                            📅 Everyday
+                        </button>
+                        <button type="button" @click="applyPreset('clear')"
+                                class="text-xs px-3 py-1 rounded-full border border-dashed border-red-200 text-red-400 hover:border-red-400 hover:text-red-500 transition-all">
+                            ✕ Clear
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Time Range --}}
+                <div class="mb-5">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Time Window</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        {{-- From --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">From</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none">
+                                    <i class="bi bi-clock text-sm"></i>
+                                </span>
+                                <select x-model="fromTime"
+                                        @change="compose()"
+                                        class="w-full h-11 pl-9 pr-4 text-sm border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400 appearance-none cursor-pointer text-gray-700 font-medium">
+                                    <option value="">Any time</option>
+                                    <template x-for="t in timeSlots" :key="t.value">
+                                        <option :value="t.value" x-text="t.label"></option>
+                                    </template>
+                                </select>
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs">▼</span>
+                            </div>
+                        </div>
+
+                        {{-- To --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">To</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none">
+                                    <i class="bi bi-clock-fill text-sm"></i>
+                                </span>
+                                <select x-model="toTime"
+                                        @change="compose()"
+                                        class="w-full h-11 pl-9 pr-4 text-sm border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400 appearance-none cursor-pointer text-gray-700 font-medium">
+                                    <option value="">Any time</option>
+                                    <template x-for="t in timeSlots" :key="t.value">
+                                        <option :value="t.value" x-text="t.label"></option>
+                                    </template>
+                                </select>
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs">▼</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Live preview badge --}}
+                <div x-show="composed" x-transition
+                     class="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 border border-emerald-100 rounded-xl text-sm text-emerald-700 font-medium">
+                    <i class="bi bi-check-circle-fill text-emerald-500"></i>
+                    <span x-text="composed"></span>
+                </div>
+                <div x-show="!composed"
+                     class="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-sm text-gray-400">
+                    <i class="bi bi-info-circle"></i>
+                    Select days and/or a time window above
+                </div>
             </div>
 
             <hr class="border-gray-100 my-10">
@@ -377,6 +466,119 @@
             customInput.value = tagsArray.join(', ');
         }
     });
+
+    // ── Availability Picker (Alpine.js component) ────────────────────────────
+    function availabilityPicker(savedValue) {
+        return {
+            // ── State ──────────────────────────────────────────
+            days: [
+                { short: 'Mon', label: 'Mon' },
+                { short: 'Tue', label: 'Tue' },
+                { short: 'Wed', label: 'Wed' },
+                { short: 'Thu', label: 'Thu' },
+                { short: 'Fri', label: 'Fri' },
+                { short: 'Sat', label: 'Sat' },
+                { short: 'Sun', label: 'Sun' },
+            ],
+            selectedDays: [],
+            fromTime: '',
+            toTime: '',
+            composed: '',
+            timeSlots: [],
+
+            // ── Init ───────────────────────────────────────────
+            init() {
+                this.buildTimeSlots();
+                this.parseExisting(savedValue || '');
+                this.compose();
+            },
+
+            // Build 30-min time slots from 12:00 AM to 11:30 PM
+            buildTimeSlots() {
+                const slots = [];
+                for (let h = 0; h < 24; h++) {
+                    for (let m of [0, 30]) {
+                        const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                        const ampm   = h < 12 ? 'AM' : 'PM';
+                        const hh     = String(h).padStart(2, '0');
+                        const mm     = String(m).padStart(2, '0');
+                        const label  = `${hour12}:${mm === '0' ? '00' : mm} ${ampm}`;
+                        slots.push({ value: `${hh}:${mm}`, label });
+                    }
+                }
+                this.timeSlots = slots;
+            },
+
+            // Parse an existing saved string like "Mon, Wed | 8:00 AM – 5:00 PM"
+            // into selectedDays, fromTime, toTime
+            parseExisting(val) {
+                if (!val) return;
+
+                // Split by "|" or "–" or "-" separating days from time range
+                const pipeIdx = val.indexOf('|');
+                let daysPart  = pipeIdx !== -1 ? val.slice(0, pipeIdx).trim() : val.trim();
+                let timePart  = pipeIdx !== -1 ? val.slice(pipeIdx + 1).trim() : '';
+
+                // Restore selected days
+                const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                dayNames.forEach(d => {
+                    if (daysPart.includes(d)) this.selectedDays.push(d);
+                });
+
+                // Restore time range
+                if (timePart) {
+                    // Normalize "8:00 AM – 5:00 PM" or "8:00 AM - 5:00 PM"
+                    const parts = timePart.split(/–|-/).map(s => s.trim());
+                    if (parts[0]) this.fromTime = this.labelToValue(parts[0]);
+                    if (parts[1]) this.toTime   = this.labelToValue(parts[1]);
+                }
+            },
+
+            // Convert "8:00 AM" → "08:00" for select matching
+            labelToValue(label) {
+                const found = this.timeSlots.find(t => t.label.toLowerCase() === label.toLowerCase());
+                return found ? found.value : '';
+            },
+
+            // ── Day toggling ───────────────────────────────────
+            toggleDay(short) {
+                const idx = this.selectedDays.indexOf(short);
+                if (idx === -1) this.selectedDays.push(short);
+                else            this.selectedDays.splice(idx, 1);
+                // Keep ordered Mon→Sun
+                const order = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                this.selectedDays.sort((a,b) => order.indexOf(a) - order.indexOf(b));
+                this.compose();
+            },
+
+            // ── Presets ────────────────────────────────────────
+            applyPreset(preset) {
+                if (preset === 'weekdays')  this.selectedDays = ['Mon','Tue','Wed','Thu','Fri'];
+                if (preset === 'weekends')  this.selectedDays = ['Sat','Sun'];
+                if (preset === 'everyday')  this.selectedDays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                if (preset === 'clear') {
+                    this.selectedDays = [];
+                    this.fromTime = '';
+                    this.toTime   = '';
+                }
+                this.compose();
+            },
+
+            // ── Compose the final string ───────────────────────
+            compose() {
+                const dayStr  = this.selectedDays.join(', ');
+                const fromLbl = this.fromTime ? this.timeSlots.find(t => t.value === this.fromTime)?.label : '';
+                const toLbl   = this.toTime   ? this.timeSlots.find(t => t.value === this.toTime)?.label   : '';
+
+                let result = dayStr;
+                if (fromLbl || toLbl) {
+                    const timeRange = [fromLbl, toLbl].filter(Boolean).join(' – ');
+                    result = result ? `${result} | ${timeRange}` : timeRange;
+                }
+                this.composed = result;
+            },
+        };
+    }
 </script>
 
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>

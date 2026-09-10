@@ -16,17 +16,32 @@ use App\Http\Controllers\ContactController;
 
 // Landing Page
 Route::get('/', function() {
-    $events = \App\Models\Event::with('organizer')
-        ->where('status', 'active')
-        ->where('date', '>=', now())
-        ->orderBy('date', 'asc')
-        ->take(6)
-        ->get();
+    try {
+        $events = \App\Models\Event::with('organizer')
+            ->where('status', 'active')
+            ->where('date', '>=', now())
+            ->orderBy('date', 'asc')
+            ->take(6)
+            ->get();
+    } catch (\Throwable $e) {
+        $events = collect([]);
+    }
         
     return view('landing', compact('events'));
 })->name('landing');
 
-Route::get('/api/chatbot/current-events', [EventController::class, 'getCurrentEventsForChatbot']);
+Route::get('/api/chatbot/current-events', function() {
+    try {
+        $events = \App\Models\Event::where('status', 'active')
+            ->where('date', '>=', now())
+            ->orderBy('date', 'asc')
+            ->take(5)
+            ->get();
+        return response()->json(['success' => true, 'events' => $events]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'events' => []]);
+    }
+});
 
 // Legal Pages (public)
 Route::get('/terms', fn() => view('terms'))->name('terms');

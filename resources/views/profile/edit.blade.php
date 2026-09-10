@@ -467,36 +467,79 @@
                 </div>
 
                 <!-- Availability Card -->
-                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden" x-data="availabilityPickerEdit('{{ old('availability', $user->availability) }}')" x-init="init()">
                   <!-- Card Header -->
                   <div class="px-6 pt-6 pb-4 border-b border-gray-100">
                     <div class="flex items-center gap-2">
                       <i class="bi bi-clock-fill text-emerald-500"></i>
-                      <label for="availability" class="text-sm font-bold text-gray-900">Time &amp; Days Available</label>
+                      <label class="text-sm font-bold text-gray-900">Time &amp; Days Available</label>
                     </div>
-                    <p class="text-xs text-gray-400 mt-1.5">Tell us when you're free to volunteer.</p>
+                    <p class="text-xs text-gray-400 mt-1.5">Select your available days and time window.</p>
                   </div>
                    <!-- Input Area -->
                    <div class="px-6 py-5">
-                     <div class="relative mb-3">
-                       <input type="text"
-                              name="availability"
-                              id="availability"
-                              placeholder="e.g., 8:00 AM - 12:00 PM, Weekends"
-                              value="{{ old('availability', $user->availability) }}"
-                              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder:text-gray-400 bg-gray-50/50">
+                      <input type="hidden"
+                             name="availability"
+                             id="availability"
+                             :value="composed">
+
+                      <!-- Day Toggles -->
+                      <div class="mb-5">
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Days of Week</label>
+                        <div class="flex flex-wrap gap-1.5">
+                          <template x-for="day in days" :key="day.short">
+                            <button type="button"
+                                    @click="toggleDay(day.short)"
+                                    :class="selectedDays.includes(day.short) ? 'bg-emerald-600 border-emerald-600 text-white font-bold shadow-sm' : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-emerald-400 hover:bg-emerald-50/50'"
+                                    class="px-3 py-1.5 rounded-lg border text-xs font-medium transition-all select-none">
+                              <span x-text="day.label"></span>
+                            </button>
+                          </template>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 mt-2.5">
+                          <button type="button" @click="applyPreset('weekdays')" class="text-[11px] px-2.5 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all">Weekdays</button>
+                          <button type="button" @click="applyPreset('weekends')" class="text-[11px] px-2.5 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all">Weekends</button>
+                          <button type="button" @click="applyPreset('everyday')" class="text-[11px] px-2.5 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-gray-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 transition-all">Everyday</button>
+                          <button type="button" @click="applyPreset('clear')" class="text-[11px] px-2.5 py-0.5 rounded-full border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-all">Clear</button>
+                        </div>
+                      </div>
+
+                      <!-- Time Dropdowns -->
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                        <div>
+                          <label class="block text-xs font-semibold text-gray-600 mb-1">From Time</label>
+                          <select x-model="fromTime" @change="compose()" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50/50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-gray-700 font-medium cursor-pointer">
+                            <option value="">Any time (Start)</option>
+                            <template x-for="t in timeSlots" :key="t.value">
+                              <option :value="t.value" x-text="t.label"></option>
+                            </template>
+                          </select>
+                        </div>
+                        <div>
+                          <label class="block text-xs font-semibold text-gray-600 mb-1">To Time</label>
+                          <select x-model="toTime" @change="compose()" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50/50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-gray-700 font-medium cursor-pointer">
+                            <option value="">Any time (End)</option>
+                            <template x-for="t in timeSlots" :key="t.value">
+                              <option :value="t.value" x-text="t.label"></option>
+                            </template>
+                          </select>
+                        </div>
+                      </div>
+
+                      <!-- Live Summary Preview -->
+                      <div x-show="composed" class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center gap-2 text-xs font-semibold text-emerald-800">
+                        <i class="bi bi-clock-history text-emerald-600"></i>
+                        <span x-text="composed"></span>
+                      </div>
+                      <div x-show="!composed" class="p-2.5 rounded-xl bg-gray-50 border border-dashed border-gray-200 text-xs text-gray-400">
+                        Select days or time window above
+                      </div>
+
+                     <!-- Live AI Match Preview -->
+                     <div id="availability-feedback" class="mt-3 empty:hidden space-y-2">
+                       <!-- Dynamic badges appear here -->
                      </div>
-
-                    <!-- Live AI Match Preview -->
-                    <div id="availability-feedback" class="mb-3 empty:hidden space-y-2">
-                      <!-- Dynamic badges and warnings appear here -->
-                    </div>
-
-                    <p class="text-xs text-gray-400 flex items-center gap-1.5 leading-relaxed mt-2">
-                      <i class="bi bi-info-circle flex-shrink-0"></i>
-                      Type your specific available times and days (e.g. 8:00 AM - 12:00 PM).
-                    </p>
-                  </div>
+                   </div>
                 </div>
               </div>
             </div>
@@ -870,6 +913,111 @@
               if (indicator) indicator.classList.add('hidden');
           }
       });
+  }
+
+  // ── Availability Picker (Alpine.js component for Edit Profile) ────────────
+  function availabilityPickerEdit(savedValue) {
+      return {
+          days: [
+              { short: 'Mon', label: 'Mon' },
+              { short: 'Tue', label: 'Tue' },
+              { short: 'Wed', label: 'Wed' },
+              { short: 'Thu', label: 'Thu' },
+              { short: 'Fri', label: 'Fri' },
+              { short: 'Sat', label: 'Sat' },
+              { short: 'Sun', label: 'Sun' },
+          ],
+          selectedDays: [],
+          fromTime: '',
+          toTime: '',
+          composed: '',
+          timeSlots: [],
+
+          init() {
+              this.buildTimeSlots();
+              this.parseExisting(savedValue || '');
+              this.compose();
+          },
+
+          buildTimeSlots() {
+              const slots = [];
+              for (let h = 0; h < 24; h++) {
+                  for (let m of [0, 30]) {
+                      const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                      const ampm   = h < 12 ? 'AM' : 'PM';
+                      const hh     = String(h).padStart(2, '0');
+                      const mm     = String(m).padStart(2, '0');
+                      const label  = `${hour12}:${mm === '0' ? '00' : mm} ${ampm}`;
+                      slots.push({ value: `${hh}:${mm}`, label });
+                  }
+              }
+              this.timeSlots = slots;
+          },
+
+          parseExisting(val) {
+              if (!val) return;
+              const pipeIdx = val.indexOf('|');
+              let daysPart  = pipeIdx !== -1 ? val.slice(0, pipeIdx).trim() : val.trim();
+              let timePart  = pipeIdx !== -1 ? val.slice(pipeIdx + 1).trim() : '';
+
+              const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+              dayNames.forEach(d => {
+                  if (daysPart.toLowerCase().includes(d.toLowerCase())) this.selectedDays.push(d);
+              });
+
+              if (timePart) {
+                  const parts = timePart.split(/–|-/).map(s => s.trim());
+                  if (parts[0]) this.fromTime = this.labelToValue(parts[0]);
+                  if (parts[1]) this.toTime   = this.labelToValue(parts[1]);
+              }
+          },
+
+          labelToValue(label) {
+              const found = this.timeSlots.find(t => t.label.toLowerCase() === label.toLowerCase());
+              return found ? found.value : '';
+          },
+
+          toggleDay(short) {
+              const idx = this.selectedDays.indexOf(short);
+              if (idx === -1) this.selectedDays.push(short);
+              else            this.selectedDays.splice(idx, 1);
+
+              const order = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+              this.selectedDays.sort((a,b) => order.indexOf(a) - order.indexOf(b));
+              this.compose();
+          },
+
+          applyPreset(preset) {
+              if (preset === 'weekdays')  this.selectedDays = ['Mon','Tue','Wed','Thu','Fri'];
+              if (preset === 'weekends')  this.selectedDays = ['Sat','Sun'];
+              if (preset === 'everyday')  this.selectedDays = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+              if (preset === 'clear') {
+                  this.selectedDays = [];
+                  this.fromTime = '';
+                  this.toTime   = '';
+              }
+              this.compose();
+          },
+
+          compose() {
+              const dayStr  = this.selectedDays.join(', ');
+              const fromLbl = this.fromTime ? this.timeSlots.find(t => t.value === this.fromTime)?.label : '';
+              const toLbl   = this.toTime   ? this.timeSlots.find(t => t.value === this.toTime)?.label   : '';
+
+              let result = dayStr;
+              if (fromLbl || toLbl) {
+                  const timeRange = [fromLbl, toLbl].filter(Boolean).join(' - ');
+                  result = result ? `${result} | ${timeRange}` : timeRange;
+              }
+              this.composed = result;
+
+              const hiddenEl = document.getElementById('availability');
+              if (hiddenEl) {
+                  hiddenEl.value = this.composed;
+                  hiddenEl.dispatchEvent(new Event('input', { bubbles: true }));
+              }
+          }
+      };
   }
 </script>
 
