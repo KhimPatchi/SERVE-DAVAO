@@ -466,6 +466,23 @@
     /* EVENTS / HOW IT WORKS SECTION */
     .events-section {
       background: #ffffff;
+      padding-top: var(--nav-h);
+      padding-bottom: 1rem;
+    }
+    .events-section .vp-container {
+      justify-content: center;
+      align-items: center;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+    .events-section .section-badge {
+      margin-bottom: 0.5rem;
+    }
+    .events-section .section-title {
+      margin-bottom: 0.5rem;
+    }
+    .events-section .section-desc {
+      margin-bottom: 1.5rem;
     }
     .steps-grid {
       display: grid;
