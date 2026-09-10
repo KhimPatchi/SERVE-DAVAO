@@ -227,39 +227,33 @@
       .nav-hamburger { display: block; }
     }
 
-    /* RESPONSIVE VIEWPORT SECTION FRAMEWORK */
+    /* RESPONSIVE VIEWPORT SECTION FRAMEWORK (SINGLE PAGE SCROLLBAR) */
     .vp-section {
       width: 100%;
-      height: 100dvh;
       min-height: 100dvh;
-      max-height: 100dvh;
       scroll-snap-align: start;
       scroll-snap-stop: always;
       scroll-margin-top: var(--nav-h);
-      padding-top: var(--nav-h);
+      padding-top: calc(var(--nav-h) + 1.25rem);
+      padding-bottom: 2rem;
       position: relative;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       box-sizing: border-box;
-      overflow: hidden;
     }
 
     .vp-container {
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-      height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 1rem 1.5rem;
+      padding: 0 1.5rem;
       box-sizing: border-box;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(5, 150, 105, 0.3) transparent;
     }
 
     /* TYPOGRAPHY & BADGES */
