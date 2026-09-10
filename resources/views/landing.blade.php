@@ -37,9 +37,10 @@
 
     html {
       scroll-behavior: smooth;
-      scroll-snap-type: y proximity;
+      scroll-snap-type: y mandatory;
       scroll-padding-top: var(--nav-h);
       height: 100%;
+      overflow-y: scroll;
     }
 
     body {
@@ -229,29 +230,36 @@
     /* RESPONSIVE VIEWPORT SECTION FRAMEWORK */
     .vp-section {
       width: 100%;
+      height: 100dvh;
       min-height: 100dvh;
+      max-height: 100dvh;
       scroll-snap-align: start;
+      scroll-snap-stop: always;
       scroll-margin-top: var(--nav-h);
-      padding-top: calc(var(--nav-h) + 1.25rem);
-      padding-bottom: 2rem;
+      padding-top: var(--nav-h);
       position: relative;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       box-sizing: border-box;
+      overflow: hidden;
     }
 
     .vp-container {
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
+      height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 0 1.5rem;
+      padding: 1rem 1.5rem;
       box-sizing: border-box;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(5, 150, 105, 0.3) transparent;
     }
 
     /* TYPOGRAPHY & BADGES */
@@ -778,9 +786,6 @@
     </ul>
     <div class="nav-actions">
       <a href="/login" class="btn-login">Login</a>
-      <a href="{{ auth()->check() ? route('events.index') : route('login') }}" class="btn-cta">
-        {{ auth()->check() ? 'Go to Dashboard' : 'Get Started' }}
-      </a>
     </div>
     <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle navigation menu"><i class="bi bi-list"></i></button>
   </div>
@@ -818,8 +823,7 @@
       <p>Join ServeDavao to make a lasting impact in your community — seamlessly connecting passionate volunteers with verified events across Davao City.</p>
       <a href="{{ auth()->check() ? route('events.index') : route('login') }}" class="hero-cta-btn">
         {{ auth()->check() ? 'Explore Events' : 'Get Started' }}
-        <i class="bi bi-arrow-right"></i>
-      </a>
+             </a>
     </div>
   </div>
   <div class="scroll-hint">
@@ -832,7 +836,7 @@
 <section id="about" class="vp-section about-section">
   <div class="vp-container">
     <span class="section-badge"><i class="bi bi-info-circle-fill"></i> Who We Are</span>
-    <h2 class="section-title">About <span>ServeDavao</span></h2>
+    <h2 class="section-title">About Serve<span>Davao</span></h2>
     <p class="section-desc">
       ServeDavao bridges volunteers and organizers for social good. Volunteers can register, browse opportunities, and log service hours — while organizers post events, verify participation, and celebrate community impact.
     </p>
@@ -860,16 +864,7 @@
       </div>
     </div>
 
-    <div class="stats-row">
-      <div class="stat-item"><span class="stat-num">500+</span><span class="stat-lbl">Volunteers</span></div>
-      <div class="stat-item"><span class="stat-num">80+</span><span class="stat-lbl">Events</span></div>
-      <div class="stat-item"><span class="stat-num">2,400+</span><span class="stat-lbl">Hours Served</span></div>
-      <div class="stat-item"><span class="stat-num">15+</span><span class="stat-lbl">Organizations</span></div>
-    </div>
-  </div>
-</section>
-
-<!-- SECTION 3: EVENTS / HOW IT WORKS -->
+    <!-- SECTION 3: EVENTS / HOW IT WORKS -->
 <section id="events" class="vp-section events-section">
   <div class="vp-container">
     <span class="section-badge"><i class="bi bi-lightning-charge-fill"></i> How It Works</span>
