@@ -504,28 +504,151 @@
                         </div>
                       </div>
 
-                      <!-- Time Dropdowns -->
-                      <div class="mb-4">
-                        <div class="flex items-center justify-between mb-2">
-                          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Time Window (Manual)</label>
-                          <button type="button" @click="fromTime = ''; toTime = ''; compose()" x-show="fromTime || toTime" class="text-xs text-red-500 hover:underline font-medium">Clear Time</button>
+                      <!-- Time Window Triggers -->
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                        <div>
+                          <label class="block text-xs font-semibold text-gray-600 mb-1">From Time</label>
+                          <button type="button" 
+                                  @click="openClockModal('from')"
+                                  class="w-full h-10 px-3 text-xs border border-gray-200 rounded-xl bg-gray-50/50 hover:bg-white hover:border-emerald-400 focus:ring-2 focus:ring-emerald-200 flex items-center justify-between text-gray-700 font-medium transition-all group shadow-sm">
+                            <div class="flex items-center gap-2">
+                              <i class="bi bi-clock text-emerald-500 group-hover:scale-110 transition-transform"></i>
+                              <span x-text="formatTimeLabel(fromTime) || 'Select time (From)'" :class="fromTime ? 'text-gray-900 font-semibold' : 'text-gray-400'"></span>
+                            </div>
+                            <i class="bi bi-clock-history text-gray-400 text-[10px]"></i>
+                          </button>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">From Time</label>
-                            <input type="time"
-                                   x-model="fromTime"
-                                   @input="compose()"
-                                   class="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50/50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-gray-700 font-medium cursor-pointer">
-                          </div>
-                          <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">To Time</label>
-                            <input type="time"
-                                   x-model="toTime"
-                                   @input="compose()"
-                                   class="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50/50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-gray-700 font-medium cursor-pointer">
-                          </div>
+                        <div>
+                          <label class="block text-xs font-semibold text-gray-600 mb-1">To Time</label>
+                          <button type="button" 
+                                  @click="openClockModal('to')"
+                                  class="w-full h-10 px-3 text-xs border border-gray-200 rounded-xl bg-gray-50/50 hover:bg-white hover:border-emerald-400 focus:ring-2 focus:ring-emerald-200 flex items-center justify-between text-gray-700 font-medium transition-all group shadow-sm">
+                            <div class="flex items-center gap-2">
+                              <i class="bi bi-clock-fill text-emerald-500 group-hover:scale-110 transition-transform"></i>
+                              <span x-text="formatTimeLabel(toTime) || 'Select time (To)'" :class="toTime ? 'text-gray-900 font-semibold' : 'text-gray-400'"></span>
+                            </div>
+                            <i class="bi bi-clock-history text-gray-400 text-[10px]"></i>
+                          </button>
                         </div>
+                      </div>
+
+                      <!-- Material Clock Modal -->
+                      <div x-show="showClockModal" 
+                           x-transition:enter="transition ease-out duration-200"
+                           x-transition:enter-start="opacity-0 scale-95"
+                           x-transition:enter-end="opacity-100 scale-100"
+                           x-transition:leave="transition ease-in duration-150"
+                           x-transition:leave-start="opacity-100 scale-100"
+                           x-transition:leave-end="opacity-0 scale-95"
+                           class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+                           @keydown.escape.window="closeClockModal()"
+                           style="display: none;">
+                          
+                          <div class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-xs border border-gray-100 select-none"
+                               @click.away="closeClockModal()">
+                              
+                              <!-- Header: Digital Display & AM/PM -->
+                              <div class="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-5">
+                                  <div class="text-[10px] uppercase tracking-widest font-bold text-emerald-200 mb-2" x-text="activeTimeField === 'from' ? 'Select Start Time' : 'Select End Time'"></div>
+                                  <div class="flex items-center justify-between">
+                                      <!-- Time Digits -->
+                                      <div class="flex items-center text-4xl font-extrabold tracking-wider font-mono">
+                                          <button type="button" 
+                                                  @click="clockMode = 'hour'"
+                                                  :class="clockMode === 'hour' ? 'text-white bg-white/20 px-1.5 py-0.5 rounded-lg' : 'text-emerald-200 hover:text-white px-1.5 py-0.5'"
+                                                  class="transition-all"
+                                                  x-text="formatHourDisplay(tempHour)"></button>
+                                          <span class="text-emerald-300 mx-0.5 animate-pulse">:</span>
+                                          <button type="button" 
+                                                  @click="clockMode = 'minute'"
+                                                  :class="clockMode === 'minute' ? 'text-white bg-white/20 px-1.5 py-0.5 rounded-lg' : 'text-emerald-200 hover:text-white px-1.5 py-0.5'"
+                                                  class="transition-all"
+                                                  x-text="formatMinuteDisplay(tempMinute)"></button>
+                                      </div>
+
+                                      <!-- AM / PM Selector -->
+                                      <div class="flex flex-col bg-emerald-800/40 p-1 rounded-xl gap-1 text-xs font-bold border border-emerald-500/30">
+                                          <button type="button" 
+                                                  @click="tempAmpm = 'AM'"
+                                                  :class="tempAmpm === 'AM' ? 'bg-white text-emerald-700 shadow-sm' : 'text-emerald-200 hover:text-white'"
+                                                  class="px-2.5 py-1 rounded-lg transition-all">AM</button>
+                                          <button type="button" 
+                                                  @click="tempAmpm = 'PM'"
+                                                  :class="tempAmpm === 'PM' ? 'bg-white text-emerald-700 shadow-sm' : 'text-emerald-200 hover:text-white'"
+                                                  class="px-2.5 py-1 rounded-lg transition-all">PM</button>
+                                      </div>
+                                  </div>
+                              </div>
+
+                              <!-- Mode Sub-header -->
+                              <div class="bg-emerald-50/80 border-b border-emerald-100/60 px-4 py-2 flex items-center justify-between text-xs text-emerald-800 font-medium">
+                                  <span x-text="clockMode === 'hour' ? 'Tap an Hour number' : 'Tap Minutes number'"></span>
+                                  <span class="text-[10px] uppercase font-bold text-emerald-700 bg-emerald-200/80 px-2 py-0.5 rounded-full" x-text="clockMode"></span>
+                              </div>
+
+                              <!-- Analog Clock Face -->
+                              <div class="p-5 flex justify-center items-center bg-gray-50/40">
+                                  <div class="relative w-56 h-56 rounded-full bg-white border-2 border-emerald-100 shadow-lg shadow-emerald-50/50 flex items-center justify-center">
+                                      <!-- Pivot Dot -->
+                                      <div class="absolute w-3.5 h-3.5 bg-emerald-600 rounded-full z-20 shadow-md"></div>
+                                      
+                                      <!-- Clock Hand -->
+                                      <div class="absolute top-1/2 left-1/2 h-1/2 w-0.5 bg-emerald-500 origin-top z-10 transition-transform duration-300 pointer-events-none"
+                                           :style="`transform: translate(-50%, 0) rotate(${getHandAngle()}deg);`">
+                                          <!-- End Circular Highlight -->
+                                          <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-8 h-8 rounded-full bg-emerald-600 shadow-md flex items-center justify-center text-white font-bold text-xs"></div>
+                                      </div>
+
+                                      <!-- Hours Dial -->
+                                      <div x-show="clockMode === 'hour'" class="absolute inset-0">
+                                          <template x-for="h in [12,1,2,3,4,5,6,7,8,9,10,11]" :key="h">
+                                              <button type="button"
+                                                      @click="selectHour(h)"
+                                                      :style="getClockPositionStyle(h === 12 ? 0 : h, 12)"
+                                                      :class="tempHour === h ? 'text-white font-bold scale-110 z-30' : 'text-gray-700 hover:text-emerald-600 font-semibold hover:bg-emerald-100/50'"
+                                                      class="absolute w-8 h-8 -ml-4 -mt-4 rounded-full flex items-center justify-center text-sm transition-all">
+                                                  <span x-text="h"></span>
+                                              </button>
+                                          </template>
+                                      </div>
+
+                                      <!-- Minutes Dial -->
+                                      <div x-show="clockMode === 'minute'" class="absolute inset-0">
+                                          <template x-for="(m, idx) in [0,5,10,15,20,25,30,35,40,45,50,55]" :key="m">
+                                              <button type="button"
+                                                      @click="selectMinute(m)"
+                                                      :style="getClockPositionStyle(idx, 12)"
+                                                      :class="tempMinute === m ? 'text-white font-bold scale-110 z-30' : 'text-gray-700 hover:text-emerald-600 font-semibold hover:bg-emerald-100/50'"
+                                                      class="absolute w-8 h-8 -ml-4 -mt-4 rounded-full flex items-center justify-center text-xs transition-all">
+                                                  <span x-text="formatMinuteDisplay(m)"></span>
+                                              </button>
+                                          </template>
+                                      </div>
+                                  </div>
+                              </div>
+
+                              <!-- Footer Actions -->
+                              <div class="px-5 py-3.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs">
+                                  <button type="button" 
+                                          @click="clearActiveTime()"
+                                          class="text-red-500 font-semibold hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors">
+                                      Clear
+                                  </button>
+                                  <div class="flex items-center gap-2">
+                                      <button type="button" 
+                                              @click="closeClockModal()"
+                                              class="text-gray-600 font-semibold hover:text-gray-800 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                                          Cancel
+                                      </button>
+                                      <button type="button" 
+                                              @click="confirmClockTime()"
+                                              class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-1.5 rounded-lg shadow-sm transition-all">
+                                          OK
+                                      </button>
+                                  </div>
+                              </div>
+
+                          </div>
                       </div>
 
                       <!-- Live Summary Preview -->
@@ -933,37 +1056,27 @@
           fromTime: '',
           toTime: '',
           composed: '',
+          timeSlots: [],
 
           init() {
+              this.buildTimeSlots();
               this.parseExisting(savedValue || '');
               this.compose();
           },
 
-          formatTime12(time24) {
-              if (!time24) return '';
-              const parts = time24.split(':');
-              if (parts.length < 2) return '';
-              let h = parseInt(parts[0], 10);
-              const m = parts[1];
-              if (isNaN(h)) return '';
-              const ampm = h >= 12 ? 'PM' : 'AM';
-              h = h % 12;
-              if (h === 0) h = 12;
-              return `${h}:${m} ${ampm}`;
-          },
-
-          time12To24(label) {
-              if (!label) return '';
-              const match = label.match(/(\d{1,2})[:.:](\d{2})\s*(AM|PM)?/i);
-              if (!match) return '';
-              let h = parseInt(match[1], 10);
-              const m = match[2];
-              const ampm = match[3] ? match[3].toUpperCase() : null;
-
-              if (ampm === 'PM' && h < 12) h += 12;
-              if (ampm === 'AM' && h === 12) h = 0;
-
-              return `${String(h).padStart(2, '0')}:${m}`;
+          buildTimeSlots() {
+              const slots = [];
+              for (let h = 0; h < 24; h++) {
+                  for (let m of [0, 30]) {
+                      const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                      const ampm   = h < 12 ? 'AM' : 'PM';
+                      const hh     = String(h).padStart(2, '0');
+                      const mm     = String(m).padStart(2, '0');
+                      const label  = `${hour12}:${mm === '0' ? '00' : mm} ${ampm}`;
+                      slots.push({ value: `${hh}:${mm}`, label });
+                  }
+              }
+              this.timeSlots = slots;
           },
 
           parseExisting(val) {
@@ -979,9 +1092,14 @@
 
               if (timePart) {
                   const parts = timePart.split(/–|-/).map(s => s.trim());
-                  if (parts[0]) this.fromTime = this.time12To24(parts[0]);
-                  if (parts[1]) this.toTime   = this.time12To24(parts[1]);
+                  if (parts[0]) this.fromTime = this.labelToValue(parts[0]);
+                  if (parts[1]) this.toTime   = this.labelToValue(parts[1]);
               }
+          },
+
+          labelToValue(label) {
+              const found = this.timeSlots.find(t => t.label.toLowerCase() === label.toLowerCase());
+              return found ? found.value : '';
           },
 
           toggleDay(short) {
@@ -1006,10 +1124,118 @@
               this.compose();
           },
 
+          // ── Material Clock Picker State ────────────────────
+          showClockModal: false,
+          activeTimeField: 'from',
+          clockMode: 'hour',
+          tempHour: 8,
+          tempMinute: 0,
+          tempAmpm: 'AM',
+
+          openClockModal(field) {
+              this.activeTimeField = field;
+              this.clockMode = 'hour';
+              const currentVal = field === 'from' ? this.fromTime : this.toTime;
+              
+              if (currentVal) {
+                  const [hhStr, mmStr] = currentVal.split(':');
+                  let h = parseInt(hhStr, 10);
+                  let m = parseInt(mmStr, 10);
+                  this.tempAmpm = h >= 12 ? 'PM' : 'AM';
+                  this.tempHour = h % 12 === 0 ? 12 : h % 12;
+                  this.tempMinute = Math.round(m / 5) * 5;
+                  if (this.tempMinute === 60) this.tempMinute = 0;
+              } else {
+                  this.tempHour = field === 'from' ? 8 : 5;
+                  this.tempMinute = 0;
+                  this.tempAmpm = field === 'from' ? 'AM' : 'PM';
+              }
+              this.showClockModal = true;
+          },
+
+          closeClockModal() {
+              this.showClockModal = false;
+          },
+
+          selectHour(h) {
+              this.tempHour = h;
+              setTimeout(() => {
+                  this.clockMode = 'minute';
+              }, 150);
+          },
+
+          selectMinute(m) {
+              this.tempMinute = m;
+          },
+
+          confirmClockTime() {
+              let h24 = this.tempHour;
+              if (this.tempAmpm === 'PM' && h24 < 12) h24 += 12;
+              if (this.tempAmpm === 'AM' && h24 === 12) h24 = 0;
+              
+              const val24 = `${String(h24).padStart(2, '0')}:${String(this.tempMinute).padStart(2, '0')}`;
+              
+              if (this.activeTimeField === 'from') {
+                  this.fromTime = val24;
+              } else {
+                  this.toTime = val24;
+              }
+              this.compose();
+              this.closeClockModal();
+          },
+
+          clearActiveTime() {
+              if (this.activeTimeField === 'from') {
+                  this.fromTime = '';
+              } else {
+                  this.toTime = '';
+              }
+              this.compose();
+              this.closeClockModal();
+          },
+
+          formatTimeLabel(val24) {
+              if (!val24) return '';
+              const found = this.timeSlots.find(t => t.value === val24);
+              if (found) return found.label;
+              
+              const [hStr, mStr] = val24.split(':');
+              let h = parseInt(hStr, 10);
+              const ampm = h >= 12 ? 'PM' : 'AM';
+              h = h % 12 === 0 ? 12 : h % 12;
+              return `${h}:${mStr} ${ampm}`;
+          },
+
+          formatHourDisplay(h) {
+              return String(h);
+          },
+
+          formatMinuteDisplay(m) {
+              return String(m).padStart(2, '0');
+          },
+
+          getClockPositionStyle(index, count) {
+              const angleRad = ((index * 360 / count) - 90) * (Math.PI / 180);
+              const radiusPct = 36;
+              const x = 50 + radiusPct * Math.cos(angleRad);
+              const y = 50 + radiusPct * Math.sin(angleRad);
+              return `left: ${x}%; top: ${y}%;`;
+          },
+
+          getHandAngle() {
+              if (this.clockMode === 'hour') {
+                  const h = this.tempHour % 12;
+                  return 180 + (h * 30);
+              } else {
+                  const idx = this.tempMinute / 5;
+                  return 180 + (idx * 30);
+              }
+          },
+
           compose() {
               const dayStr  = this.selectedDays.join(', ');
-              const fromLbl = this.formatTime12(this.fromTime);
-              const toLbl   = this.formatTime12(this.toTime);
+              const fromLbl = this.formatTimeLabel(this.fromTime);
+              const toLbl   = this.formatTimeLabel(this.toTime);
 
               let result = dayStr;
               if (fromLbl || toLbl) {
