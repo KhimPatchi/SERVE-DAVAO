@@ -146,6 +146,7 @@ Route::middleware(['auth', 'verified', 'prevent-back-history'])->group(function 
         
         // Message operations
         Route::post('/{conversation}/messages', [\App\Http\Controllers\MessageController::class, 'store'])->name('send');
+        Route::get('/{conversation}/messages', fn(\App\Models\Conversation $conversation) => redirect()->route('messages.show', $conversation));
         Route::delete('/message/{message}', [\App\Http\Controllers\MessageController::class, 'destroy'])->name('delete');
     });
 });
