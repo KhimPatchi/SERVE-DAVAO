@@ -37,13 +37,13 @@
 
     html {
       scroll-behavior: smooth;
-      scroll-snap-type: y mandatory;
+      scroll-snap-type: y proximity;
+      scroll-padding-top: var(--nav-h);
       height: 100%;
-      overflow-y: scroll;
     }
 
     body {
-      height: 100%;
+      min-height: 100%;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background-color: #ffffff;
       color: #1f2937;
@@ -93,13 +93,13 @@
       right: 0;
       height: var(--nav-h);
       z-index: 1000;
-      background: rgba(255, 255, 255, 0.94);
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid rgba(229, 231, 235, 0.8);
       display: flex;
       align-items: center;
-      transition: background 0.3s ease, box-shadow 0.3s ease;
+      transition: background 0.3s ease;
     }
     .nav-inner {
       width: 100%;
@@ -143,7 +143,6 @@
       font-size: 0.92rem;
       text-decoration: none;
       transition: color 0.2s ease;
-      position: relative;
     }
     .nav-links a:hover, .nav-links a.active {
       color: var(--primary);
@@ -227,19 +226,19 @@
       .nav-hamburger { display: block; }
     }
 
-    /* VIEWPORT SECTION CORE FRAMEWORK */
+    /* RESPONSIVE VIEWPORT SECTION FRAMEWORK */
     .vp-section {
       width: 100%;
-      height: 100dvh;
       min-height: 100dvh;
-      max-height: 100dvh;
       scroll-snap-align: start;
-      scroll-snap-stop: always;
-      padding-top: var(--nav-h);
+      scroll-margin-top: var(--nav-h);
+      padding-top: calc(var(--nav-h) + 1.25rem);
+      padding-bottom: 2rem;
       position: relative;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
+      justify-content: center;
+      align-items: center;
       box-sizing: border-box;
     }
 
@@ -247,21 +246,15 @@
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-      height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 1rem 1.5rem;
+      padding: 0 1.5rem;
       box-sizing: border-box;
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(5, 150, 105, 0.3) transparent;
     }
-    .vp-container::-webkit-scrollbar { width: 4px; }
-    .vp-container::-webkit-scrollbar-thumb { background: rgba(5, 150, 105, 0.3); border-radius: 99px; }
 
-    /* TYPOGRAPHY COMPONENTS */
+    /* TYPOGRAPHY & BADGES */
     .section-badge {
       display: inline-flex;
       align-items: center;
@@ -292,13 +285,14 @@
       color: #6b7280;
       font-size: clamp(0.88rem, 1.8vw, 1.05rem);
       line-height: 1.6;
-      margin-bottom: 1.75rem;
+      margin-bottom: 2rem;
     }
 
-    /* SECTION 1: HERO */
+    /* HERO SECTION */
     .hero-section {
       background-color: #050505;
       color: #ffffff;
+      padding-bottom: 4rem;
     }
     .hero-bg-img {
       position: absolute;
@@ -327,7 +321,7 @@
       align-items: center;
       text-align: center;
       max-width: 820px;
-      padding: 1rem;
+      padding: 1rem 0;
     }
     .hero-badge {
       background: rgba(255, 255, 255, 0.15);
@@ -400,13 +394,13 @@
       50% { transform: translateX(-50%) translateY(6px); }
     }
 
-    /* SECTION 2: ABOUT */
+    /* ABOUT SECTION */
     .about-section {
       background: #f9fafb;
     }
     .about-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 1.25rem;
       width: 100%;
       max-width: 1100px;
@@ -452,11 +446,11 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 2rem;
-      margin-top: 1.75rem;
+      gap: 1.5rem;
+      margin-top: 2rem;
       width: 100%;
       max-width: 850px;
-      padding: 1rem;
+      padding: 1.25rem;
       background: #ffffff;
       border-radius: 16px;
       border: 1px solid #e5e7eb;
@@ -465,13 +459,13 @@
     .stat-num { font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 900; color: var(--primary); display: block; }
     .stat-lbl { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; }
 
-    /* SECTION 3: EVENTS / HOW IT WORKS */
+    /* EVENTS / HOW IT WORKS SECTION */
     .events-section {
       background: #ffffff;
     }
     .steps-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 1.5rem;
       width: 100%;
       max-width: 1100px;
@@ -519,25 +513,17 @@
       line-height: 1.6;
     }
 
-    /* SECTION 4: CONTACT */
+    /* CONTACT SECTION (NATURAL RESPONSIVE HEIGHT) */
     .contact-section {
       background: #f0fdf4;
+      padding-bottom: 1.5rem;
     }
     .contact-layout {
       display: grid;
-      grid-template-columns: 1fr 1.1fr;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 1.5rem;
       width: 100%;
       max-width: 1150px;
-      height: 100%;
-      max-height: calc(100dvh - var(--nav-h) - 130px);
-    }
-    @media (max-width: 900px) {
-      .contact-layout {
-        grid-template-columns: 1fr;
-        max-height: none;
-        overflow-y: visible;
-      }
     }
     .contact-info-box {
       background: #ffffff;
@@ -569,8 +555,7 @@
     #faq-chatbot {
       display: flex;
       flex-direction: column;
-      flex: 1;
-      min-height: 240px;
+      height: 340px;
       border-radius: 20px;
       overflow: hidden;
       box-shadow: 0 8px 30px rgba(5,150,105,0.12);
@@ -658,7 +643,7 @@
     .cf-label { font-size: 0.78rem; font-weight: 700; color: #374151; }
     .cf-input {
       width: 100%;
-      padding: 0.55rem 0.85rem;
+      padding: 0.6rem 0.85rem;
       font-size: 0.85rem;
       border: 1.5px solid #d1fae5;
       border-radius: 10px;
@@ -674,7 +659,7 @@
       color: #ffffff;
       font-weight: 700;
       font-size: 0.9rem;
-      padding: 0.65rem;
+      padding: 0.75rem;
       border-radius: 10px;
       border: none;
       cursor: pointer;
@@ -682,22 +667,24 @@
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
-      margin-top: 0.4rem;
+      margin-top: 0.75rem;
       transition: all 0.2s;
     }
     .btn-submit:hover { background: var(--primary-dark); transform: translateY(-1px); }
 
-    /* FOOTER BAR INSIDE CONTACT SECTION */
-    .section-footer {
+    /* FOOTER BAR */
+    .site-footer-bar {
       width: 100%;
-      margin-top: auto;
-      padding-top: 0.75rem;
+      margin-top: 2.5rem;
+      padding-top: 1rem;
       border-top: 1px solid rgba(5, 150, 105, 0.15);
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
+      gap: 0.5rem;
       color: #6b7280;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
     }
 
     /* DOT NAV */
@@ -916,13 +903,13 @@
   <div class="vp-container">
     <span class="section-badge"><i class="bi bi-envelope-heart-fill"></i> Get In Touch</span>
     <h2 class="section-title">Contact <span>&amp; Support</span></h2>
-    <p class="section-desc" style="margin-bottom:1.25rem;">
+    <p class="section-desc" style="margin-bottom:1.5rem;">
       Have questions or want to partner with ServeDavao? Chat with our assistant or send us a direct message.
     </p>
 
     <div class="contact-layout">
       <!-- LEFT COLUMN: Contact Info + FAQ Chatbot -->
-      <div style="display:flex;flex-direction:column;gap:0.85rem;height:100%;">
+      <div style="display:flex;flex-direction:column;gap:1rem;">
         <div class="contact-info-box">
           <div class="ci-row">
             <div class="ci-icon"><i class="bi bi-geo-alt-fill"></i></div>
@@ -949,11 +936,11 @@
 
       <!-- RIGHT COLUMN: Contact Form -->
       <div class="contact-form-card">
-        <h3 style="font-size:1.05rem;font-weight:800;color:#111827;margin-bottom:0.75rem;">Send Us a Message</h3>
-        <form id="contactFormSecure" action="{{ route('contact.submit') }}" method="POST" style="display:flex;flex-direction:column;gap:0.5rem;flex:1;">
+        <h3 style="font-size:1.1rem;font-weight:800;color:#111827;margin-bottom:0.85rem;">Send Us a Message</h3>
+        <form id="contactFormSecure" action="{{ route('contact.submit') }}" method="POST" style="display:flex;flex-direction:column;">
           @csrf
           <div style="display:none;"><input type="text" name="website" tabindex="-1" autocomplete="off"><input type="url" name="url" tabindex="-1" autocomplete="off"></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:0.75rem;">
             <div class="cf-group"><label for="firstName" class="cf-label">First Name *</label><input type="text" id="firstName" name="firstName" required class="cf-input" placeholder="First name"></div>
             <div class="cf-group"><label for="lastName" class="cf-label">Last Name *</label><input type="text" id="lastName" name="lastName" required class="cf-input" placeholder="Last name"></div>
           </div>
@@ -968,23 +955,27 @@
               <option value="other">Other</option>
             </select>
           </div>
-          <div class="cf-group" style="flex:1;"><label for="message" class="cf-label">Message *</label><textarea id="message" name="message" rows="3" required class="cf-input" style="resize:none;" placeholder="How can we help you?"></textarea></div>
-          <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}" style="transform:scale(0.8);transform-origin:left top;margin-bottom:-10px;"></div>
+          <div class="cf-group"><label for="message" class="cf-label">Message *</label><textarea id="message" name="message" rows="3" required class="cf-input" style="resize:vertical;" placeholder="How can we help you?"></textarea></div>
+          
+          <div style="margin-top:0.35rem;margin-bottom:0.25rem;">
+            <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}" style="transform:scale(0.88);transform-origin:left center;"></div>
+          </div>
+          
           <button type="submit" class="btn-submit"><span>Send Message</span><i class="bi bi-send"></i></button>
         </form>
-        <div id="successMessage" class="hidden" style="margin-top:0.5rem;padding:0.65rem;background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;color:#065f46;font-size:0.8rem;display:flex;align-items:center;gap:0.4rem;">
+        <div id="successMessage" class="hidden" style="margin-top:0.75rem;padding:0.75rem;background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;color:#065f46;font-size:0.85rem;display:flex;align-items:center;gap:0.4rem;">
           <i class="bi bi-check-circle-fill"></i><p id="successText" style="margin:0;font-weight:600;">Message sent successfully!</p>
         </div>
-        <div id="errorMessage" class="hidden" style="margin-top:0.5rem;padding:0.65rem;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;color:#991b1b;font-size:0.8rem;display:flex;align-items:center;gap:0.4rem;">
+        <div id="errorMessage" class="hidden" style="margin-top:0.75rem;padding:0.75rem;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;color:#991b1b;font-size:0.85rem;display:flex;align-items:center;gap:0.4rem;">
           <i class="bi bi-exclamation-circle-fill"></i><p id="errorText" style="margin:0;font-weight:600;">Error sending message.</p>
         </div>
       </div>
     </div>
 
-    <!-- INTEGRATED FOOTER STRIP -->
-    <div class="section-footer">
+    <!-- SITE FOOTER BAR -->
+    <div class="site-footer-bar">
       <div style="display:flex;align-items:center;gap:0.5rem;">
-        <img src="{{ asset('assets/img/logoDav.png') }}" alt="" style="width:20px;height:20px;border-radius:50%;">
+        <img src="{{ asset('assets/img/logoDav.png') }}" alt="" style="width:22px;height:22px;border-radius:50%;">
         <strong style="color:#374151;">ServeDavao</strong> &copy; 2025. All rights reserved.
       </div>
       <div>Empowering Davao City through volunteerism.</div>
@@ -1054,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.3) {
         const id = entry.target.id;
         
         // Update Dot Nav active state
@@ -1072,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     });
-  }, { threshold: 0.5 });
+  }, { threshold: 0.3 });
 
   sections.forEach(sec => observer.observe(sec));
 });
