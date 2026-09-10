@@ -167,7 +167,7 @@
                                 </div>
 
                                 <div class="aspect-video w-full rounded-xl bg-gray-100 mb-4 overflow-hidden bg-cover bg-center transition-transform group-hover:scale-105 duration-500"
-                                     style="background-image: url('{{ $recEvent->image ?? asset('assets/img/event-placeholder.jpg') }}')">
+                                     style="background-image: url('{{ $recEvent->image_url }}')">
                                 </div>
                                 
                                 <h4 class="font-black text-gray-900 line-clamp-1 group-hover:text-emerald-600 transition-colors text-base leading-tight">{{ $recEvent->title }}</h4>
@@ -217,7 +217,7 @@
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-4">
                                              <div class="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0 bg-cover bg-center shadow-sm group-hover:scale-105 transition-transform duration-300"
-                                                  style="background-image: url('{{ $event->image ?? asset('assets/img/event-placeholder.jpg') }}')">
+                                                  style="background-image: url('{{ $event->image_url }}')">
                                              </div>
                                              <div>
                                                  <p class="font-bold text-gray-900 line-clamp-1 group-hover:text-emerald-600 transition-colors">{{ $event->title }}</p>

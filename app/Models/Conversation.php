@@ -224,26 +224,12 @@ class Conversation extends Model
     public function getAvatarUrl(User $currentUser): string
     {
         if ($this->type === 'event_group' && $this->event) {
-            if ($this->event->image) {
-                // Check if it's already a full URL or needs storage prefix
-                if (str_starts_with($this->event->image, 'http')) return $this->event->image;
-                return asset(str_starts_with($this->event->image, 'storage') ? $this->event->image : 'storage/' . $this->event->image);
-            }
-            return asset('images/default-event.svg');
+            return $this->event->image_url;
         }
 
         $otherParticipant = $this->getOtherParticipant($currentUser);
         if (!$otherParticipant) return asset('images/default-avatar.svg');
 
-        $avatar = $otherParticipant->avatar ?? $otherParticipant->google_avatar;
-        
-        if (!$avatar) return asset('images/default-avatar.svg');
-
-        // If it's a full URL (like from Google or external), return it
-        if (str_starts_with($avatar, 'http')) return $avatar;
-
-        // Ensure it has storage prefix and asset helper
-        $path = str_starts_with($avatar, 'storage') ? $avatar : 'storage/' . $avatar;
-        return asset($path);
+        return $otherParticipant->avatar_url;
     }
 }

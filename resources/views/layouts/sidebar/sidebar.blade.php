@@ -471,20 +471,8 @@
                 $user = Auth::user();
                 // COMPREHENSIVE AVATAR FIX FOR SIDEBAR
                 $avatarUrl = null;
-                if ($user && $user->avatar) {
-                    if (str_starts_with($user->avatar, 'http')) {
-                        $avatarUrl = $user->avatar;
-                    } elseif (str_starts_with($user->avatar, 'storage/')) {
-                        $avatarUrl = asset($user->avatar);
-                    } else {
-                        $avatarUrl = asset('storage/' . $user->avatar);
-                    }
-                }
-                // Also check for google_avatar
-                if (!$avatarUrl && $user && $user->google_avatar) {
-                    $avatarUrl = $user->google_avatar;
-                }
-                $hasValidAvatar = $avatarUrl && filter_var($avatarUrl, FILTER_VALIDATE_URL);
+                $avatarUrl = $user ? $user->avatar_url : asset('images/default-avatar.svg');
+                $hasValidAvatar = !empty($avatarUrl);
                 $userInitial = $user ? strtoupper(substr($user->name, 0, 1)) : 'U';
                 
                 // Determine avatar background based on registration method

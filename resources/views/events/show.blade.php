@@ -105,7 +105,7 @@ function handleBackNavigation() {
     <div class="max-w-7xl mx-auto">
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden event-card group">
             <!-- Enhanced Hero Section -->
-            <div class="relative h-72 md:h-96 bg-cover bg-center" style="background-image: url('{{ $event->image ? asset('storage/' . $event->image) : asset('assets/img/event-placeholder.jpg') }}');">
+            <div class="relative h-72 md:h-96 bg-cover bg-center" style="background-image: url('{{ $event->image_url }}');">
                 <div class="absolute inset-0 bg-gradient-to-br from-black/40 to-emerald-900/30"></div>
                 
                 <!-- Enhanced Status Badges -->
@@ -427,16 +427,8 @@ function handleBackNavigation() {
                                         $avatarUrl = $organizer->google_avatar;
                                     }
                                     // Then check regular avatar
-                                    elseif ($organizer && $organizer->avatar) {
-                                        if (str_starts_with($organizer->avatar, 'http')) {
-                                            $avatarUrl = $organizer->avatar;
-                                        } elseif (str_starts_with($organizer->avatar, 'storage/')) {
-                                            $avatarUrl = asset($organizer->avatar);
-                                        } else {
-                                            $avatarUrl = asset('storage/' . $organizer->avatar);
-                                        }
-                                    }
-                                    $hasValidAvatar = $avatarUrl && filter_var($avatarUrl, FILTER_VALIDATE_URL);
+                                    $avatarUrl = $organizer ? $organizer->avatar_url : asset('images/default-avatar.svg');
+                                    $hasValidAvatar = !empty($avatarUrl);
                                 @endphp
                                 
                                 @if($hasValidAvatar)

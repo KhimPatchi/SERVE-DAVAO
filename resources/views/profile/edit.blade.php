@@ -30,13 +30,7 @@
       <div class="flex items-center gap-4">
         <div class="relative">
           @php
-            $avatarSrc = null;
-            if (!empty(Auth::user()->google_avatar)) {
-              $avatarSrc = Auth::user()->google_avatar;
-            } elseif (!empty(Auth::user()->avatar)) {
-              // Avatar is stored as 'storage/avatars/...' so just use asset() directly
-              $avatarSrc = asset(Auth::user()->avatar);
-            }
+            $avatarSrc = Auth::user()->avatar_url;
           @endphp
           
           @if($avatarSrc)

@@ -90,15 +90,9 @@
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="flex items-center">
                                             <div class="flex-shrink-0">
-                                                @if($user->avatar)
-                                                    <img src="{{ asset($user->avatar) }}" 
-                                                         alt="{{ $user->name }}'s profile picture" 
-                                                         class="w-10 h-10 rounded-full object-cover">
-                                                @else
-                                                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
-                                                        <span class="text-white text-sm font-semibold">{{ substr($user->name, 0, 1) }}</span>
-                                                    </div>
-                                                @endif
+                                                <img src="{{ $user->avatar_url }}" 
+                                                     alt="{{ $user->name }}'s profile picture" 
+                                                     class="w-10 h-10 rounded-full object-cover">
                                             </div>
                                             <div class="ml-4">
                                                 <div class="text-sm font-semibold text-gray-900">{{ $user->name }}</div>

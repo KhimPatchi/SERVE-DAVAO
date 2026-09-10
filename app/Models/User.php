@@ -193,15 +193,15 @@ class User extends Authenticatable
     {
         $avatar = $this->avatar ?? $this->google_avatar;
 
-        if (!$avatar) {
-            return asset('images/default-avatar.png');
+        if (!$avatar || str_starts_with($avatar, 'php') || str_contains($avatar, 'tmp')) {
+            return asset('images/default-avatar.svg');
         }
 
-        if (str_starts_with($avatar, 'http')) {
+        if (str_starts_with($avatar, 'http://') || str_starts_with($avatar, 'https://')) {
             return $avatar;
         }
 
-        $path = str_starts_with($avatar, 'storage') ? $avatar : 'storage/' . $avatar;
+        $path = str_starts_with($avatar, 'storage/') ? $avatar : 'storage/' . $avatar;
         return asset($path);
     }
 }

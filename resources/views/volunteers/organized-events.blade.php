@@ -114,13 +114,7 @@
               
               <!-- Event Image -->
               <div class="relative h-48 overflow-hidden bg-gray-100 rounded-t-lg">
-                @if($event->image)
-                    <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                @else
-                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-50">
-                        <i class="bi bi-calendar-event text-5xl text-emerald-200"></i>
-                    </div>
-                @endif
+                    <img src="{{ $event->image_url }}" alt="{{ $event->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                 
                 <!-- Status Badge -->
                 <div class="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm">

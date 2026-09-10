@@ -131,15 +131,9 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center space-x-3">
                                         <div class="flex-shrink-0">
-                                            @if($user->avatar)
-                                                <img src="{{ asset($user->avatar) }}" 
+                                                <img src="{{ $user->avatar_url }}" 
                                                      alt="{{ $user->name }}" 
                                                      class="w-10 h-10 rounded-lg object-cover border border-gray-200">
-                                            @else
-                                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                                                    <span class="text-white font-bold text-sm">{{ substr($user->name, 0, 1) }}</span>
-                                                </div>
-                                            @endif
                                         </div>
                                         <div class="min-w-0 flex-1">
                                             <div class="flex items-center space-x-2">

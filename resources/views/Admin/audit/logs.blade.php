@@ -112,16 +112,8 @@
                         if ($adminUser) {
                             if ($adminUser->google_avatar) {
                                 $adminAvatarUrl = $adminUser->google_avatar;
-                            } elseif ($adminUser->avatar) {
-                                if (str_starts_with($adminUser->avatar, 'http')) {
-                                    $adminAvatarUrl = $adminUser->avatar;
-                                } elseif (str_starts_with($adminUser->avatar, 'storage/')) {
-                                    $adminAvatarUrl = asset($adminUser->avatar);
-                                } else {
-                                    $adminAvatarUrl = asset('storage/' . $adminUser->avatar);
-                                }
-                            }
-                            $adminHasValidAvatar = $adminAvatarUrl && filter_var($adminAvatarUrl, FILTER_VALIDATE_URL);
+                            $adminAvatarUrl = $adminUser->avatar_url;
+                            $adminHasValidAvatar = !empty($adminAvatarUrl);
                             $adminInitial = strtoupper(substr($adminUser->name, 0, 1));
                         }
 
@@ -137,18 +129,8 @@
                         }
 
                         if ($targetUser) {
-                            if ($targetUser->google_avatar) {
-                                $targetAvatarUrl = $targetUser->google_avatar;
-                            } elseif ($targetUser->avatar) {
-                                if (str_starts_with($targetUser->avatar, 'http')) {
-                                    $targetAvatarUrl = $targetUser->avatar;
-                                } elseif (str_starts_with($targetUser->avatar, 'storage/')) {
-                                    $targetAvatarUrl = asset($targetUser->avatar);
-                                } else {
-                                    $targetAvatarUrl = asset('storage/' . $targetUser->avatar);
-                                }
-                            }
-                            $targetHasValidAvatar = $targetAvatarUrl && filter_var($targetAvatarUrl, FILTER_VALIDATE_URL);
+                            $targetAvatarUrl = $targetUser->avatar_url;
+                            $targetHasValidAvatar = !empty($targetAvatarUrl);
                             $targetInitial = strtoupper(substr($targetUser->name, 0, 1));
                         }
                     @endphp

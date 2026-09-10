@@ -35,15 +35,16 @@ class Message extends Model
      */
     public function getAttachmentUrlAttribute()
     {
-        if (!$this->attachment) {
+        if (!$this->attachment || str_starts_with($this->attachment, 'php') || str_contains($this->attachment, 'tmp')) {
             return null;
         }
 
-        if (str_starts_with($this->attachment, 'http')) {
+        if (str_starts_with($this->attachment, 'http://') || str_starts_with($this->attachment, 'https://')) {
             return $this->attachment;
         }
 
-        return asset('storage/' . $this->attachment);
+        $path = str_starts_with($this->attachment, 'storage/') ? $this->attachment : 'storage/' . $this->attachment;
+        return asset($path);
     }
 
     // ==================== RELATIONSHIPS ====================

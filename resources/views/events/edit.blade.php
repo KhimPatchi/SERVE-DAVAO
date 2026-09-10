@@ -127,7 +127,7 @@
                                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 pl-1">Current Image</p>
                                         <div class="relative rounded-3xl overflow-hidden border border-gray-200 shadow-sm group">
                                             @if($event->image)
-                                                <img src="{{ asset('storage/' . $event->image) }}" class="w-full h-48 object-cover opacity-90 group-hover:opacity-100 transition-opacity">
+                                                <img src="{{ $event->image_url }}" class="w-full h-48 object-cover opacity-90 group-hover:opacity-100 transition-opacity">
                                             @endif
                                             <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all"></div>
                                         </div>

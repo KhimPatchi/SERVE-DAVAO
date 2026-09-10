@@ -202,11 +202,7 @@
         <div class="px-4 pt-5 pb-4 border-b border-slate-100 shrink-0">
             <div class="flex items-center justify-between mb-3">
                 <h1 class="text-xl font-extrabold text-emerald-600 tracking-tight">Messages</h1>
-                <button title="Compose"
-                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-blue-50 hover:text-blue-600
-                               text-slate-500 flex items-center justify-center transition-colors text-sm">
-                    <i class="bi bi-pencil-square"></i>
-                </button>
+                
             </div>
             {{-- Search --}}
             <div class="relative">
@@ -602,18 +598,7 @@
                 <p class="text-sm text-slate-500 max-w-xs leading-relaxed">
                     Pick a conversation from the list to start chatting with organizers and volunteers.
                 </p>
-                <div class="mt-8 flex gap-3">
-                    <div class="flex flex-col items-center gap-1.5 p-4 bg-white border border-emerald-100/60
-                                rounded-2xl w-28 shadow-sm">
-                        <i class="bi bi-shield-check text-emerald-500 text-xl"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Secure</span>
-                    </div>
-                    <div class="flex flex-col items-center gap-1.5 p-4 bg-white border border-emerald-100/60
-                                rounded-2xl w-28 shadow-sm">
-                        <i class="bi bi-lightning-charge text-emerald-500 text-xl"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Real-time</span>
-                    </div>
-                </div>
+                
             </div>
 
         @endif

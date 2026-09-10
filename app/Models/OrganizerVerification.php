@@ -40,6 +40,42 @@ class OrganizerVerification extends Model
         'verification_data' => 'array', // Cast JSON to array
     ];
 
+    protected $appends = ['document_url', 'selfie_url'];
+
+    public function getDocumentUrlAttribute(): ?string
+    {
+        if (!$this->identification_document_path || str_starts_with($this->identification_document_path, 'php') || str_contains($this->identification_document_path, 'tmp')) {
+            return null;
+        }
+
+        if (str_starts_with($this->identification_document_path, 'http://') || str_starts_with($this->identification_document_path, 'https://')) {
+            return $this->identification_document_path;
+        }
+
+        $path = str_starts_with($this->identification_document_path, 'storage/') 
+            ? $this->identification_document_path 
+            : 'storage/' . $this->identification_document_path;
+
+        return asset($path);
+    }
+
+    public function getSelfieUrlAttribute(): ?string
+    {
+        if (!$this->selfie_path || str_starts_with($this->selfie_path, 'php') || str_contains($this->selfie_path, 'tmp')) {
+            return null;
+        }
+
+        if (str_starts_with($this->selfie_path, 'http://') || str_starts_with($this->selfie_path, 'https://')) {
+            return $this->selfie_path;
+        }
+
+        $path = str_starts_with($this->selfie_path, 'storage/') 
+            ? $this->selfie_path 
+            : 'storage/' . $this->selfie_path;
+
+        return asset($path);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

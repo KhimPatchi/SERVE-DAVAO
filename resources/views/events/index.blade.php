@@ -294,13 +294,7 @@
                 @endphp
                 <article class="group relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
                     <div class="relative h-32 overflow-hidden bg-gray-100">
-                        @if($event->image)
-                            <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
-                        @else
-                            <div class="w-full h-full flex items-center justify-center bg-gray-50">
-                                <i class="bi bi-calendar-event text-3xl text-gray-200"></i>
-                            </div>
-                        @endif
+                                    <img src="{{ $event->image_url }}" alt="{{ $event->title }}" class="w-full h-full object-cover">
                         <div class="absolute top-2 left-2 z-10">
                             <div class="glass-match-badge px-2 py-1 text-white text-[9px] font-black rounded-lg shadow-lg flex items-center gap-1">
                                 <i class="bi bi-stars"></i>
@@ -446,13 +440,7 @@
                         <article class="group relative overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition-all duration-500 hover:shadow-xl hover:translate-y-[-2px] {{ $isToday ? 'ring-2 ring-blue-200 bg-blue-50/30' : '' }}">
                             <!-- Event Image -->
                             <div class="relative h-48 overflow-hidden bg-gray-100">
-                                @if($event->image)
-                                    <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                @else
-                                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
-                                        <i class="bi bi-calendar-event text-5xl text-purple-200"></i>
-                                    </div>
-                                @endif
+                                    <img src="{{ $event->image_url }}" alt="{{ $event->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                             </div>
                             
                             <!-- Card Content Wrapper -->

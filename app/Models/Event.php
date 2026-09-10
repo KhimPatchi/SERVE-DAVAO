@@ -24,6 +24,8 @@ class Event extends Model
         'target_radius' => 'float',
     ];
 
+    protected $appends = ['image_url'];
+
     protected $attributes = [
         'status' => 'pending',
     ];
@@ -257,6 +259,23 @@ class Event extends Model
     // =========================================================================
     // ACCESSORS
     // =========================================================================
+
+    /**
+     * Get event image URL (Accessor: $event->image_url)
+     */
+    public function getImageUrlAttribute(): string
+    {
+        if (!$this->image || str_starts_with($this->image, 'php') || str_contains($this->image, 'tmp')) {
+            return asset('images/default-event.svg');
+        }
+
+        if (str_starts_with($this->image, 'http://') || str_starts_with($this->image, 'https://')) {
+            return $this->image;
+        }
+
+        $path = str_starts_with($this->image, 'storage/') ? $this->image : 'storage/' . $this->image;
+        return asset($path);
+    }
 
     /**
      * Get human-readable time until event
