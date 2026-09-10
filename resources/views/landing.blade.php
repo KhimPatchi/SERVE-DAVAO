@@ -247,12 +247,12 @@
     .vp-container {
       width: 100%;
       max-width: 1200px;
-      margin: 0 auto;
+      margin-inline: auto;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 0 1.5rem;
+      padding-inline: clamp(1rem, 4vw, 2.5rem);
       box-sizing: border-box;
     }
 
@@ -406,6 +406,8 @@
       gap: 1.25rem;
       width: 100%;
       max-width: 1100px;
+      margin-inline: auto;
+      justify-content: center;
     }
     .about-card {
       background: #ffffff;
@@ -471,6 +473,8 @@
       gap: 1.5rem;
       width: 100%;
       max-width: 1100px;
+      margin-inline: auto;
+      justify-content: center;
     }
     .step-card {
       background: #f9fafb;
