@@ -124,18 +124,27 @@
       }
     }
 
-    /* Main content adjustment */
+    /* Main content adjustment & fluid viewport reflow */
     .main-content {
       margin-left: 4rem;
-      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      width: calc(100% - 4rem);
+      max-width: calc(100% - 4rem);
+      flex: 1;
+      min-width: 0;
+      box-sizing: border-box;
+      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .main-content.expanded {
       margin-left: 16rem;
+      width: calc(100% - 16rem);
+      max-width: calc(100% - 16rem);
     }
 
     .main-content.collapsed {
       margin-left: 4rem;
+      width: calc(100% - 4rem);
+      max-width: calc(100% - 4rem);
     }
 
     /* Enhanced Sidebar toggle button - Hidden by default, shows on hover */
@@ -184,8 +193,10 @@
         transform: translateY(0);
       }
 
-      .main-content {
+      .main-content, .main-content.expanded, .main-content.collapsed {
         margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
         margin-bottom: 0;
         padding-bottom: 5rem;
       }
@@ -539,7 +550,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="main-content flex-1 p-4 md:p-8 lg:p-10 pb-24 md:pb-8 collapsed overflow-x-hidden w-full max-w-full">
+    <div class="main-content flex-1 min-w-0 p-4 md:p-8 lg:p-10 pb-24 md:pb-8 collapsed overflow-x-hidden">
       @yield ('content')
     </div>
   </div>
