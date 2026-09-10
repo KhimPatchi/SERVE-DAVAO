@@ -261,44 +261,27 @@
 
                 {{-- Time Range --}}
                 <div class="mb-5">
-                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Time Window</p>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Time Window</p>
+                        <button type="button" @click="fromTime = ''; toTime = ''; compose()" x-show="fromTime || toTime" class="text-xs text-red-500 hover:underline">Clear Time</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {{-- From --}}
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">From</label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none">
-                                    <i class="bi bi-clock text-sm"></i>
-                                </span>
-                                <select x-model="fromTime"
-                                        @change="compose()"
-                                        class="w-full h-11 pl-9 pr-4 text-sm border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400 appearance-none cursor-pointer text-gray-700 font-medium">
-                                    <option value="">Any time</option>
-                                    <template x-for="t in timeSlots" :key="t.value">
-                                        <option :value="t.value" x-text="t.label"></option>
-                                    </template>
-                                </select>
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs">▼</span>
-                            </div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">From Time</label>
+                            <input type="time"
+                                   x-model="fromTime"
+                                   @input="compose()"
+                                   class="w-full h-11 px-3 text-sm border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400 cursor-pointer text-gray-700 font-medium">
                         </div>
 
                         {{-- To --}}
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">To</label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 pointer-events-none">
-                                    <i class="bi bi-clock-fill text-sm"></i>
-                                </span>
-                                <select x-model="toTime"
-                                        @change="compose()"
-                                        class="w-full h-11 pl-9 pr-4 text-sm border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400 appearance-none cursor-pointer text-gray-700 font-medium">
-                                    <option value="">Any time</option>
-                                    <template x-for="t in timeSlots" :key="t.value">
-                                        <option :value="t.value" x-text="t.label"></option>
-                                    </template>
-                                </select>
-                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs">▼</span>
-                            </div>
+                            <label class="block text-xs font-semibold text-gray-500 mb-1.5">To Time</label>
+                            <input type="time"
+                                   x-model="toTime"
+                                   @input="compose()"
+                                   class="w-full h-11 px-3 text-sm border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400 cursor-pointer text-gray-700 font-medium">
                         </div>
                     </div>
                 </div>
@@ -484,60 +467,60 @@
             fromTime: '',
             toTime: '',
             composed: '',
-            timeSlots: [],
 
             // ── Init ───────────────────────────────────────────
             init() {
-                this.buildTimeSlots();
                 this.parseExisting(savedValue || '');
                 this.compose();
             },
 
-            // Build 30-min time slots from 12:00 AM to 11:30 PM
-            buildTimeSlots() {
-                const slots = [];
-                for (let h = 0; h < 24; h++) {
-                    for (let m of [0, 30]) {
-                        const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-                        const ampm   = h < 12 ? 'AM' : 'PM';
-                        const hh     = String(h).padStart(2, '0');
-                        const mm     = String(m).padStart(2, '0');
-                        const label  = `${hour12}:${mm === '0' ? '00' : mm} ${ampm}`;
-                        slots.push({ value: `${hh}:${mm}`, label });
-                    }
-                }
-                this.timeSlots = slots;
+            // Convert "08:30" (24h) to "8:30 AM" (12h)
+            formatTime12(time24) {
+                if (!time24) return '';
+                const parts = time24.split(':');
+                if (parts.length < 2) return '';
+                let h = parseInt(parts[0], 10);
+                const m = parts[1];
+                if (isNaN(h)) return '';
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                h = h % 12;
+                if (h === 0) h = 12;
+                return `${h}:${m} ${ampm}`;
             },
 
-            // Parse an existing saved string like "Mon, Wed | 8:00 AM – 5:00 PM"
-            // into selectedDays, fromTime, toTime
+            // Convert "8:30 AM" or "8:30 AM" to "08:30" for input type="time"
+            time12To24(label) {
+                if (!label) return '';
+                const match = label.match(/(\d{1,2})[:.:](\d{2})\s*(AM|PM)?/i);
+                if (!match) return '';
+                let h = parseInt(match[1], 10);
+                const m = match[2];
+                const ampm = match[3] ? match[3].toUpperCase() : null;
+
+                if (ampm === 'PM' && h < 12) h += 12;
+                if (ampm === 'AM' && h === 12) h = 0;
+
+                return `${String(h).padStart(2, '0')}:${m}`;
+            },
+
+            // Parse an existing saved string like "Mon, Wed | 8:00 AM - 5:00 PM"
             parseExisting(val) {
                 if (!val) return;
 
-                // Split by "|" or "–" or "-" separating days from time range
                 const pipeIdx = val.indexOf('|');
                 let daysPart  = pipeIdx !== -1 ? val.slice(0, pipeIdx).trim() : val.trim();
                 let timePart  = pipeIdx !== -1 ? val.slice(pipeIdx + 1).trim() : '';
 
-                // Restore selected days
                 const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
                 dayNames.forEach(d => {
                     if (daysPart.includes(d)) this.selectedDays.push(d);
                 });
 
-                // Restore time range
                 if (timePart) {
-                    // Normalize "8:00 AM – 5:00 PM" or "8:00 AM - 5:00 PM"
                     const parts = timePart.split(/–|-/).map(s => s.trim());
-                    if (parts[0]) this.fromTime = this.labelToValue(parts[0]);
-                    if (parts[1]) this.toTime   = this.labelToValue(parts[1]);
+                    if (parts[0]) this.fromTime = this.time12To24(parts[0]);
+                    if (parts[1]) this.toTime   = this.time12To24(parts[1]);
                 }
-            },
-
-            // Convert "8:00 AM" → "08:00" for select matching
-            labelToValue(label) {
-                const found = this.timeSlots.find(t => t.label.toLowerCase() === label.toLowerCase());
-                return found ? found.value : '';
             },
 
             // ── Day toggling ───────────────────────────────────
@@ -545,7 +528,6 @@
                 const idx = this.selectedDays.indexOf(short);
                 if (idx === -1) this.selectedDays.push(short);
                 else            this.selectedDays.splice(idx, 1);
-                // Keep ordered Mon→Sun
                 const order = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
                 this.selectedDays.sort((a,b) => order.indexOf(a) - order.indexOf(b));
                 this.compose();
@@ -567,12 +549,12 @@
             // ── Compose the final string ───────────────────────
             compose() {
                 const dayStr  = this.selectedDays.join(', ');
-                const fromLbl = this.fromTime ? this.timeSlots.find(t => t.value === this.fromTime)?.label : '';
-                const toLbl   = this.toTime   ? this.timeSlots.find(t => t.value === this.toTime)?.label   : '';
+                const fromLbl = this.formatTime12(this.fromTime);
+                const toLbl   = this.formatTime12(this.toTime);
 
                 let result = dayStr;
                 if (fromLbl || toLbl) {
-                    const timeRange = [fromLbl, toLbl].filter(Boolean).join(' – ');
+                    const timeRange = [fromLbl, toLbl].filter(Boolean).join(' - ');
                     result = result ? `${result} | ${timeRange}` : timeRange;
                 }
                 this.composed = result;

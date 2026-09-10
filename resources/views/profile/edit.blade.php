@@ -505,24 +505,26 @@
                       </div>
 
                       <!-- Time Dropdowns -->
-                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                        <div>
-                          <label class="block text-xs font-semibold text-gray-600 mb-1">From Time</label>
-                          <select x-model="fromTime" @change="compose()" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50/50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-gray-700 font-medium cursor-pointer">
-                            <option value="">Any time (Start)</option>
-                            <template x-for="t in timeSlots" :key="t.value">
-                              <option :value="t.value" x-text="t.label"></option>
-                            </template>
-                          </select>
+                      <div class="mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider">Time Window (Manual)</label>
+                          <button type="button" @click="fromTime = ''; toTime = ''; compose()" x-show="fromTime || toTime" class="text-xs text-red-500 hover:underline font-medium">Clear Time</button>
                         </div>
-                        <div>
-                          <label class="block text-xs font-semibold text-gray-600 mb-1">To Time</label>
-                          <select x-model="toTime" @change="compose()" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50/50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-gray-700 font-medium cursor-pointer">
-                            <option value="">Any time (End)</option>
-                            <template x-for="t in timeSlots" :key="t.value">
-                              <option :value="t.value" x-text="t.label"></option>
-                            </template>
-                          </select>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">From Time</label>
+                            <input type="time"
+                                   x-model="fromTime"
+                                   @input="compose()"
+                                   class="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50/50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-gray-700 font-medium cursor-pointer">
+                          </div>
+                          <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">To Time</label>
+                            <input type="time"
+                                   x-model="toTime"
+                                   @input="compose()"
+                                   class="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs bg-gray-50/50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-gray-700 font-medium cursor-pointer">
+                          </div>
                         </div>
                       </div>
 
@@ -931,27 +933,37 @@
           fromTime: '',
           toTime: '',
           composed: '',
-          timeSlots: [],
 
           init() {
-              this.buildTimeSlots();
               this.parseExisting(savedValue || '');
               this.compose();
           },
 
-          buildTimeSlots() {
-              const slots = [];
-              for (let h = 0; h < 24; h++) {
-                  for (let m of [0, 30]) {
-                      const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-                      const ampm   = h < 12 ? 'AM' : 'PM';
-                      const hh     = String(h).padStart(2, '0');
-                      const mm     = String(m).padStart(2, '0');
-                      const label  = `${hour12}:${mm === '0' ? '00' : mm} ${ampm}`;
-                      slots.push({ value: `${hh}:${mm}`, label });
-                  }
-              }
-              this.timeSlots = slots;
+          formatTime12(time24) {
+              if (!time24) return '';
+              const parts = time24.split(':');
+              if (parts.length < 2) return '';
+              let h = parseInt(parts[0], 10);
+              const m = parts[1];
+              if (isNaN(h)) return '';
+              const ampm = h >= 12 ? 'PM' : 'AM';
+              h = h % 12;
+              if (h === 0) h = 12;
+              return `${h}:${m} ${ampm}`;
+          },
+
+          time12To24(label) {
+              if (!label) return '';
+              const match = label.match(/(\d{1,2})[:.:](\d{2})\s*(AM|PM)?/i);
+              if (!match) return '';
+              let h = parseInt(match[1], 10);
+              const m = match[2];
+              const ampm = match[3] ? match[3].toUpperCase() : null;
+
+              if (ampm === 'PM' && h < 12) h += 12;
+              if (ampm === 'AM' && h === 12) h = 0;
+
+              return `${String(h).padStart(2, '0')}:${m}`;
           },
 
           parseExisting(val) {
@@ -967,14 +979,9 @@
 
               if (timePart) {
                   const parts = timePart.split(/–|-/).map(s => s.trim());
-                  if (parts[0]) this.fromTime = this.labelToValue(parts[0]);
-                  if (parts[1]) this.toTime   = this.labelToValue(parts[1]);
+                  if (parts[0]) this.fromTime = this.time12To24(parts[0]);
+                  if (parts[1]) this.toTime   = this.time12To24(parts[1]);
               }
-          },
-
-          labelToValue(label) {
-              const found = this.timeSlots.find(t => t.label.toLowerCase() === label.toLowerCase());
-              return found ? found.value : '';
           },
 
           toggleDay(short) {
@@ -1001,8 +1008,8 @@
 
           compose() {
               const dayStr  = this.selectedDays.join(', ');
-              const fromLbl = this.fromTime ? this.timeSlots.find(t => t.value === this.fromTime)?.label : '';
-              const toLbl   = this.toTime   ? this.timeSlots.find(t => t.value === this.toTime)?.label   : '';
+              const fromLbl = this.formatTime12(this.fromTime);
+              const toLbl   = this.formatTime12(this.toTime);
 
               let result = dayStr;
               if (fromLbl || toLbl) {
