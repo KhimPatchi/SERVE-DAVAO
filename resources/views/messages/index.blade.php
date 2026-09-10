@@ -1190,41 +1190,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.chatAjaxLoaded) return;
     window.chatAjaxLoaded = true;
 
-    document.addEventListener('click', async (e) => {
+    document.addEventListener('click', (e) => {
         const link = e.target.closest('.conv-link');
         if (!link) return;
         
         e.preventDefault();
         const url = link.getAttribute('href');
         if (!url) return;
-        
-        const mainEl = document.querySelector('#chat-root main');
-        if (mainEl) mainEl.style.opacity = '0.5';
-        
-        try {
-            const response = await fetch(url);
-            const htmlText = await response.text();
-            
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(htmlText, 'text/html');
-            const newChatRoot = doc.getElementById('chat-root');
-            
-            if (newChatRoot) {
-                // Leave active Echo channel
-                if (window.Echo && window.currentConversationId) {
-                    window.Echo.leave(`conversation.${window.currentConversationId}`);
-                }
-                
-                const oldChatRoot = document.getElementById('chat-root');
-                if (oldChatRoot) {
-                    oldChatRoot.replaceWith(newChatRoot);
-                    window.history.pushState(null, '', url);
-                }
-            }
-        } catch (err) {
-            console.error('[Chat] Dynamic load failed, falling back to full reload:', err);
-            window.location.href = url;
-        }
+
+        // Use full page navigation: simple and reliable.
+        // AJAX swap causes Alpine.js re-init and Echo channel conflicts.
+        window.location.href = url;
     });
 
     window.addEventListener('popstate', () => {
