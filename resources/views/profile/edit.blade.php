@@ -7,7 +7,32 @@
 <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" rel="stylesheet">
 <style>
     #user-map { width: 100%; height: 280px; border-radius: 1rem; }
-    .mapboxgl-ctrl-geocoder { width: 100%; max-width: 100%; }
+    .mapboxgl-ctrl-geocoder {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        box-shadow: none !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 0.75rem !important;
+        float: none !important;
+        margin: 0 0 0.75rem 0 !important;
+        position: relative !important;
+        box-sizing: border-box !important;
+    }
+    .mapboxgl-ctrl-geocoder--input {
+        padding-left: 36px !important;
+        padding-right: 36px !important;
+        height: 44px !important;
+        font-size: 0.875rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        border-radius: 0.75rem !important;
+    }
+    .mapboxgl-ctrl-geocoder--icon-search {
+        top: 12px !important;
+        left: 10px !important;
+        position: absolute !important;
+    }
 </style>
 @endpush
 
@@ -281,9 +306,9 @@
                 </div>
 
                 <!-- Explicit Nearby Toggle -->
-                <div class="mt-4 flex items-center justify-between p-4 bg-emerald-50/50 rounded-xl border border-emerald-100">
+                <div class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-emerald-50/50 rounded-xl border border-emerald-100">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                        <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
                             <i class="bi bi-compass-fill"></i>
                         </div>
                         <div>
@@ -291,7 +316,7 @@
                             <p class="text-xs text-gray-500">Only recommend events within <span id="radius-val" class="font-bold text-emerald-600">{{ $user->preferred_radius ?? 15 }}km</span> of your location</p>
                         </div>
                     </div>
-                    <div class="flex flex-col items-end gap-2">
+                    <div class="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto">
                         <input type="range" 
                                name="preferred_radius" 
                                id="preferred_radius" 
@@ -299,7 +324,7 @@
                                max="100" 
                                step="1"
                                value="{{ old('preferred_radius', $user->preferred_radius ?? 15) }}"
-                               class="w-32 h-2 bg-emerald-100 rounded-lg appearance-none cursor-pointer accent-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                               class="w-full sm:w-32 h-2 bg-emerald-100 rounded-lg appearance-none cursor-pointer accent-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                                oninput="document.getElementById('radius-val').innerText = this.value + 'km'">
                         <span class="text-[10px] text-gray-400 font-medium">1km - 100km</span>
                     </div>

@@ -539,7 +539,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="main-content flex-1 p-6 md:p-8 lg:p-10 collapsed">
+    <div class="main-content flex-1 p-4 md:p-8 lg:p-10 pb-24 md:pb-8 collapsed overflow-x-hidden w-full max-w-full">
       @yield ('content')
     </div>
   </div>

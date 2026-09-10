@@ -7,7 +7,32 @@
 <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" rel="stylesheet">
 <style>
     #user-map { width: 100%; height: 280px; border-radius: 1rem; }
-    .mapboxgl-ctrl-geocoder { width: 100%; max-width: 100%; }
+    .mapboxgl-ctrl-geocoder {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 100% !important;
+        box-shadow: none !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 0.75rem !important;
+        float: none !important;
+        margin: 0 0 0.75rem 0 !important;
+        position: relative !important;
+        box-sizing: border-box !important;
+    }
+    .mapboxgl-ctrl-geocoder--input {
+        padding-left: 36px !important;
+        padding-right: 36px !important;
+        height: 44px !important;
+        font-size: 0.875rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        border-radius: 0.75rem !important;
+    }
+    .mapboxgl-ctrl-geocoder--icon-search {
+        top: 12px !important;
+        left: 10px !important;
+        position: absolute !important;
+    }
 </style>
 @endpush
 

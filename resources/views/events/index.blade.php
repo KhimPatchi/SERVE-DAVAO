@@ -351,18 +351,18 @@
                         </p>
                     </div>
 
-                    <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="flex flex-col sm:flex-row gap-3 w-full">
                         <!-- Enhanced Search -->
-                        <div class="relative">
+                        <div class="relative w-full sm:w-64">
                             <input type="text"
                                 placeholder="Search events, locations, skills..."
-                                class="pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-64 text-sm bg-white transition-all">
+                                class="pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 w-full text-sm bg-white transition-all">
                             <i class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                         </div>
 
                         <!-- Enhanced Filters -->
-                        <div class="flex gap-2">
-                            <select class="appearance-none pl-4 pr-10 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-sm transition-all cursor-pointer">
+                        <div class="flex flex-col sm:flex-row flex-wrap gap-2 w-full sm:w-auto">
+                            <select class="w-full sm:w-auto appearance-none pl-4 pr-10 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-sm transition-all cursor-pointer">
                                 <option>All Dates</option>
                                 <option>Today</option>
                                 <option>Next 7 Days</option>
@@ -370,7 +370,7 @@
                                 <option>Registration Closing Soon</option>
                             </select>
 
-                            <select class="appearance-none pl-4 pr-10 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-sm transition-all cursor-pointer">
+                            <select class="w-full sm:w-auto appearance-none pl-4 pr-10 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-sm transition-all cursor-pointer">
                                 <option>All Categories</option>
                                 <option>Environmental</option>
                                 <option>Education</option>
@@ -381,7 +381,7 @@
 
                             @auth
                                 @if(!Auth::user()->isVerifiedOrganizer())
-                                <select class="appearance-none pl-4 pr-10 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-sm transition-all cursor-pointer">
+                                <select class="w-full sm:w-auto appearance-none pl-4 pr-10 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-sm transition-all cursor-pointer">
                                     <option>All Locations</option>
                                     <option>Near Me (5km)</option>
                                     <option>Davao City Center</option>
